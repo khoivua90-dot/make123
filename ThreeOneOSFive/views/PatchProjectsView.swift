@@ -216,6 +216,8 @@ struct PatchProjectDetailView: View {
     @State private var showApplyConfirmation = false
     @State private var showRestoreConfirmation = false
     @State private var isWorking = false
+    @State private var ruleStates: [UUID: Bool] = [:]
+    @State private var togglingRuleID: UUID?
     @State private var actionAlert: PatchStoreAlert?
 
     private var item: PatchLibraryItem? {
@@ -231,61 +233,12 @@ struct PatchProjectDetailView: View {
             if let item, let project = item.project {
                 Section {
                     ForEach(project.rules) { rule in
-                        Button {
-                            editingRule = rule
-                        } label: {
-                            HStack(spacing: 10) {
-                                ruleSummary(rule)
-                                Spacer(minLength: 8)
-                                Image(systemName: "chevron.right")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.tertiary)
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityHint(language.text("patch.edit_rule_hint"))
+                        ruleToggleRow(rule)
                     }
                 } header: {
                     Text(language.text("patch.rules"))
                 } footer: {
-                    Text(language.text("patch.tap_rule_to_edit"))
-                }
-
-                Section(language.text("patch.password")) {
-                    HStack(spacing: 12) {
-                        Image(systemName: item.summary.isPasswordProtected ? "lock.fill" : "lock.open")
-                            .foregroundStyle(AppTheme.accent)
-                            .frame(width: 24)
-                        Text(language.text(item.summary.isPasswordProtected
-                            ? "patch.password_locked"
-                            : "patch.no_password"))
-                            .font(.subheadline)
-                    }
-                }
-
-                Section {
-                    Button {
-                        showApplyConfirmation = true
-                    } label: {
-                        actionLabel("patch.apply", systemImage: "checkmark.shield.fill")
-                    }
-                    .disabled(isWorking)
-
-                    if receipt != nil {
-                        Button(role: .destructive) {
-                            showRestoreConfirmation = true
-                        } label: {
-                            actionLabel("patch.restore", systemImage: "arrow.uturn.backward.circle")
-                        }
-                        .disabled(isWorking)
-                    }
-
-                    ShareLink(item: item.packageURL) {
-                        actionLabel("patch.export", systemImage: "square.and.arrow.up")
-                    }
-                } footer: {
-                    Text(language.text("patch.apply_footer"))
+                    Text(language.text("patch.toggle_footer"))
                 }
             }
         }
@@ -295,12 +248,35 @@ struct PatchProjectDetailView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 if isWorking {
                     ProgressView()
-                } else {
-                    Button(language.text("patch.edit")) { showEditor = true }
-                        .disabled(item?.project == nil)
+                } else if let item {
+                    Menu {
+                        Button {
+                            showEditor = true
+                        } label: {
+                            Label(language.text("patch.edit"), systemImage: "pencil")
+                        }
+                        Button {
+                            showApplyConfirmation = true
+                        } label: {
+                            Label(language.text("patch.apply"), systemImage: "checkmark.shield.fill")
+                        }
+                        if receipt != nil {
+                            Button(role: .destructive) {
+                                showRestoreConfirmation = true
+                            } label: {
+                                Label(language.text("patch.restore"), systemImage: "arrow.uturn.backward.circle")
+                            }
+                        }
+                        ShareLink(item: item.packageURL) {
+                            Label(language.text("patch.export"), systemImage: "square.and.arrow.up")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
                 }
             }
         }
+        .task { await loadInitialStates() }
         .sheet(isPresented: $showEditor) {
             if let item, let project = item.project {
                 PatchProjectEditorView(
@@ -343,25 +319,84 @@ struct PatchProjectDetailView: View {
         }
     }
 
-    private func actionLabel(_ key: String, systemImage: String) -> some View {
-        Label(language.text(key), systemImage: systemImage)
-            .frame(maxWidth: .infinity, alignment: .leading)
+    private func ruleToggleRow(_ rule: PatchRule) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(rule.replacementFilename.isEmpty ? rule.bundleID : rule.replacementFilename)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.primary)
+                Text(rule.relativePath)
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                if !rule.canToggle {
+                    Text(language.text("patch.toggle_unavailable"))
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                }
+            }
+            Spacer(minLength: 8)
+            if togglingRuleID == rule.id {
+                ProgressView()
+            } else {
+                Toggle("", isOn: toggleBinding(for: rule))
+                    .labelsHidden()
+                    .disabled(!rule.canToggle)
+            }
+        }
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .onTapGesture { editingRule = rule }
+        .accessibilityHint(language.text("patch.edit_rule_hint"))
     }
 
-    private func ruleSummary(_ rule: PatchRule) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(rule.bundleID)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
-            Text(rule.relativePath)
-                .font(.caption.monospaced())
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
-            Label(rule.replacementFilename, systemImage: "arrow.triangle.2.circlepath")
-                .font(.caption)
-                .foregroundStyle(AppTheme.accent)
+    private func toggleBinding(for rule: PatchRule) -> Binding<Bool> {
+        Binding(
+            get: { ruleStates[rule.id] ?? false },
+            set: { setRuleState($0, rule: rule) }
+        )
+    }
+
+    private func loadInitialStates() async {
+        guard let project = item?.project else { return }
+        let states: [UUID: Bool] = await Task.detached(priority: .userInitiated) {
+            var result: [UUID: Bool] = [:]
+            for rule in project.rules where rule.canToggle {
+                if let state = DevicePatchService.currentRuleState(for: rule) {
+                    result[rule.id] = state
+                }
+            }
+            return result
+        }.value
+        ruleStates = states
+    }
+
+    private func setRuleState(_ isOn: Bool, rule: PatchRule) {
+        guard rule.canToggle, togglingRuleID == nil else { return }
+        togglingRuleID = rule.id
+        Task.detached(priority: .userInitiated) {
+            do {
+                try DevicePatchService.setRuleState(isOn, rule: rule)
+                await MainActor.run {
+                    ruleStates[rule.id] = isOn
+                    togglingRuleID = nil
+                }
+            } catch let error as PatchPackageError {
+                await MainActor.run {
+                    togglingRuleID = nil
+                    actionAlert = PatchStoreAlert(
+                        titleKey: "common.failed",
+                        messageKey: error.localizationKey,
+                        messageArgument: error.localizationArgument
+                    )
+                }
+            } catch {
+                await MainActor.run {
+                    togglingRuleID = nil
+                    actionAlert = PatchStoreAlert(titleKey: "common.failed", messageKey: "patch.error.apply")
+                }
+            }
         }
-        .padding(.vertical, 3)
     }
 
     private func updateRule(_ updatedRule: PatchRule) {

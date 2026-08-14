@@ -37,6 +37,22 @@ enum DevicePatchService {
         return PatchTransaction.latestReceipt(projectID: projectID, backupRoot: backupRoot)
     }
 
+    static func setRuleState(_ isOn: Bool, rule: PatchRule) throws {
+        try withResolvedContainers(bundleIDs: [rule.bundleID]) { roots in
+            guard let root = roots[rule.bundleID] else {
+                throw PatchPackageError.targetAppUnavailable(rule.bundleID)
+            }
+            try PatchTransaction.setRuleState(isOn, rule: rule, containerRoot: root)
+        }
+    }
+
+    static func currentRuleState(for rule: PatchRule) -> Bool? {
+        try? withResolvedContainers(bundleIDs: [rule.bundleID]) { roots in
+            guard let root = roots[rule.bundleID] else { return nil }
+            return PatchTransaction.currentRuleState(rule: rule, containerRoot: root)
+        }
+    }
+
     private static func orderedBundleIdentifiers(in project: PatchProject) -> [String] {
         var seen = Set<String>()
         return project.rules.compactMap { seen.insert($0.bundleID).inserted ? $0.bundleID : nil }

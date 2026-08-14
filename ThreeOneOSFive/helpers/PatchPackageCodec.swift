@@ -22,6 +22,8 @@ enum PatchPackageCodec {
     private struct Payload: Codable {
         let project: PatchProject
         let replacementDigests: [String: Data]
+        /// Absent when decoding packages created before per-rule original files existed.
+        let originalDigests: [String: Data]?
     }
 
     static func encodeNew(
@@ -164,7 +166,11 @@ enum PatchPackageCodec {
         let digests = Dictionary(uniqueKeysWithValues: project.rules.map {
             ($0.id.uuidString, Data(SHA256.hash(data: $0.replacementData)))
         })
-        let payload = Payload(project: project, replacementDigests: digests)
+        let originalDigests = Dictionary(uniqueKeysWithValues: project.rules.compactMap { rule -> (String, Data)? in
+            guard let originalData = rule.originalData else { return nil }
+            return (rule.id.uuidString, Data(SHA256.hash(data: originalData)))
+        })
+        let payload = Payload(project: project, replacementDigests: digests, originalDigests: originalDigests)
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .binary
         let payloadData = try encoder.encode(payload)
@@ -203,10 +209,17 @@ enum PatchPackageCodec {
         guard payload.replacementDigests.count == payload.project.rules.count else {
             throw PatchPackageError.invalidPasswordOrCorruptedPackage
         }
+        let originalDigests = payload.originalDigests ?? [:]
         for rule in payload.project.rules {
             let actual = Data(SHA256.hash(data: rule.replacementData))
             guard payload.replacementDigests[rule.id.uuidString] == actual else {
                 throw PatchPackageError.invalidPasswordOrCorruptedPackage
+            }
+            if let originalData = rule.originalData {
+                let actualOriginal = Data(SHA256.hash(data: originalData))
+                guard originalDigests[rule.id.uuidString] == actualOriginal else {
+                    throw PatchPackageError.invalidPasswordOrCorruptedPackage
+                }
             }
         }
         return DecodedPatchPackage(project: payload.project, contentKey: contentKey)
@@ -241,11 +254,17 @@ enum PatchPackageCodec {
             guard rule.replacementData.count <= PatchPackageLimits.maximumReplacementBytes else {
                 throw PatchPackageError.sizeLimitExceeded
             }
+            if let originalData = rule.originalData {
+                guard originalData.count <= PatchPackageLimits.maximumReplacementBytes else {
+                    throw PatchPackageError.sizeLimitExceeded
+                }
+            }
             let targetKey = bundleID + "\0" + relativePath
             guard targets.insert(targetKey).inserted else {
                 throw PatchPackageError.duplicateTarget
             }
-            let (nextTotal, overflow) = totalBytes.addingReportingOverflow(rule.replacementData.count)
+            let ruleBytes = rule.replacementData.count + (rule.originalData?.count ?? 0)
+            let (nextTotal, overflow) = totalBytes.addingReportingOverflow(ruleBytes)
             guard !overflow, nextTotal <= PatchPackageLimits.maximumTotalReplacementBytes else {
                 throw PatchPackageError.sizeLimitExceeded
             }

@@ -182,8 +182,11 @@ struct PatchRuleEditorView: View {
     @State private var relativePath: String
     @State private var replacementFilename: String
     @State private var replacementData: Data
+    @State private var originalData: Data?
     @State private var showFileImporter = false
+    @State private var showOriginalFileImporter = false
     @State private var isImporting = false
+    @State private var isImportingOriginal = false
     @State private var validationMessageKey: String?
 
     init(rule: PatchRule?, onSave: @escaping (PatchRule) -> Void) {
@@ -193,6 +196,7 @@ struct PatchRuleEditorView: View {
         _relativePath = State(initialValue: rule?.relativePath ?? "")
         _replacementFilename = State(initialValue: rule?.replacementFilename ?? "")
         _replacementData = State(initialValue: rule?.replacementData ?? Data())
+        _originalData = State(initialValue: rule?.originalData)
     }
 
     var body: some View {
@@ -259,6 +263,60 @@ struct PatchRuleEditorView: View {
                     }
                 }
 
+                Section {
+                    Button {
+                        showOriginalFileImporter = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: originalData == nil ? "doc.badge.plus" : "doc.fill")
+                                .foregroundStyle(AppTheme.accent)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(originalData == nil
+                                     ? language.text("patch.choose_file")
+                                     : language.text("patch.original_file_chosen"))
+                                    .foregroundStyle(.primary)
+                                Text(language.text(originalData == nil
+                                     ? "patch.original_file_none"
+                                     : "patch.change_original"))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .disabled(isImportingOriginal)
+                    if isImportingOriginal {
+                        HStack(spacing: 10) {
+                            ProgressView()
+                            Text(language.text("patch.importing_original"))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    if let originalData {
+                        LabeledContent(
+                            language.text("patch.file_size"),
+                            value: ByteCountFormatter.string(
+                                fromByteCount: Int64(originalData.count),
+                                countStyle: .file
+                            )
+                        )
+                        Button(role: .destructive) {
+                            self.originalData = nil
+                        } label: {
+                            Text(language.text("patch.remove_original_file"))
+                        }
+                    }
+                } header: {
+                    Text(language.text("patch.original_file"))
+                } footer: {
+                    Text(language.text("patch.original_file_footer"))
+                }
+
                 if let validationMessageKey {
                     Section {
                         Label(language.text(validationMessageKey), systemImage: "exclamationmark.triangle.fill")
@@ -274,7 +332,7 @@ struct PatchRuleEditorView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(language.text("common.done"), action: save)
-                        .disabled(isImporting)
+                        .disabled(isImporting || isImportingOriginal)
                 }
             }
             .sheet(isPresented: $showFileImporter) {
@@ -286,6 +344,19 @@ struct PatchRuleEditorView: View {
                     },
                     onCancel: {
                         showFileImporter = false
+                    }
+                )
+                .ignoresSafeArea()
+            }
+            .sheet(isPresented: $showOriginalFileImporter) {
+                FileDocumentPicker(
+                    allowsMultipleSelection: false,
+                    onSelection: { result in
+                        showOriginalFileImporter = false
+                        importOriginalFile(result)
+                    },
+                    onCancel: {
+                        showOriginalFileImporter = false
                     }
                 )
                 .ignoresSafeArea()
@@ -333,6 +404,45 @@ struct PatchRuleEditorView: View {
         }
     }
 
+    private func importOriginalFile(_ result: Result<[URL], Error>) {
+        guard case .success(let urls) = result, let url = urls.first else { return }
+        isImportingOriginal = true
+        validationMessageKey = nil
+        DispatchQueue.global(qos: .userInitiated).async {
+            let hasAccess = url.startAccessingSecurityScopedResource()
+            defer { if hasAccess { url.stopAccessingSecurityScopedResource() } }
+            do {
+                let values = try url.resourceValues(
+                    forKeys: [.fileSizeKey, .isDirectoryKey, .isSymbolicLinkKey]
+                )
+                guard values.isDirectory != true,
+                      values.isSymbolicLink != true,
+                      let size = values.fileSize,
+                      size <= PatchPackageLimits.maximumReplacementBytes else {
+                    throw PatchPackageError.sizeLimitExceeded
+                }
+                let importedData = try Data(contentsOf: url, options: .mappedIfSafe)
+                guard importedData.count <= PatchPackageLimits.maximumReplacementBytes else {
+                    throw PatchPackageError.sizeLimitExceeded
+                }
+                DispatchQueue.main.async {
+                    originalData = importedData
+                    isImportingOriginal = false
+                }
+            } catch let error as PatchPackageError {
+                DispatchQueue.main.async {
+                    validationMessageKey = error.localizationKey
+                    isImportingOriginal = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    validationMessageKey = "patch.error.invalid_project"
+                    isImportingOriginal = false
+                }
+            }
+        }
+    }
+
     private func save() {
         do {
             let canonicalBundle = try PatchPathValidator.canonicalBundleIdentifier(bundleID)
@@ -343,7 +453,8 @@ struct PatchRuleEditorView: View {
                 bundleID: canonicalBundle,
                 relativePath: canonicalPath,
                 replacementFilename: replacementFilename,
-                replacementData: replacementData
+                replacementData: replacementData,
+                originalData: originalData
             ))
             dismiss()
         } catch let error as PatchPackageError {
