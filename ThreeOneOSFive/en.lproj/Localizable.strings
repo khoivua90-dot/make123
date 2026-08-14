@@ -38,6 +38,10 @@
 "tab.settings" = "Settings";
 
 "patch.title" = "Patches";
+"patch.my_patches" = "My Patches";
+"patch.my_patches_subtitle" = "%lld saved projects";
+"patch.no_games_yet" = "No games on the server yet. Open \"My Patches\" to create or import one yourself.";
+"patch.game_empty_message" = "No patches for this game yet.";
 "patch.add" = "Add patch project";
 "patch.new" = "New Patch";
 "patch.import" = "Import .3105";

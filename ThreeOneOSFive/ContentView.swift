@@ -7,7 +7,7 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            PatchProjectsView()
+            GamesHomeView()
                 .tabItem {
                     Label(language.text("tab.home"), systemImage: "house")
                 }

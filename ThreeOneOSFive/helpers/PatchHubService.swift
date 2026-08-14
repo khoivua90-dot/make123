@@ -10,6 +10,21 @@ struct RemotePatchSummary: Decodable, Identifiable, Equatable {
     let sizeBytes: Int64
     let sha256: String
     let createdAt: String
+    let gameId: String?
+}
+
+struct RemoteGameSummary: Decodable, Identifiable, Equatable {
+    let id: String
+    let name: String
+    let bundleID: String
+    let bannerColor: String
+    let iconPath: String?
+    let createdAt: String
+
+    var iconURL: URL? {
+        guard let iconPath else { return nil }
+        return PatchHubService.baseURL.appendingPathComponent(String(iconPath.dropFirst()))
+    }
 }
 
 enum PatchHubError: Error {
@@ -19,6 +34,16 @@ enum PatchHubError: Error {
 
 enum PatchHubService {
     static let baseURL = URL(string: "https://patches.cheatiosvip.net")!
+
+    static func fetchGames() async throws -> [RemoteGameSummary] {
+        let url = baseURL.appendingPathComponent("api/games")
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw PatchHubError.invalidResponse
+        }
+        struct Envelope: Decodable { let games: [RemoteGameSummary] }
+        return try JSONDecoder().decode(Envelope.self, from: data).games
+    }
 
     static func fetchPatches() async throws -> [RemotePatchSummary] {
         let url = baseURL.appendingPathComponent("api/patches")

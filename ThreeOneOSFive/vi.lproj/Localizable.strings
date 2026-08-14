@@ -38,6 +38,10 @@
 "tab.settings" = "Cài đặt";
 
 "patch.title" = "Patch";
+"patch.my_patches" = "Dự án của tôi";
+"patch.my_patches_subtitle" = "%lld dự án đã lưu";
+"patch.no_games_yet" = "Chưa có game nào trên server. Vào \"Dự án của tôi\" để tự tạo hoặc nhập patch.";
+"patch.game_empty_message" = "Chưa có patch nào cho game này.";
 "patch.add" = "Thêm dự án patch";
 "patch.new" = "Tạo patch";
 "patch.import" = "Nhập .3105";

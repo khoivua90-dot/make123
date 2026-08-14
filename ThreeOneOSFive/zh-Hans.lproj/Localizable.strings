@@ -38,6 +38,10 @@
 "tab.settings" = "设置";
 
 "patch.title" = "补丁";
+"patch.my_patches" = "我的项目";
+"patch.my_patches_subtitle" = "已保存 %lld 个项目";
+"patch.no_games_yet" = "服务器上还没有游戏。可在\"我的项目\"中自行创建或导入补丁。";
+"patch.game_empty_message" = "此游戏暂无补丁。";
 "patch.add" = "添加补丁项目";
 "patch.new" = "新建补丁";
 "patch.import" = "导入 .3105";

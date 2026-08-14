@@ -9,18 +9,12 @@ private enum PatchPackagePickerPolicy {
 
 struct PatchProjectsView: View {
     @Environment(\.appLanguage) private var language
-    @EnvironmentObject private var draftCoordinator: PatchDraftCoordinator
-    @StateObject private var store = PatchProjectStore()
+    @ObservedObject var store: PatchProjectStore
     @State private var showCreate = false
     @State private var showImporter = false
-    @State private var isSyncingOnline = false
-    @AppStorage("patch.importedOnlineIDs") private var importedOnlineIDsRaw = ""
 
-    private var importedOnlineIDs: Set<String> {
-        Set(importedOnlineIDsRaw.split(separator: ",").map(String.init))
-    }
-
-    init() {
+    init(store: PatchProjectStore) {
+        self.store = store
 #if targetEnvironment(simulator)
         _showCreate = State(
             initialValue: ProcessInfo.processInfo.arguments.contains("--simulate-patch-editor")
@@ -29,94 +23,81 @@ struct PatchProjectsView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            List {
-                if store.items.isEmpty && !store.isBusy {
-                    emptyState
-                        .listRowSeparator(.hidden)
-                } else {
-                    ForEach(store.items) { item in
-                        itemRow(item)
-                    }
-                    .onDelete { offsets in
-                        offsets.map { store.items[$0] }.forEach(store.delete)
-                    }
+        List {
+            if store.items.isEmpty && !store.isBusy {
+                emptyState
+                    .listRowSeparator(.hidden)
+            } else {
+                ForEach(store.items) { item in
+                    itemRow(item)
+                }
+                .onDelete { offsets in
+                    offsets.map { store.items[$0] }.forEach(store.delete)
                 }
             }
-            .listStyle(.plain)
-            .refreshable { await syncOnlineLibrary() }
-            .navigationTitle(language.text("patch.title"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button {
-                            showCreate = true
-                        } label: {
-                            Label(language.text("patch.new"), systemImage: "doc.badge.plus")
-                        }
-                        Button {
-                            showImporter = true
-                        } label: {
-                            Label(language.text("patch.import"), systemImage: "square.and.arrow.down")
-                        }
+        }
+        .listStyle(.plain)
+        .refreshable { store.reload() }
+        .navigationTitle(language.text("patch.title"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button {
+                        showCreate = true
                     } label: {
-                        if store.isBusy || isSyncingOnline {
-                            ProgressView()
-                        } else {
-                            Image(systemName: "plus")
-                        }
+                        Label(language.text("patch.new"), systemImage: "doc.badge.plus")
                     }
-                    .disabled(store.isBusy)
-                    .accessibilityLabel(language.text("patch.add"))
-                }
-            }
-            .task { await syncOnlineLibrary() }
-            .sheet(isPresented: $showImporter) {
-                FileDocumentPicker(
-                    allowedContentTypes: PatchPackagePickerPolicy.allowedContentTypes,
-                    copiesSelectedDocument: PatchPackagePickerPolicy.copiesSelectedDocument,
-                    allowsMultipleSelection: false,
-                    onSelection: { result in
-                        showImporter = false
-                        if case .success(let urls) = result, let url = urls.first {
-                            store.importPackage(at: url)
-                        }
-                    },
-                    onCancel: {
-                        showImporter = false
+                    Button {
+                        showImporter = true
+                    } label: {
+                        Label(language.text("patch.import"), systemImage: "square.and.arrow.down")
                     }
-                )
-                .ignoresSafeArea()
-            }
-            .sheet(isPresented: $showCreate) {
-                PatchProjectEditorView(
-                    existingProject: nil,
-                    passwordIsProtected: false
-                ) { project, password in
-                    store.create(project: project, password: password)
+                } label: {
+                    if store.isBusy {
+                        ProgressView()
+                    } else {
+                        Image(systemName: "plus")
+                    }
                 }
+                .disabled(store.isBusy)
+                .accessibilityLabel(language.text("patch.add"))
             }
-            .sheet(item: $draftCoordinator.request) { request in
-                PatchProjectEditorView(
-                    existingProject: nil,
-                    passwordIsProtected: false,
-                    initialDraft: request.draft
-                ) { project, password in
-                    store.create(project: project, password: password)
-                    draftCoordinator.clear()
+        }
+        .sheet(isPresented: $showImporter) {
+            FileDocumentPicker(
+                allowedContentTypes: PatchPackagePickerPolicy.allowedContentTypes,
+                copiesSelectedDocument: PatchPackagePickerPolicy.copiesSelectedDocument,
+                allowsMultipleSelection: false,
+                onSelection: { result in
+                    showImporter = false
+                    if case .success(let urls) = result, let url = urls.first {
+                        store.importPackage(at: url)
+                    }
+                },
+                onCancel: {
+                    showImporter = false
                 }
+            )
+            .ignoresSafeArea()
+        }
+        .sheet(isPresented: $showCreate) {
+            PatchProjectEditorView(
+                existingProject: nil,
+                passwordIsProtected: false
+            ) { project, password in
+                store.create(project: project, password: password)
             }
-            .sheet(item: $store.passwordRequest, onDismiss: store.cancelUnlock) { _ in
-                PatchUnlockView(store: store)
-            }
-            .alert(item: $store.alert) { alert in
-                Alert(
-                    title: Text(language.text(alert.titleKey)),
-                    message: Text(alert.message(language: language)),
-                    dismissButton: .default(Text(language.text("common.ok")))
-                )
-            }
+        }
+        .sheet(item: $store.passwordRequest, onDismiss: store.cancelUnlock) { _ in
+            PatchUnlockView(store: store)
+        }
+        .alert(item: $store.alert) { alert in
+            Alert(
+                title: Text(language.text(alert.titleKey)),
+                message: Text(alert.message(language: language)),
+                dismissButton: .default(Text(language.text("common.ok")))
+            )
         }
     }
 
@@ -133,51 +114,6 @@ struct PatchProjectsView: View {
             } label: {
                 PatchProjectRow(item: item, language: language)
             }
-        }
-    }
-
-    /// Silently pulls new patches from the web hub straight into the local library, so they
-    /// show up in the list on their own — no separate "online" section or manual download tap.
-    /// Password-protected packages still land here too; they simply appear locked, same as any
-    /// other locked package, until the user taps in the password.
-    private func syncOnlineLibrary() async {
-        guard !isSyncingOnline else { return }
-        isSyncingOnline = true
-        defer { isSyncingOnline = false }
-
-        guard let remoteItems = try? await PatchHubService.fetchPatches() else { return }
-        let pending = remoteItems.filter { !importedOnlineIDs.contains($0.id) }
-        guard !pending.isEmpty else { return }
-
-        var imported = importedOnlineIDs
-        var didImportAny = false
-
-        for item in pending {
-            do {
-                let fileURL = try await PatchHubService.downloadPatch(item)
-                let saved: Bool = await Task.detached(priority: .utility) {
-                    do {
-                        let data = try PatchProjectLibrary.readPackage(at: fileURL)
-                        _ = try PatchPackageCodec.inspect(data)
-                        _ = try PatchProjectLibrary.save(data: data, projectName: item.name)
-                        try? FileManager.default.removeItem(at: fileURL)
-                        return true
-                    } catch {
-                        return false
-                    }
-                }.value
-                if saved {
-                    imported.insert(item.id)
-                    didImportAny = true
-                }
-            } catch {
-                continue
-            }
-        }
-
-        importedOnlineIDsRaw = imported.joined(separator: ",")
-        if didImportAny {
-            store.reload()
         }
     }
 
@@ -200,7 +136,7 @@ struct PatchProjectsView: View {
     }
 }
 
-private struct PatchProjectRow: View {
+struct PatchProjectRow: View {
     let item: PatchLibraryItem
     let language: AppLanguage
 
@@ -233,7 +169,7 @@ private struct PatchProjectRow: View {
     }
 }
 
-private struct PatchUnlockView: View {
+struct PatchUnlockView: View {
     @Environment(\.appLanguage) private var language
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var store: PatchProjectStore
@@ -271,7 +207,7 @@ private struct PatchUnlockView: View {
     }
 }
 
-private struct PatchProjectDetailView: View {
+struct PatchProjectDetailView: View {
     @Environment(\.appLanguage) private var language
     @ObservedObject var store: PatchProjectStore
     let projectID: UUID
