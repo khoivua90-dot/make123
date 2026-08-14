@@ -35,34 +35,7 @@
 "tab.home" = "Home";
 "tab.files" = "Files";
 "tab.patches" = "Patches";
-"tab.cleaner" = "Cleaner";
 "tab.settings" = "Settings";
-
-"cleaner.title" = "Cleaner";
-"cleaner.limited_mode" = "Limited Cleanup";
-"cleaner.available" = "Available to clean";
-"cleaner.selected" = "Selected";
-"cleaner.selected_summary" = "%lld apps · %@";
-"cleaner.scope_footer" = "Only Library/Caches and tmp are removed. Documents, preferences and Keychain stay unchanged.";
-"cleaner.apps_with_cache" = "%lld apps with temporary data";
-"cleaner.apps_footer" = "Only apps with removable temporary data are shown.";
-"cleaner.scanned_count" = "%lld scanned";
-"cleaner.scanning" = "Scanning app caches…";
-"cleaner.search" = "Search apps";
-"cleaner.search_empty_message" = "Try a different app name or bundle identifier.";
-"cleaner.empty_title" = "Already Clean";
-"cleaner.empty_message" = "No removable data was found in Library/Caches or tmp.";
-"cleaner.selection_actions" = "Selection actions";
-"cleaner.scan_again" = "Scan again";
-"cleaner.clean_button" = "Clean %@";
-"cleaner.cleaning" = "Cleaning…";
-"cleaner.confirm_title" = "Delete temporary data?";
-"cleaner.confirm_message" = "CheatiOSVip will permanently delete Library/Caches and tmp from %lld selected apps (%@). Close those apps first. They may open more slowly while rebuilding caches. This cannot be undone.";
-"cleaner.confirm_action" = "Clean Now";
-"cleaner.result_title" = "Cleanup Finished";
-"cleaner.result_message" = "Freed %@ by removing %lld files. %lld items or apps could not be cleaned.";
-"cleaner.accessibility_selected" = "Selected";
-"cleaner.accessibility_not_selected" = "Not selected";
 
 "patch.title" = "Patches";
 "patch.add" = "Add patch project";

@@ -35,34 +35,7 @@
 "tab.home" = "Trang chủ";
 "tab.files" = "Tệp";
 "tab.patches" = "Patch";
-"tab.cleaner" = "Dọn dẹp";
 "tab.settings" = "Cài đặt";
-
-"cleaner.title" = "Dọn dẹp";
-"cleaner.limited_mode" = "Dọn dẹp giới hạn";
-"cleaner.available" = "Có thể giải phóng";
-"cleaner.selected" = "Đã chọn";
-"cleaner.selected_summary" = "%lld ứng dụng · %@";
-"cleaner.scope_footer" = "Chỉ xóa Library/Caches và tmp. Documents, tùy chọn và Keychain được giữ nguyên.";
-"cleaner.apps_with_cache" = "%lld ứng dụng có dữ liệu tạm";
-"cleaner.apps_footer" = "Chỉ hiện ứng dụng có dữ liệu tạm có thể xóa.";
-"cleaner.scanned_count" = "Đã quét %lld";
-"cleaner.scanning" = "Đang quét bộ nhớ đệm…";
-"cleaner.search" = "Tìm ứng dụng";
-"cleaner.search_empty_message" = "Thử tên ứng dụng hoặc bundle khác.";
-"cleaner.empty_title" = "Đã sạch";
-"cleaner.empty_message" = "Không tìm thấy dữ liệu có thể xóa trong Library/Caches hoặc tmp.";
-"cleaner.selection_actions" = "Thao tác lựa chọn";
-"cleaner.scan_again" = "Quét lại";
-"cleaner.clean_button" = "Dọn %@";
-"cleaner.cleaning" = "Đang dọn…";
-"cleaner.confirm_title" = "Xóa dữ liệu tạm?";
-"cleaner.confirm_message" = "CheatiOSVip sẽ xóa vĩnh viễn Library/Caches và tmp của %lld ứng dụng đã chọn (%@). Hãy đóng các ứng dụng đó trước. Lần mở tiếp theo có thể chậm hơn khi tạo lại bộ nhớ đệm. Không thể hoàn tác.";
-"cleaner.confirm_action" = "Dọn ngay";
-"cleaner.result_title" = "Đã dọn xong";
-"cleaner.result_message" = "Đã giải phóng %@ và xóa %lld tệp. Có %lld mục hoặc ứng dụng không thể dọn.";
-"cleaner.accessibility_selected" = "Đã chọn";
-"cleaner.accessibility_not_selected" = "Chưa chọn";
 
 "patch.title" = "Patch";
 "patch.add" = "Thêm dự án patch";

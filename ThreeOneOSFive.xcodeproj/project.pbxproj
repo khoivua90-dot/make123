@@ -44,9 +44,6 @@
 		3105C200 /* PatchDraftService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C100; };
 		3105C201 /* PatchDraftCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C101; };
 		3105C202 /* FolderPatchSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C102; };
-		3105E200 /* LimitedCleanerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105E100; };
-		3105E201 /* CleanerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105E101; };
-		3105E202 /* CleanerCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105E102; };
 		3105F200 /* wallpaper_zip.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105F100; };
 		3105F201 /* WallpaperLabModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105F102; };
 		3105F202 /* SecureZIPArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105F103; };
@@ -114,9 +111,6 @@
 		3105C100 /* PatchDraftService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDraftService.swift; sourceTree = "<group>"; };
 		3105C101 /* PatchDraftCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDraftCoordinator.swift; sourceTree = "<group>"; };
 		3105C102 /* FolderPatchSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderPatchSelectionView.swift; sourceTree = "<group>"; };
-		3105E100 /* LimitedCleanerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitedCleanerService.swift; sourceTree = "<group>"; };
-		3105E101 /* CleanerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanerView.swift; sourceTree = "<group>"; };
-		3105E102 /* CleanerCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanerCatalog.swift; sourceTree = "<group>"; };
 		3105F100 /* wallpaper_zip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = wallpaper_zip.c; sourceTree = "<group>"; };
 		3105F101 /* wallpaper_zip.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wallpaper_zip.h; sourceTree = "<group>"; };
 		3105F102 /* WallpaperLabModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperLabModels.swift; sourceTree = "<group>"; };
@@ -197,7 +191,6 @@
 				3105B121 /* PatchProjectsView.swift */,
 				3105B122 /* PatchProjectEditorView.swift */,
 				3105C102 /* FolderPatchSelectionView.swift */,
-				3105E101 /* CleanerView.swift */,
 				3105F106 /* WallpaperLabView.swift */,
 			);
 			path = views;
@@ -223,8 +216,6 @@
 				3105G004 /* PatchHubService.swift */,
 				3105C100 /* PatchDraftService.swift */,
 				3105C101 /* PatchDraftCoordinator.swift */,
-				3105E100 /* LimitedCleanerService.swift */,
-				3105E102 /* CleanerCatalog.swift */,
 				3105F102 /* WallpaperLabModels.swift */,
 				3105F103 /* SecureZIPArchive.swift */,
 				3105F104 /* WallpaperInstaller.swift */,
@@ -354,9 +345,6 @@
 				3105C200,
 				3105C201,
 				3105C202,
-				3105E200,
-				3105E201,
-				3105E202,
 				3105F200,
 				3105F201,
 				3105F202,
