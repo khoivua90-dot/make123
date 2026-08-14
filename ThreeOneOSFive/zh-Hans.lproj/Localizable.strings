@@ -36,6 +36,7 @@
 "tab.files" = "文件";
 "tab.patches" = "补丁";
 "tab.cleaner" = "清理";
+"tab.settings" = "设置";
 
 "cleaner.title" = "清理";
 "cleaner.limited_mode" = "有限清理";

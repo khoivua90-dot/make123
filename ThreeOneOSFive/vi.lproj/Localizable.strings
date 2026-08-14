@@ -36,6 +36,7 @@
 "tab.files" = "Tệp";
 "tab.patches" = "Patch";
 "tab.cleaner" = "Dọn dẹp";
+"tab.settings" = "Cài đặt";
 
 "cleaner.title" = "Dọn dẹp";
 "cleaner.limited_mode" = "Dọn dẹp giới hạn";
