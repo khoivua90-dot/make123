@@ -13,6 +13,7 @@ struct PatchProjectsView: View {
     @StateObject private var store = PatchProjectStore()
     @State private var showCreate = false
     @State private var showImporter = false
+    @State private var showOnlineLibrary = false
 
     init() {
 #if targetEnvironment(simulator)
@@ -53,6 +54,11 @@ struct PatchProjectsView: View {
                         } label: {
                             Label(language.text("patch.import"), systemImage: "square.and.arrow.down")
                         }
+                        Button {
+                            showOnlineLibrary = true
+                        } label: {
+                            Label(language.text("patch.online_library"), systemImage: "cloud")
+                        }
                     } label: {
                         if store.isBusy {
                             ProgressView()
@@ -80,6 +86,9 @@ struct PatchProjectsView: View {
                     }
                 )
                 .ignoresSafeArea()
+            }
+            .sheet(isPresented: $showOnlineLibrary) {
+                OnlinePatchLibraryView(store: store)
             }
             .sheet(isPresented: $showCreate) {
                 PatchProjectEditorView(

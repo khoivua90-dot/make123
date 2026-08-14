@@ -417,7 +417,8 @@ struct CleanerView: View {
                     catalogApplications,
                     scannedBundleIDs: &scannedBundleIDs,
                     shouldIncludeBundleID: {
-                        ContainerPresentationPolicy.shouldShow(bundleID: $0)
+                        ContainerPresentationPolicy.shouldShow(bundleID: $0) &&
+                            !$0.hasPrefix("com.apple.")
                     },
                     activateContainer: { application in
                     var activationError: NSString?
