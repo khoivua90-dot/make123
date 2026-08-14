@@ -13,19 +13,6 @@ struct GamesHomeView: View {
         NavigationStack {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 14) {
-                    NavigationLink {
-                        PatchProjectsView(store: store)
-                    } label: {
-                        GameCardView(
-                            title: language.text("patch.my_patches"),
-                            subtitle: language.text("patch.my_patches_subtitle", Int64(store.items.count)),
-                            bannerColor: AppTheme.accent,
-                            iconURL: nil,
-                            systemIconName: "shippingbox.fill"
-                        )
-                    }
-                    .buttonStyle(.plain)
-
                     ForEach(games) { game in
                         NavigationLink {
                             GamePatchesView(game: game, store: store)
@@ -54,6 +41,16 @@ struct GamesHomeView: View {
             }
             .navigationTitle(language.text("tab.home"))
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink {
+                        PatchProjectsView(store: store)
+                    } label: {
+                        Image(systemName: "shippingbox")
+                    }
+                    .accessibilityLabel(language.text("patch.my_patches"))
+                }
+            }
             .refreshable { await loadGames() }
             .task { await loadGames() }
             .sheet(item: $draftCoordinator.request) { request in
