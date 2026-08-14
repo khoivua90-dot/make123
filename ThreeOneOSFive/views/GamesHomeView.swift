@@ -143,7 +143,7 @@ struct GameCardView: View {
     }
 }
 
-private extension Color {
+extension Color {
     init?(hex: String) {
         var value = hex.trimmingCharacters(in: .whitespacesAndNewlines)
         if value.hasPrefix("#") { value.removeFirst() }

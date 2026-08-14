@@ -23,18 +23,22 @@ struct GamePatchesView: View {
     }
 
     var body: some View {
-        List {
-            if items.isEmpty {
-                emptyState
-                    .listRowSeparator(.hidden)
-            } else {
-                ForEach(items) { item in
-                    itemRow(item)
+        VStack(spacing: 0) {
+            header
+
+            List {
+                if items.isEmpty {
+                    emptyState
+                        .listRowSeparator(.hidden)
+                } else {
+                    ForEach(items) { item in
+                        itemRow(item)
+                    }
                 }
             }
+            .listStyle(.insetGrouped)
+            .refreshable { await sync() }
         }
-        .listStyle(.plain)
-        .refreshable { await sync() }
         .navigationTitle(game.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -54,6 +58,58 @@ struct GamePatchesView: View {
                 message: Text(alert.message(language: language)),
                 dismissButton: .default(Text(language.text("common.ok")))
             )
+        }
+    }
+
+    private var header: some View {
+        VStack(spacing: 8) {
+            gameIconView
+                .frame(width: 84, height: 84)
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.25), radius: 12, y: 6)
+
+            Text(game.name)
+                .font(.title3.weight(.bold))
+                .multilineTextAlignment(.center)
+
+            if !game.bundleID.isEmpty {
+                Text(game.bundleID)
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 12)
+        .padding(.bottom, 18)
+    }
+
+    @ViewBuilder
+    private var gameIconView: some View {
+        if let url = game.iconURL {
+            AsyncImage(url: url) { phase in
+                if let image = phase.image {
+                    image.resizable().scaledToFill()
+                } else {
+                    gameIconPlaceholder
+                }
+            }
+        } else {
+            gameIconPlaceholder
+        }
+    }
+
+    private var gameIconPlaceholder: some View {
+        ZStack {
+            Color(hex: game.bannerColor) ?? AppTheme.accent
+            Image(systemName: "app.fill")
+                .resizable()
+                .scaledToFit()
+                .padding(20)
+                .foregroundStyle(.white)
         }
     }
 
