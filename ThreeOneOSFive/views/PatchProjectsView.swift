@@ -13,7 +13,18 @@ struct PatchProjectsView: View {
     @StateObject private var store = PatchProjectStore()
     @State private var showCreate = false
     @State private var showImporter = false
-    @State private var showOnlineLibrary = false
+    @State private var onlineItems: [RemotePatchSummary] = []
+    @State private var isOnlineLoading = false
+    @State private var downloadingOnlineID: String?
+    @AppStorage("patch.importedOnlineIDs") private var importedOnlineIDsRaw = ""
+
+    private var importedOnlineIDs: Set<String> {
+        Set(importedOnlineIDsRaw.split(separator: ",").map(String.init))
+    }
+
+    private var visibleOnlineItems: [RemotePatchSummary] {
+        onlineItems.filter { !importedOnlineIDs.contains($0.id) }
+    }
 
     init() {
 #if targetEnvironment(simulator)
@@ -26,19 +37,46 @@ struct PatchProjectsView: View {
     var body: some View {
         NavigationStack {
             List {
-                if store.items.isEmpty && !store.isBusy {
-                    emptyState
-                        .listRowSeparator(.hidden)
-                } else {
-                    ForEach(store.items) { item in
-                        itemRow(item)
+                if isOnlineLoading || !visibleOnlineItems.isEmpty {
+                    Section {
+                        if isOnlineLoading && visibleOnlineItems.isEmpty {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                Spacer()
+                            }
+                        } else {
+                            ForEach(visibleOnlineItems) { item in
+                                onlineRow(item)
+                            }
+                        }
+                    } header: {
+                        Text(language.text("patch.online_library"))
                     }
-                    .onDelete { offsets in
-                        offsets.map { store.items[$0] }.forEach(store.delete)
+                }
+
+                if store.items.isEmpty && !store.isBusy {
+                    if visibleOnlineItems.isEmpty && !isOnlineLoading {
+                        emptyState
+                            .listRowSeparator(.hidden)
+                    }
+                } else {
+                    Section {
+                        ForEach(store.items) { item in
+                            itemRow(item)
+                        }
+                        .onDelete { offsets in
+                            offsets.map { store.items[$0] }.forEach(store.delete)
+                        }
+                    } header: {
+                        if !visibleOnlineItems.isEmpty {
+                            Text(language.text("patch.title"))
+                        }
                     }
                 }
             }
             .listStyle(.plain)
+            .refreshable { await loadOnlineItems() }
             .navigationTitle(language.text("patch.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -54,11 +92,6 @@ struct PatchProjectsView: View {
                         } label: {
                             Label(language.text("patch.import"), systemImage: "square.and.arrow.down")
                         }
-                        Button {
-                            showOnlineLibrary = true
-                        } label: {
-                            Label(language.text("patch.online_library"), systemImage: "cloud")
-                        }
                     } label: {
                         if store.isBusy {
                             ProgressView()
@@ -70,6 +103,7 @@ struct PatchProjectsView: View {
                     .accessibilityLabel(language.text("patch.add"))
                 }
             }
+            .task { await loadOnlineItems() }
             .sheet(isPresented: $showImporter) {
                 FileDocumentPicker(
                     allowedContentTypes: PatchPackagePickerPolicy.allowedContentTypes,
@@ -86,9 +120,6 @@ struct PatchProjectsView: View {
                     }
                 )
                 .ignoresSafeArea()
-            }
-            .sheet(isPresented: $showOnlineLibrary) {
-                OnlinePatchLibraryView(store: store)
             }
             .sheet(isPresented: $showCreate) {
                 PatchProjectEditorView(
@@ -135,6 +166,64 @@ struct PatchProjectsView: View {
                 PatchProjectRow(item: item, language: language)
             }
         }
+    }
+
+    private func onlineRow(_ item: RemotePatchSummary) -> some View {
+        Button {
+            Task { await downloadOnline(item) }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "icloud.and.arrow.down.fill")
+                    .font(.title3)
+                    .foregroundStyle(AppTheme.accent)
+                    .frame(width: 34, height: 34)
+                    .background(AppTheme.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 9))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(item.name)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    Text(item.description.isEmpty
+                         ? ByteCountFormatter.string(fromByteCount: item.sizeBytes, countStyle: .file)
+                         : item.description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                Spacer()
+                if downloadingOnlineID == item.id {
+                    ProgressView()
+                } else {
+                    Image(systemName: "arrow.down.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(AppTheme.accent)
+                }
+            }
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(.plain)
+        .disabled(downloadingOnlineID != nil)
+    }
+
+    private func loadOnlineItems() async {
+        isOnlineLoading = true
+        if let items = try? await PatchHubService.fetchPatches() {
+            onlineItems = items
+        }
+        isOnlineLoading = false
+    }
+
+    private func downloadOnline(_ item: RemotePatchSummary) async {
+        downloadingOnlineID = item.id
+        do {
+            let fileURL = try await PatchHubService.downloadPatch(item)
+            store.importPackage(at: fileURL)
+            var imported = importedOnlineIDs
+            imported.insert(item.id)
+            importedOnlineIDsRaw = imported.joined(separator: ",")
+        } catch {
+            store.alert = PatchStoreAlert(titleKey: "common.failed", messageKey: "patch.online_download_failed")
+        }
+        downloadingOnlineID = nil
     }
 
     private var emptyState: some View {
