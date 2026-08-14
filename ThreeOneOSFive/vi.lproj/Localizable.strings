@@ -32,7 +32,7 @@
 "dashboard.unsupported_message" = "iOS %@ chưa được hỗ trợ.\n\nCác phiên bản hiện được hỗ trợ:\n• iOS 26.x\n• iOS 27.0 beta 1–4";
 "dashboard.installation" = "Cài đặt ứng dụng";
 "dashboard.enterprise_signing" = "CheatiOSVip chỉ hoạt động khi được ký bằng chứng chỉ doanh nghiệp. Không hỗ trợ SideStore, AltStore, 3uTools hoặc LiveContainer.";
-"tab.home" = "Trang chủ";
+"tab.home" = "CheatiOSVip DSW";
 "tab.files" = "Tệp";
 "tab.patches" = "Patch";
 "tab.settings" = "Cài đặt";
