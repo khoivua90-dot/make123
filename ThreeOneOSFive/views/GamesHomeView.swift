@@ -50,6 +50,14 @@ struct GamesHomeView: View {
                     }
                     .accessibilityLabel(language.text("patch.my_patches"))
                 }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink {
+                        SettingsView()
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                    .accessibilityLabel(language.text("tab.settings"))
+                }
             }
             .refreshable { await loadGames() }
             .task { await loadGames() }
@@ -64,6 +72,7 @@ struct GamesHomeView: View {
                 }
             }
         }
+        .tint(AppTheme.accent)
     }
 
     private func loadGames() async {
