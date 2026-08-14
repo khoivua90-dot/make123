@@ -44,14 +44,6 @@ struct GamesHomeView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink {
-                        PatchProjectsView(store: store)
-                    } label: {
-                        Image(systemName: "shippingbox")
-                    }
-                    .accessibilityLabel(language.text("patch.my_patches"))
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink {
                         SettingsView()
                     } label: {
                         Image(systemName: "gearshape")
