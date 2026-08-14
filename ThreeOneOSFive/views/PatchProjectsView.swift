@@ -13,17 +13,11 @@ struct PatchProjectsView: View {
     @StateObject private var store = PatchProjectStore()
     @State private var showCreate = false
     @State private var showImporter = false
-    @State private var onlineItems: [RemotePatchSummary] = []
-    @State private var isOnlineLoading = false
-    @State private var downloadingOnlineID: String?
+    @State private var isSyncingOnline = false
     @AppStorage("patch.importedOnlineIDs") private var importedOnlineIDsRaw = ""
 
     private var importedOnlineIDs: Set<String> {
         Set(importedOnlineIDsRaw.split(separator: ",").map(String.init))
-    }
-
-    private var visibleOnlineItems: [RemotePatchSummary] {
-        onlineItems.filter { !importedOnlineIDs.contains($0.id) }
     }
 
     init() {
@@ -37,46 +31,20 @@ struct PatchProjectsView: View {
     var body: some View {
         NavigationStack {
             List {
-                if isOnlineLoading || !visibleOnlineItems.isEmpty {
-                    Section {
-                        if isOnlineLoading && visibleOnlineItems.isEmpty {
-                            HStack {
-                                Spacer()
-                                ProgressView()
-                                Spacer()
-                            }
-                        } else {
-                            ForEach(visibleOnlineItems) { item in
-                                onlineRow(item)
-                            }
-                        }
-                    } header: {
-                        Text(language.text("patch.online_library"))
-                    }
-                }
-
                 if store.items.isEmpty && !store.isBusy {
-                    if visibleOnlineItems.isEmpty && !isOnlineLoading {
-                        emptyState
-                            .listRowSeparator(.hidden)
-                    }
+                    emptyState
+                        .listRowSeparator(.hidden)
                 } else {
-                    Section {
-                        ForEach(store.items) { item in
-                            itemRow(item)
-                        }
-                        .onDelete { offsets in
-                            offsets.map { store.items[$0] }.forEach(store.delete)
-                        }
-                    } header: {
-                        if !visibleOnlineItems.isEmpty {
-                            Text(language.text("patch.title"))
-                        }
+                    ForEach(store.items) { item in
+                        itemRow(item)
+                    }
+                    .onDelete { offsets in
+                        offsets.map { store.items[$0] }.forEach(store.delete)
                     }
                 }
             }
             .listStyle(.plain)
-            .refreshable { await loadOnlineItems() }
+            .refreshable { await syncOnlineLibrary() }
             .navigationTitle(language.text("patch.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -93,7 +61,7 @@ struct PatchProjectsView: View {
                             Label(language.text("patch.import"), systemImage: "square.and.arrow.down")
                         }
                     } label: {
-                        if store.isBusy {
+                        if store.isBusy || isSyncingOnline {
                             ProgressView()
                         } else {
                             Image(systemName: "plus")
@@ -103,7 +71,7 @@ struct PatchProjectsView: View {
                     .accessibilityLabel(language.text("patch.add"))
                 }
             }
-            .task { await loadOnlineItems() }
+            .task { await syncOnlineLibrary() }
             .sheet(isPresented: $showImporter) {
                 FileDocumentPicker(
                     allowedContentTypes: PatchPackagePickerPolicy.allowedContentTypes,
@@ -168,62 +136,49 @@ struct PatchProjectsView: View {
         }
     }
 
-    private func onlineRow(_ item: RemotePatchSummary) -> some View {
-        Button {
-            Task { await downloadOnline(item) }
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "icloud.and.arrow.down.fill")
-                    .font(.title3)
-                    .foregroundStyle(AppTheme.accent)
-                    .frame(width: 34, height: 34)
-                    .background(AppTheme.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 9))
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(item.name)
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(.primary)
-                    Text(item.description.isEmpty
-                         ? ByteCountFormatter.string(fromByteCount: item.sizeBytes, countStyle: .file)
-                         : item.description)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+    /// Silently pulls new patches from the web hub straight into the local library, so they
+    /// show up in the list on their own — no separate "online" section or manual download tap.
+    /// Password-protected packages still land here too; they simply appear locked, same as any
+    /// other locked package, until the user taps in the password.
+    private func syncOnlineLibrary() async {
+        guard !isSyncingOnline else { return }
+        isSyncingOnline = true
+        defer { isSyncingOnline = false }
+
+        guard let remoteItems = try? await PatchHubService.fetchPatches() else { return }
+        let pending = remoteItems.filter { !importedOnlineIDs.contains($0.id) }
+        guard !pending.isEmpty else { return }
+
+        var imported = importedOnlineIDs
+        var didImportAny = false
+
+        for item in pending {
+            do {
+                let fileURL = try await PatchHubService.downloadPatch(item)
+                let saved: Bool = await Task.detached(priority: .utility) {
+                    do {
+                        let data = try PatchProjectLibrary.readPackage(at: fileURL)
+                        _ = try PatchPackageCodec.inspect(data)
+                        _ = try PatchProjectLibrary.save(data: data, projectName: item.name)
+                        try? FileManager.default.removeItem(at: fileURL)
+                        return true
+                    } catch {
+                        return false
+                    }
+                }.value
+                if saved {
+                    imported.insert(item.id)
+                    didImportAny = true
                 }
-                Spacer()
-                if downloadingOnlineID == item.id {
-                    ProgressView()
-                } else {
-                    Image(systemName: "arrow.down.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(AppTheme.accent)
-                }
+            } catch {
+                continue
             }
-            .padding(.vertical, 4)
         }
-        .buttonStyle(.plain)
-        .disabled(downloadingOnlineID != nil)
-    }
 
-    private func loadOnlineItems() async {
-        isOnlineLoading = true
-        if let items = try? await PatchHubService.fetchPatches() {
-            onlineItems = items
+        importedOnlineIDsRaw = imported.joined(separator: ",")
+        if didImportAny {
+            store.reload()
         }
-        isOnlineLoading = false
-    }
-
-    private func downloadOnline(_ item: RemotePatchSummary) async {
-        downloadingOnlineID = item.id
-        do {
-            let fileURL = try await PatchHubService.downloadPatch(item)
-            store.importPackage(at: fileURL)
-            var imported = importedOnlineIDs
-            imported.insert(item.id)
-            importedOnlineIDsRaw = imported.joined(separator: ",")
-        } catch {
-            store.alert = PatchStoreAlert(titleKey: "common.failed", messageKey: "patch.online_download_failed")
-        }
-        downloadingOnlineID = nil
     }
 
     private var emptyState: some View {
