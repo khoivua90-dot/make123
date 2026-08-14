@@ -43,6 +43,7 @@
 		3105G002 /* PatchHubService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G004; };
 		3105G005 /* GamesHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G006; };
 		3105G007 /* GamePatchesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G008; };
+		3105G009 /* RemoteImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G010; };
 		3105C200 /* PatchDraftService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C100; };
 		3105C201 /* PatchDraftCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C101; };
 		3105C202 /* FolderPatchSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C102; };
@@ -112,6 +113,7 @@
 		3105G004 /* PatchHubService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchHubService.swift; sourceTree = "<group>"; };
 		3105G006 /* GamesHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamesHomeView.swift; sourceTree = "<group>"; };
 		3105G008 /* GamePatchesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamePatchesView.swift; sourceTree = "<group>"; };
+		3105G010 /* RemoteImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteImageCache.swift; sourceTree = "<group>"; };
 		3105C100 /* PatchDraftService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDraftService.swift; sourceTree = "<group>"; };
 		3105C101 /* PatchDraftCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDraftCoordinator.swift; sourceTree = "<group>"; };
 		3105C102 /* FolderPatchSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderPatchSelectionView.swift; sourceTree = "<group>"; };
@@ -220,6 +222,7 @@
 				3105B119 /* PatchProjectLibrary.swift */,
 				3105B120 /* PatchProjectStore.swift */,
 				3105G004 /* PatchHubService.swift */,
+				3105G010 /* RemoteImageCache.swift */,
 				3105C100 /* PatchDraftService.swift */,
 				3105C101 /* PatchDraftCoordinator.swift */,
 				3105F102 /* WallpaperLabModels.swift */,
@@ -350,6 +353,7 @@
 				3105G002,
 				3105G005,
 				3105G007,
+				3105G009,
 				3105C200,
 				3105C201,
 				3105C202,

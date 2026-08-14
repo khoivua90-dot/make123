@@ -10,6 +10,7 @@ struct GamePatchesView: View {
     @State private var togglingProjectID: UUID?
     @AppStorage("patch.importedOnlineIDs") private var importedOnlineIDsRaw = ""
     @AppStorage("patch.gameAssignments") private var gameAssignmentsRaw = "{}"
+    @AppStorage("patch.remoteToLocalMap") private var remoteToLocalMapRaw = "{}"
 
     private var importedOnlineIDs: Set<String> {
         Set(importedOnlineIDsRaw.split(separator: ",").map(String.init))
@@ -17,6 +18,12 @@ struct GamePatchesView: View {
 
     private var gameAssignments: [String: String] {
         (try? JSONDecoder().decode([String: String].self, from: Data(gameAssignmentsRaw.utf8))) ?? [:]
+    }
+
+    /// Server patch id -> local packageID, so a patch removed on the server can be traced back
+    /// to the local file it downloaded into and deleted, instead of only ever growing the library.
+    private var remoteToLocalMap: [String: String] {
+        (try? JSONDecoder().decode([String: String].self, from: Data(remoteToLocalMapRaw.utf8))) ?? [:]
     }
 
     private var items: [PatchLibraryItem] {
@@ -39,7 +46,10 @@ struct GamePatchesView: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .refreshable { await sync() }
+            .refreshable {
+                await sync()
+                await loadProjectStates()
+            }
         }
         .navigationTitle(game.name)
         .navigationBarTitleDisplayMode(.inline)
@@ -95,12 +105,8 @@ struct GamePatchesView: View {
     @ViewBuilder
     private var gameIconView: some View {
         if let url = game.iconURL {
-            AsyncImage(url: url) { phase in
-                if let image = phase.image {
-                    image.resizable().scaledToFill()
-                } else {
-                    gameIconPlaceholder
-                }
+            CachedAsyncImage(url: url) {
+                gameIconPlaceholder
             }
         } else {
             gameIconPlaceholder
@@ -192,21 +198,37 @@ struct GamePatchesView: View {
     }
 
     /// Downloads only this game's patches from the hub straight into the local library, so
-    /// they show up here without any manual tap. The gameId -> local packageID mapping is
-    /// recorded locally since the encrypted .3105 format itself carries no game association.
+    /// they show up here without any manual tap. Also removes local copies whose server entry
+    /// disappeared (deleted on the web, or reassigned to a different game) — a pull-to-refresh
+    /// should mirror the server exactly, not just ever grow. The gameId <-> local packageID and
+    /// serverID <-> local packageID mappings are recorded locally since the encrypted .3105
+    /// format itself carries no game association.
     private func sync() async {
         guard !isSyncing else { return }
         isSyncing = true
         defer { isSyncing = false }
 
         guard let remoteItems = try? await PatchHubService.fetchPatches() else { return }
-        let pending = remoteItems.filter { $0.gameId == game.id && !importedOnlineIDs.contains($0.id) }
-        guard !pending.isEmpty else { return }
+        let remoteForGame = remoteItems.filter { $0.gameId == game.id }
+        let remoteIDsForGame = Set(remoteForGame.map(\.id))
 
         var imported = importedOnlineIDs
         var assignments = gameAssignments
-        var didImportAny = false
+        var remoteMap = remoteToLocalMap
+        var didChange = false
 
+        for (serverID, localID) in remoteMap where assignments[localID] == game.id && !remoteIDsForGame.contains(serverID) {
+            if let localUUID = UUID(uuidString: localID),
+               let staleItem = store.items.first(where: { $0.id == localUUID }) {
+                store.delete(staleItem)
+            }
+            assignments.removeValue(forKey: localID)
+            remoteMap.removeValue(forKey: serverID)
+            imported.remove(serverID)
+            didChange = true
+        }
+
+        let pending = remoteForGame.filter { !imported.contains($0.id) }
         for item in pending {
             do {
                 let fileURL = try await PatchHubService.downloadPatch(item)
@@ -224,7 +246,8 @@ struct GamePatchesView: View {
                 if let packageIDString {
                     imported.insert(item.id)
                     assignments[packageIDString] = game.id
-                    didImportAny = true
+                    remoteMap[item.id] = packageIDString
+                    didChange = true
                 }
             } catch {
                 continue
@@ -235,7 +258,10 @@ struct GamePatchesView: View {
         if let encoded = try? JSONEncoder().encode(assignments), let json = String(data: encoded, encoding: .utf8) {
             gameAssignmentsRaw = json
         }
-        if didImportAny {
+        if let encoded = try? JSONEncoder().encode(remoteMap), let json = String(data: encoded, encoding: .utf8) {
+            remoteToLocalMapRaw = json
+        }
+        if didChange {
             store.reload()
         }
     }

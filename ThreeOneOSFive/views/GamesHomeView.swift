@@ -122,12 +122,8 @@ struct GameCardView: View {
     @ViewBuilder
     private var iconView: some View {
         if let iconURL {
-            AsyncImage(url: iconURL) { phase in
-                if let image = phase.image {
-                    image.resizable().scaledToFill()
-                } else {
-                    placeholderIcon
-                }
+            CachedAsyncImage(url: iconURL) {
+                placeholderIcon
             }
         } else {
             placeholderIcon
@@ -140,6 +136,37 @@ struct GameCardView: View {
             .scaledToFit()
             .padding(13)
             .foregroundStyle(.white)
+    }
+}
+
+/// Shows a locally cached copy immediately if one exists (so icons still render offline after
+/// their first successful load), then refreshes from the network in the background when
+/// possible. See RemoteImageCache for the on-disk persistence.
+struct CachedAsyncImage<Placeholder: View>: View {
+    let url: URL?
+    @ViewBuilder let placeholder: () -> Placeholder
+
+    @State private var uiImage: UIImage?
+
+    var body: some View {
+        Group {
+            if let uiImage {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                placeholder()
+            }
+        }
+        .task(id: url) {
+            guard let url else { return }
+            if let cached = RemoteImageCache.cachedImage(for: url) {
+                uiImage = cached
+            }
+            if let fresh = await RemoteImageCache.fetchAndCache(url) {
+                uiImage = fresh
+            }
+        }
     }
 }
 
