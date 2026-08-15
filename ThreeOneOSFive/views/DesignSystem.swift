@@ -121,19 +121,24 @@ private struct ToastOverlay: ViewModifier {
         content
             .overlay(alignment: .top) {
                 if let toast {
-                    HStack(spacing: 9) {
+                    HStack(alignment: .top, spacing: 10) {
                         Image(systemName: "checkmark.circle.fill")
+                            .font(.subheadline)
                             .foregroundStyle(AppTheme.rowColor(4))
+                            .padding(.top, 1)
                         Text(toast.text)
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.primary)
-                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(.ultraThinMaterial, in: Capsule())
+                    .padding(.vertical, 13)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .overlay(
-                        Capsule().strokeBorder(AppTheme.techGlow.opacity(0.4), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(AppTheme.techGlow.opacity(0.4), lineWidth: 1)
                     )
                     .shadow(color: AppTheme.techGlow.opacity(0.25), radius: 18, y: 6)
                     .padding(.horizontal, 24)
@@ -141,7 +146,7 @@ private struct ToastOverlay: ViewModifier {
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .id(toast.id)
                     .task(id: toast.id) {
-                        try? await Task.sleep(nanoseconds: 2_200_000_000)
+                        try? await Task.sleep(nanoseconds: 2_800_000_000)
                         if self.toast?.id == toast.id {
                             self.toast = nil
                         }
