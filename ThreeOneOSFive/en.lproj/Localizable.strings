@@ -393,4 +393,5 @@
 "license.error.revoked" = "This key has been revoked.";
 "license.error.expired" = "This key has expired.";
 "license.error.device_mismatch" = "This key is already in use on another device.";
+"license.error.device_limit_reached" = "This key has reached its device limit.";
 "license.error.network" = "Couldn't reach the server.";

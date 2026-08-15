@@ -393,4 +393,5 @@
 "license.error.revoked" = "Key đã bị thu hồi.";
 "license.error.expired" = "Key đã hết hạn.";
 "license.error.device_mismatch" = "Key này đã được dùng trên thiết bị khác.";
+"license.error.device_limit_reached" = "Key này đã đạt giới hạn số thiết bị cho phép.";
 "license.error.network" = "Không thể kết nối máy chủ.";

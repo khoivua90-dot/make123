@@ -11,6 +11,7 @@ enum LicenseKeyError: Error {
     case revoked
     case expired
     case deviceMismatch
+    case deviceLimitReached
     case network
 
     var localizationKey: String {
@@ -19,6 +20,7 @@ enum LicenseKeyError: Error {
         case .revoked: return "license.error.revoked"
         case .expired: return "license.error.expired"
         case .deviceMismatch: return "license.error.device_mismatch"
+        case .deviceLimitReached: return "license.error.device_limit_reached"
         case .network: return "license.error.network"
         }
     }
@@ -55,6 +57,7 @@ enum LicenseKeyService {
         case "revoked": return .revoked
         case "expired": return .expired
         case "device_mismatch": return .deviceMismatch
+        case "device_limit_reached": return .deviceLimitReached
         default: return .network
         }
     }

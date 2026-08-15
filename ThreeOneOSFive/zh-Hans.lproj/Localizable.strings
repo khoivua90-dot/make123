@@ -393,4 +393,5 @@
 "license.error.revoked" = "该密钥已被吊销。";
 "license.error.expired" = "该密钥已过期。";
 "license.error.device_mismatch" = "该密钥已在其他设备上使用。";
+"license.error.device_limit_reached" = "该密钥已达到设备数量上限。";
 "license.error.network" = "无法连接服务器。";
