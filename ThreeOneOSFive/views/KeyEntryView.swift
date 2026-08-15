@@ -73,6 +73,13 @@ struct KeyEntryView: View {
                 }
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            Text("Make By ©CheatiOSVip")
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(.secondary)
+                .padding(.vertical, 14)
+                .frame(maxWidth: .infinity)
+        }
         .preferredColorScheme(.dark)
         .onAppear { isFocused = true }
     }
