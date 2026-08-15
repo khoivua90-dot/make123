@@ -10,10 +10,13 @@ struct GamePatchesView: View {
     @State private var projectStates: [UUID: Bool] = [:]
     @State private var togglingProjectID: UUID?
     @State private var toast: ToastMessage?
+    @State private var containers: [RemoteContainerSummary] = []
+    @State private var selectedContainerID: String?
     @AppStorage("patch.importedOnlineIDs") private var importedOnlineIDsRaw = ""
     @AppStorage("patch.gameAssignments") private var gameAssignmentsRaw = "{}"
     @AppStorage("patch.remoteToLocalMap") private var remoteToLocalMapRaw = "{}"
     @AppStorage("patch.remoteDisplayNames") private var remoteDisplayNamesRaw = "{}"
+    @AppStorage("patch.containerAssignments") private var containerAssignmentsRaw = "{}"
 
     private var importedOnlineIDs: Set<String> {
         Set(importedOnlineIDsRaw.split(separator: ",").map(String.init))
@@ -41,9 +44,24 @@ struct GamePatchesView: View {
         remoteDisplayNames[item.id.uuidString] ?? item.project?.name ?? language.text("patch.locked_project")
     }
 
+    /// Local packageID -> the mục chứa (container/tab) id it's assigned to on the web admin, if
+    /// any. Absent means uncategorized — it only shows once a container tab is selected if this
+    /// game has no containers at all, in which case every item shows in the one flat list.
+    private var containerAssignments: [String: String] {
+        (try? JSONDecoder().decode([String: String].self, from: Data(containerAssignmentsRaw.utf8))) ?? [:]
+    }
+
     private var items: [PatchLibraryItem] {
         let assignments = gameAssignments
         return store.items.filter { assignments[$0.id.uuidString] == game.id }
+    }
+
+    /// The items shown for the currently selected tab. When this game has no containers
+    /// configured, every item shows in one flat list exactly like before the tabs feature.
+    private var displayedItems: [PatchLibraryItem] {
+        guard let selectedContainerID else { return items }
+        let assignments = containerAssignments
+        return items.filter { assignments[$0.id.uuidString] == selectedContainerID }
     }
 
     var body: some View {
@@ -53,6 +71,7 @@ struct GamePatchesView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     header
+                    containerTabBar
                     menuCard
                 }
                 .padding(.horizontal, 16)
@@ -60,6 +79,7 @@ struct GamePatchesView: View {
             }
             .refreshable {
                 await sync()
+                await loadContainers()
                 await loadProjectStates()
             }
         }
@@ -74,6 +94,7 @@ struct GamePatchesView: View {
         }
         .task {
             await sync()
+            await loadContainers()
             await loadProjectStates()
         }
         .sheet(item: $store.passwordRequest, onDismiss: store.cancelUnlock) { _ in
@@ -89,19 +110,20 @@ struct GamePatchesView: View {
         .toast($toast)
     }
 
-    /// The single bordered box holding every patch for this game as a switch row, matching the
-    /// reference "PROXY MOD MENU" card instead of a plain grouped list.
+    /// The single bordered box holding every patch for the selected tab (or every patch for this
+    /// game, if it has no containers configured) as a switch row, matching the reference "PROXY
+    /// MOD MENU" card instead of a plain grouped list.
     private var menuCard: some View {
         VStack(spacing: 0) {
             menuHeader
 
-            if items.isEmpty {
+            if displayedItems.isEmpty {
                 emptyState
             } else {
                 VStack(spacing: 0) {
-                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                    ForEach(Array(displayedItems.enumerated()), id: \.element.id) { index, item in
                         itemRow(item, colorIndex: index)
-                        if item.id != items.last?.id {
+                        if item.id != displayedItems.last?.id {
                             Divider()
                                 .overlay(Color.white.opacity(0.06))
                         }
@@ -112,6 +134,49 @@ struct GamePatchesView: View {
             }
         }
         .techCard()
+    }
+
+    /// A row of pill tabs (icon + name) letting the user switch between mục chứa, matching the
+    /// reference app's Proxy / Định Vị / Mod NV tab bar. Hidden entirely when this game has no
+    /// containers configured, so existing games keep the old single flat-list layout unchanged.
+    @ViewBuilder
+    private var containerTabBar: some View {
+        if !containers.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(containers) { container in
+                        containerTabButton(container)
+                    }
+                }
+                .padding(.horizontal, 2)
+                .padding(.vertical, 2)
+            }
+        }
+    }
+
+    private func containerTabButton(_ container: RemoteContainerSummary) -> some View {
+        let isSelected = selectedContainerID == container.id
+        return Button {
+            selectedContainerID = container.id
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: container.icon)
+                    .font(.caption.weight(.semibold))
+                Text(container.name)
+                    .font(.caption.weight(.bold))
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 9)
+            .background(
+                isSelected ? AppTheme.techGlow.opacity(0.18) : AppTheme.techCardFill,
+                in: Capsule()
+            )
+            .overlay(
+                Capsule().strokeBorder(isSelected ? AppTheme.techGlow : AppTheme.techCardStroke, lineWidth: 1)
+            )
+            .foregroundStyle(isSelected ? AppTheme.techGlow : Color.secondary)
+        }
+        .buttonStyle(.plain)
     }
 
     private var menuHeader: some View {
@@ -288,6 +353,7 @@ struct GamePatchesView: View {
         var assignments = gameAssignments
         var remoteMap = remoteToLocalMap
         var names = remoteDisplayNames
+        var containerAssign = containerAssignments
         var didChange = false
 
         for (serverID, localID) in remoteMap where assignments[localID] == game.id && !remoteIDsForGame.contains(serverID) {
@@ -298,6 +364,7 @@ struct GamePatchesView: View {
             assignments.removeValue(forKey: localID)
             remoteMap.removeValue(forKey: serverID)
             names.removeValue(forKey: localID)
+            containerAssign.removeValue(forKey: localID)
             imported.remove(serverID)
             didChange = true
         }
@@ -322,6 +389,11 @@ struct GamePatchesView: View {
                     assignments[packageIDString] = game.id
                     remoteMap[item.id] = packageIDString
                     names[packageIDString] = item.name
+                    if let containerId = item.containerId {
+                        containerAssign[packageIDString] = containerId
+                    } else {
+                        containerAssign.removeValue(forKey: packageIDString)
+                    }
                     didChange = true
                 }
             } catch {
@@ -329,11 +401,18 @@ struct GamePatchesView: View {
             }
         }
 
-        // Refresh display names for patches that were already downloaded, so a rename on the
-        // web admin shows up here on the next pull-to-refresh without re-downloading anything.
+        // Refresh display names and mục chứa assignment for patches that were already
+        // downloaded, so a rename or re-categorize on the web admin shows up here on the next
+        // pull-to-refresh without re-downloading anything.
         for item in remoteForGame {
-            if let localID = remoteMap[item.id], names[localID] != item.name {
+            guard let localID = remoteMap[item.id] else { continue }
+            if names[localID] != item.name {
                 names[localID] = item.name
+            }
+            if let containerId = item.containerId {
+                containerAssign[localID] = containerId
+            } else {
+                containerAssign.removeValue(forKey: localID)
             }
         }
 
@@ -347,9 +426,24 @@ struct GamePatchesView: View {
         if let encoded = try? JSONEncoder().encode(names), let json = String(data: encoded, encoding: .utf8) {
             remoteDisplayNamesRaw = json
         }
+        if let encoded = try? JSONEncoder().encode(containerAssign), let json = String(data: encoded, encoding: .utf8) {
+            containerAssignmentsRaw = json
+        }
         if didChange {
             store.reload()
         }
+    }
+
+    /// Loads the mục chứa (tabs) configured for this game and keeps the current tab selected
+    /// across a refresh when it's still valid, defaulting to the first tab otherwise.
+    private func loadContainers() async {
+        guard let fetched = try? await PatchHubService.fetchContainers() else { return }
+        let forGame = fetched.filter { $0.gameId == game.id }.sorted { $0.order < $1.order }
+        containers = forGame
+        if let selectedContainerID, forGame.contains(where: { $0.id == selectedContainerID }) {
+            return
+        }
+        selectedContainerID = forGame.first?.id
     }
 
     /// A patch's toggle reflects every toggle-capable rule in it at once: on only when all of

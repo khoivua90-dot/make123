@@ -11,6 +11,17 @@ struct RemotePatchSummary: Decodable, Identifiable, Equatable {
     let sha256: String
     let createdAt: String
     let gameId: String?
+    let containerId: String?
+}
+
+/// A tab within a game's patch screen (e.g. Proxy / Định Vị / Mod NV), so a game's patches can
+/// be grouped instead of always showing as one flat list.
+struct RemoteContainerSummary: Decodable, Identifiable, Equatable {
+    let id: String
+    let gameId: String
+    let name: String
+    let icon: String
+    let order: Int
 }
 
 struct RemoteGameSummary: Decodable, Identifiable, Equatable {
@@ -53,6 +64,16 @@ enum PatchHubService {
         }
         struct Envelope: Decodable { let patches: [RemotePatchSummary] }
         return try JSONDecoder().decode(Envelope.self, from: data).patches
+    }
+
+    static func fetchContainers() async throws -> [RemoteContainerSummary] {
+        let url = baseURL.appendingPathComponent("api/containers")
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw PatchHubError.invalidResponse
+        }
+        struct Envelope: Decodable { let containers: [RemoteContainerSummary] }
+        return try JSONDecoder().decode(Envelope.self, from: data).containers
     }
 
     static func downloadPatch(_ summary: RemotePatchSummary) async throws -> URL {
