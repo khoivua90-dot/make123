@@ -91,6 +91,35 @@ enum AppInfo {
         case "iPhone17,3": return "iPhone 16"
         case "iPhone17,4": return "iPhone 16 Plus"
         case "iPhone17,5": return "iPhone 16e"
+
+        // iPad mini
+        case "iPad11,1", "iPad11,2": return "iPad mini (5th gen)"
+        case "iPad14,1", "iPad14,2": return "iPad mini (6th gen)"
+
+        // iPad Air
+        case "iPad11,3", "iPad11,4": return "iPad Air (3rd gen)"
+        case "iPad13,1", "iPad13,2": return "iPad Air (4th gen)"
+        case "iPad13,16", "iPad13,17": return "iPad Air (5th gen)"
+        case "iPad14,8", "iPad14,9": return "iPad Air 11\" (M2)"
+        case "iPad14,10", "iPad14,11": return "iPad Air 13\" (M2)"
+
+        // iPad (base)
+        case "iPad11,6", "iPad11,7": return "iPad (8th gen)"
+        case "iPad12,1", "iPad12,2": return "iPad (9th gen)"
+        case "iPad13,18", "iPad13,19": return "iPad (10th gen)"
+
+        // iPad Pro
+        case "iPad8,1", "iPad8,2", "iPad8,3", "iPad8,4": return "iPad Pro 11\" (1st gen)"
+        case "iPad8,5", "iPad8,6", "iPad8,7", "iPad8,8": return "iPad Pro 12.9\" (3rd gen)"
+        case "iPad8,9", "iPad8,10": return "iPad Pro 11\" (2nd gen)"
+        case "iPad8,11", "iPad8,12": return "iPad Pro 12.9\" (4th gen)"
+        case "iPad13,4", "iPad13,5", "iPad13,6", "iPad13,7": return "iPad Pro 11\" (3rd gen)"
+        case "iPad13,8", "iPad13,9", "iPad13,10", "iPad13,11": return "iPad Pro 12.9\" (5th gen)"
+        case "iPad14,3", "iPad14,4": return "iPad Pro 11\" (4th gen)"
+        case "iPad14,5", "iPad14,6": return "iPad Pro 12.9\" (6th gen)"
+        case "iPad16,3", "iPad16,4": return "iPad Pro 11\" (M4)"
+        case "iPad16,5", "iPad16,6": return "iPad Pro 13\" (M4)"
+
         default: return displayMachineName
         }
     }
