@@ -36,10 +36,15 @@ private struct AnnouncementResponse: Decodable {
 /// Backs both the dismissable "Thông báo" popup and the "Bảo trì" kill switch admins can flip
 /// from the same web panel — a single endpoint, since the app needs to check both together on
 /// every launch/foreground anyway.
+///
+/// Deliberately `api/notice`, not `api/announcement`: every already-distributed IPA before this
+/// change is hardcoded to call `api/announcement`, and the server now permanently reports
+/// maintenance on that old path with no toggle — retiring those builds for good. This app talks
+/// to the new path instead, so it's unaffected by that and controlled independently.
 enum AnnouncementService {
     static func fetchState() async -> RemoteNoticeState {
         var components = URLComponents(
-            url: PatchHubService.baseURL.appendingPathComponent("api/announcement"),
+            url: PatchHubService.baseURL.appendingPathComponent("api/notice"),
             resolvingAgainstBaseURL: false
         )!
         components.queryItems = [URLQueryItem(name: "build", value: String(AppInfo.buildNumber))]
