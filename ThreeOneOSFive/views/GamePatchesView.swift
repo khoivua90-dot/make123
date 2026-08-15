@@ -12,6 +12,7 @@ struct GamePatchesView: View {
     @State private var toast: ToastMessage?
     @State private var containers: [RemoteContainerSummary] = []
     @State private var selectedContainerID: String?
+    @State private var containersLoaded = false
     @AppStorage("patch.importedOnlineIDs") private var importedOnlineIDsRaw = ""
     @AppStorage("patch.gameAssignments") private var gameAssignmentsRaw = "{}"
     @AppStorage("patch.remoteToLocalMap") private var remoteToLocalMapRaw = "{}"
@@ -72,14 +73,18 @@ struct GamePatchesView: View {
                 VStack(spacing: 20) {
                     header
                     containerTabBar
+                        .transition(.opacity)
                     menuCard
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
+                .animation(.easeInOut(duration: 0.22), value: containers.isEmpty)
+                .animation(.easeInOut(duration: 0.2), value: selectedContainerID)
             }
             .refreshable {
-                await sync()
-                await loadContainers()
+                async let syncTask: () = sync()
+                async let containersTask: () = loadContainers()
+                _ = await (syncTask, containersTask)
                 await loadProjectStates()
             }
         }
@@ -93,8 +98,13 @@ struct GamePatchesView: View {
             }
         }
         .task {
-            await sync()
-            await loadContainers()
+            // Run together instead of sequentially — sync() can take a while when it has new
+            // patches to download, and waiting for it before even knowing whether this game has
+            // containers is what caused the list to flash from "everything" to "just this tab"
+            // right after opening the screen.
+            async let syncTask: () = sync()
+            async let containersTask: () = loadContainers()
+            _ = await (syncTask, containersTask)
             await loadProjectStates()
         }
         .sheet(item: $store.passwordRequest, onDismiss: store.cancelUnlock) { _ in
@@ -117,23 +127,40 @@ struct GamePatchesView: View {
         VStack(spacing: 0) {
             menuHeader
 
-            if displayedItems.isEmpty {
-                emptyState
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(Array(displayedItems.enumerated()), id: \.element.id) { index, item in
-                        itemRow(item, colorIndex: index)
-                        if item.id != displayedItems.last?.id {
-                            Divider()
-                                .overlay(Color.white.opacity(0.06))
+            Group {
+                if !containersLoaded {
+                    // Holds this card empty (instead of briefly showing every patch unfiltered,
+                    // then snapping to just the selected tab) until we actually know whether this
+                    // game has mục chứa tabs at all.
+                    loadingPlaceholder
+                } else if displayedItems.isEmpty {
+                    emptyState
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(Array(displayedItems.enumerated()), id: \.element.id) { index, item in
+                            itemRow(item, colorIndex: index)
+                            if item.id != displayedItems.last?.id {
+                                Divider()
+                                    .overlay(Color.white.opacity(0.06))
+                            }
                         }
                     }
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 10)
                 }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 10)
             }
+            .transition(.opacity)
         }
         .techCard()
+        .animation(.easeInOut(duration: 0.22), value: containersLoaded)
+    }
+
+    private var loadingPlaceholder: some View {
+        VStack {
+            ProgressView()
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 64)
     }
 
     /// A row of pill tabs (icon + name) letting the user switch between mục chứa, matching the
@@ -435,9 +462,16 @@ struct GamePatchesView: View {
     }
 
     /// Loads the mục chứa (tabs) configured for this game and keeps the current tab selected
-    /// across a refresh when it's still valid, defaulting to the first tab otherwise.
+    /// across a refresh when it's still valid, defaulting to the first tab otherwise. Always
+    /// marks `containersLoaded` true at the end (even on a failed fetch, falling back to the
+    /// flat list) so the menu card's loading gate never hangs forever.
     private func loadContainers() async {
-        guard let fetched = try? await PatchHubService.fetchContainers() else { return }
+        defer { containersLoaded = true }
+        guard let fetched = try? await PatchHubService.fetchContainers() else {
+            containers = []
+            selectedContainerID = nil
+            return
+        }
         let forGame = fetched.filter { $0.gameId == game.id }.sorted { $0.order < $1.order }
         containers = forGame
         if let selectedContainerID, forGame.contains(where: { $0.id == selectedContainerID }) {
