@@ -13,7 +13,7 @@ struct GamesHomeView: View {
     @State private var announcement: Announcement?
     @AppStorage("language.hasPicked") private var hasPickedLanguage = false
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
-    @AppStorage("announcement.lastSeenID") private var lastSeenAnnouncementID = ""
+    @Environment(\.scenePhase) private var scenePhase
 
     private let columns = [GridItem(.adaptive(minimum: 150), spacing: 14)]
 
@@ -89,6 +89,11 @@ struct GamesHomeView: View {
             }
             .task { await loadGames() }
             .task { await checkAnnouncement() }
+            .onChange(of: scenePhase) { newPhase in
+                if newPhase == .active {
+                    Task { await checkAnnouncement() }
+                }
+            }
             .safeAreaInset(edge: .bottom) {
                 LicenseStatusBar()
             }
@@ -119,14 +124,11 @@ struct GamesHomeView: View {
         isLoadingGames = false
     }
 
-    /// Marks the announcement seen as soon as it's picked up to show, not when the sheet is
-    /// dismissed — a user who force-quits before tapping "Đóng" still won't be shown the same
-    /// announcement again on next launch.
+    /// Deliberately not "seen once and never again" — closing the sheet only dismisses it for
+    /// this visit. As long as the web admin leaves the announcement on, it shows again every
+    /// time the app is opened or comes back to the foreground.
     private func checkAnnouncement() async {
-        guard case .announcement(let fetched) = await AnnouncementService.fetchState(),
-              fetched.id != lastSeenAnnouncementID
-        else { return }
-        lastSeenAnnouncementID = fetched.id
+        guard case .announcement(let fetched) = await AnnouncementService.fetchState() else { return }
         announcement = fetched
     }
 
