@@ -388,6 +388,7 @@
 "license.remaining" = "剩余 %lld 天 %lld 小时";
 "license.expired" = "已过期";
 "license.activated_success" = "登录成功";
+"license.activated_detail" = "%@ • %@";
 "license.info_title" = "密钥信息";
 "license.info_message" = "%@\n%@";
 "license.error.not_found" = "密钥不存在。";

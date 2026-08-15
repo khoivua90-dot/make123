@@ -58,11 +58,6 @@ struct LicenseStatusBar: View {
     }
 
     private var remainingText: String {
-        guard let expiresAt = licenseGate.expiresAt else { return "" }
-        let seconds = expiresAt.timeIntervalSinceNow
-        guard seconds > 0 else { return language.text("license.expired") }
-        let days = Int(seconds) / 86400
-        let hours = (Int(seconds) % 86400) / 3600
-        return language.text("license.remaining", Int64(days), Int64(hours))
+        licenseGate.remainingTimeText(language: language)
     }
 }

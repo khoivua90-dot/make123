@@ -27,6 +27,15 @@ final class LicenseGateStore: ObservableObject {
         return "\(code.prefix(4))••••\(code.suffix(4))"
     }
 
+    func remainingTimeText(language: AppLanguage) -> String {
+        guard let expiresAt else { return "" }
+        let seconds = expiresAt.timeIntervalSinceNow
+        guard seconds > 0 else { return language.text("license.expired") }
+        let days = Int(seconds) / 86400
+        let hours = (Int(seconds) % 86400) / 3600
+        return language.text("license.remaining", Int64(days), Int64(hours))
+    }
+
     func bootstrap() async {
         isChecking = true
         defer { isChecking = false }
@@ -57,7 +66,9 @@ final class LicenseGateStore: ObservableObject {
             storedKeyCode = code
             expiresAt = result.expiresAt
             isUnlocked = true
-            activationToast = ToastMessage(text: LocalizedStringResource.text("license.activated_success"))
+            let language = LocalizedStringResource.currentLanguage
+            let detail = language.text("license.activated_detail", AppInfo.hardwareDisplayName, remainingTimeText(language: language))
+            activationToast = ToastMessage(text: "\(LocalizedStringResource.text("license.activated_success"))\n\(detail)")
             return true
         } catch let error as LicenseKeyError {
             errorMessage = LocalizedStringResource.errorText(error)
@@ -92,9 +103,16 @@ final class LicenseGateStore: ObservableObject {
 /// message through the app's language system without needing an `AppLanguage` passed in from
 /// every call site.
 private enum LocalizedStringResource {
+    static var currentLanguage: AppLanguage {
+        AppLanguage(rawValue: UserDefaults.standard.string(forKey: AppLanguage.storageKey) ?? "") ?? .english
+    }
+
     static func text(_ key: String) -> String {
-        let code = AppLanguage(rawValue: UserDefaults.standard.string(forKey: AppLanguage.storageKey) ?? "") ?? .english
-        return code.text(key)
+        currentLanguage.text(key)
+    }
+
+    static func text(_ key: String, _ arguments: CVarArg...) -> String {
+        String(format: currentLanguage.text(key), locale: currentLanguage.locale, arguments: arguments)
     }
 
     static func errorText(_ error: LicenseKeyError) -> String {
