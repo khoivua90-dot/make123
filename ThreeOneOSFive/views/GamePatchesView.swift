@@ -204,11 +204,9 @@ struct GamePatchesView: View {
             }
             .buttonStyle(.plain)
         } else {
-            NavigationLink {
-                PatchProjectDetailView(store: store, projectID: item.id, titleOverride: remoteDisplayNames[item.id.uuidString])
-            } label: {
-                toggleRow(item, colorIndex: colorIndex)
-            }
+            // No drill-in to the rule-level detail screen — the toggle here is the only control
+            // this row exposes, so tapping the name/row itself does nothing.
+            toggleRow(item, colorIndex: colorIndex)
         }
     }
 
