@@ -19,6 +19,11 @@ jobs:
           sudo xcode-select -s "$LATEST/Contents/Developer"
           xcodebuild -version
 
+      - name: Stamp build number
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $GITHUB_RUN_NUMBER" ThreeOneOSFive/Info.plist
+          echo "CFBundleVersion set to $GITHUB_RUN_NUMBER"
+
       - name: Archive (unsigned)
         run: |
           xcodebuild archive \

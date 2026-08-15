@@ -127,6 +127,15 @@ enum AppInfo {
         let sel = NSSelectorFromString("_hasHomeButton")
         return UIDevice.responds(to: sel) && (UIDevice.perform(sel)?.takeUnretainedValue() as? Bool ?? false)
     }
+
+    /// CI stamps this with the GitHub Actions run number on every build (see build-ipa.yml), so
+    /// it strictly increases build-to-build with no manual bumping — old already-distributed
+    /// IPAs always report a lower number than whatever gets built next (builds that predate this
+    /// change report the hardcoded "1"), which is what lets the web admin retire old builds via
+    /// a minimum-build gate without touching the global maintenance switch.
+    static var buildNumber: Int {
+        Int(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "") ?? 0
+    }
 }
 
 // MARK: - Exploit status

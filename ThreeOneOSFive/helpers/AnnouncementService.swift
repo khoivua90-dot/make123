@@ -38,8 +38,13 @@ private struct AnnouncementResponse: Decodable {
 /// every launch/foreground anyway.
 enum AnnouncementService {
     static func fetchState() async -> RemoteNoticeState {
-        let url = PatchHubService.baseURL.appendingPathComponent("api/announcement")
-        guard let (data, response) = try? await URLSession.shared.data(from: url),
+        var components = URLComponents(
+            url: PatchHubService.baseURL.appendingPathComponent("api/announcement"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [URLQueryItem(name: "build", value: String(AppInfo.buildNumber))]
+        guard let url = components.url,
+              let (data, response) = try? await URLSession.shared.data(from: url),
               let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
               let decoded = try? JSONDecoder().decode(AnnouncementResponse.self, from: data)
         else {
