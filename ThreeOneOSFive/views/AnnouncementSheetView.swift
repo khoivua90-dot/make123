@@ -12,14 +12,8 @@ struct AnnouncementSheetView: View {
         VStack(spacing: 14) {
             Spacer()
 
-            ZStack {
-                Circle().fill(Color.blue)
-                Image(systemName: "face.smiling.fill")
-                    .font(.system(size: 30, weight: .regular))
-                    .foregroundStyle(.white)
-            }
-            .frame(width: 76, height: 76)
-            .shadow(color: Color.blue.opacity(0.5), radius: 16, y: 6)
+            WelcomeFaceIcon(size: 76)
+                .shadow(color: Color.blue.opacity(0.45), radius: 16, y: 6)
 
             if !announcement.title.isEmpty {
                 Text(announcement.title)
