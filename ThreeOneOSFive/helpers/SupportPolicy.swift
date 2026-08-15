@@ -1,6 +1,12 @@
 import Foundation
 
 enum ExploitSupportPolicy {
+    /// The kernel exploit and offset-finding logic underneath this (kexploit_opa334 + pattern
+    /// -matched offsets, ported from FilzaSlop) targets iOS 17–26 generally, but this app has
+    /// only actually been verified against the ranges below — FilzaSlop's own README, and
+    /// independently `rooootdev/lara`'s support table, both draw the same line at 18.7.1: iOS
+    /// 18.7.2 and later change something the current offsets don't account for.
+    static let verifiedIOS18Range = "18.0–18.7.1"
     static let verifiedIOS26Range = "26.0–26.6.1"
 
     static let verifiedIOS27Builds: [(beta: Int, build: String)] = [
@@ -15,6 +21,10 @@ enum ExploitSupportPolicy {
     }
 
     static func isSupported(major: Int, minor: Int, patch: Int, build: String) -> Bool {
+        if major == 18 {
+            guard minor >= 0, patch >= 0 else { return false }
+            return minor < 7 || (minor == 7 && patch <= 1)
+        }
         if major == 26 {
             guard minor >= 0, patch >= 0 else { return false }
             return minor < 6 || (minor == 6 && patch <= 1)

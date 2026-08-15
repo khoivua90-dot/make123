@@ -51,6 +51,7 @@ struct SettingsView: View {
                     )
                     .foregroundStyle(appState.isSupported ? Color.green : Color.red)
                 }
+                LabeledContent("iOS 18", value: ExploitSupportPolicy.verifiedIOS18Range)
                 LabeledContent("iOS 26", value: ExploitSupportPolicy.verifiedIOS26Range)
                 VStack(alignment: .leading, spacing: 8) {
                     Text("iOS 27.0")
