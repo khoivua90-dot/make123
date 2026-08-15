@@ -6,6 +6,7 @@
 "common.cancel" = "Hủy";
 "common.failed" = "Thất bại";
 "common.version" = "Phiên bản %@";
+"common.build" = "Build %@";
 "common.device" = "Thiết bị";
 "common.ios" = "iOS";
 "common.reboot" = "Khởi động lại";

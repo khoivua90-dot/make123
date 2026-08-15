@@ -6,6 +6,7 @@
 "common.cancel" = "取消";
 "common.failed" = "失败";
 "common.version" = "版本 %@";
+"common.build" = "构建 %@";
 "common.device" = "设备";
 "common.ios" = "iOS";
 "common.reboot" = "重新启动";

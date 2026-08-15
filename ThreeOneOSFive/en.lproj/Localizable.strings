@@ -6,6 +6,7 @@
 "common.cancel" = "Cancel";
 "common.failed" = "Failed";
 "common.version" = "Version %@";
+"common.build" = "Build %@";
 "common.device" = "Device";
 "common.ios" = "iOS";
 "common.reboot" = "Reboot";

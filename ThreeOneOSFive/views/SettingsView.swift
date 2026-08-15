@@ -16,6 +16,9 @@ struct SettingsView: View {
                         Text(language.text("common.version", appVersion))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
+                        Text(language.text("common.build", String(AppInfo.buildNumber)))
+                            .font(.caption.monospaced())
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .padding(.vertical, 4)
