@@ -219,6 +219,7 @@ struct PatchProjectDetailView: View {
     @State private var ruleStates: [UUID: Bool] = [:]
     @State private var togglingRuleID: UUID?
     @State private var actionAlert: PatchStoreAlert?
+    @State private var toast: ToastMessage?
 
     private var item: PatchLibraryItem? {
         store.items.first(where: { $0.id == projectID })
@@ -319,6 +320,7 @@ struct PatchProjectDetailView: View {
                 dismissButton: .default(Text(language.text("common.ok")))
             )
         }
+        .toast($toast)
     }
 
     private func ruleToggleRow(_ rule: PatchRule) -> some View {
@@ -382,6 +384,9 @@ struct PatchProjectDetailView: View {
                 await MainActor.run {
                     ruleStates[rule.id] = isOn
                     togglingRuleID = nil
+                    let name = rule.replacementFilename.isEmpty ? rule.bundleID : rule.replacementFilename
+                    let key = isOn ? "patch.toggle_on_success" : "patch.toggle_off_success"
+                    toast = ToastMessage(text: language.text(key, name))
                 }
             } catch let error as PatchPackageError {
                 await MainActor.run {

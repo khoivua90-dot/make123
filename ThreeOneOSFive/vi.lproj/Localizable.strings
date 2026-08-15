@@ -55,6 +55,8 @@
 "patch.rules_count" = "%lld quy tắc thay thế";
 "patch.menu_title" = "Menu Patch";
 "patch.menu_auto_badge" = "AUTO";
+"patch.toggle_on_success" = "Đã bật %@";
+"patch.toggle_off_success" = "Đã tắt %@";
 "patch.project" = "Dự án";
 "patch.project_name" = "Tên dự án";
 "patch.rules" = "Quy tắc";

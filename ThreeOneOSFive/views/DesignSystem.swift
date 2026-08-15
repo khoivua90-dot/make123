@@ -97,6 +97,60 @@ extension View {
     }
 }
 
+// MARK: - Toast
+
+struct ToastMessage: Identifiable, Equatable {
+    let id = UUID()
+    var text: String
+}
+
+/// A brief, self-dismissing confirmation pill (e.g. "Đã bật Auto Aim Fix") shown after a
+/// successful toggle, so a patch flip has clear positive feedback without the interruption of
+/// a blocking alert (alerts stay reserved for failures).
+private struct ToastOverlay: ViewModifier {
+    @Binding var toast: ToastMessage?
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(alignment: .top) {
+                if let toast {
+                    HStack(spacing: 9) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(AppTheme.rowColor(4))
+                        Text(toast.text)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(2)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .overlay(
+                        Capsule().strokeBorder(AppTheme.techGlow.opacity(0.4), lineWidth: 1)
+                    )
+                    .shadow(color: AppTheme.techGlow.opacity(0.25), radius: 18, y: 6)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .id(toast.id)
+                    .task(id: toast.id) {
+                        try? await Task.sleep(nanoseconds: 2_200_000_000)
+                        if self.toast?.id == toast.id {
+                            self.toast = nil
+                        }
+                    }
+                }
+            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.78), value: toast)
+    }
+}
+
+extension View {
+    func toast(_ message: Binding<ToastMessage?>) -> some View {
+        modifier(ToastOverlay(toast: message))
+    }
+}
+
 struct AppLogo: View {
     var size: CGFloat = 44
 

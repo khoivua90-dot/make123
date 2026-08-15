@@ -8,6 +8,7 @@ struct GamePatchesView: View {
     @State private var isSyncing = false
     @State private var projectStates: [UUID: Bool] = [:]
     @State private var togglingProjectID: UUID?
+    @State private var toast: ToastMessage?
     @AppStorage("patch.importedOnlineIDs") private var importedOnlineIDsRaw = ""
     @AppStorage("patch.gameAssignments") private var gameAssignmentsRaw = "{}"
     @AppStorage("patch.remoteToLocalMap") private var remoteToLocalMapRaw = "{}"
@@ -71,6 +72,7 @@ struct GamePatchesView: View {
                 dismissButton: .default(Text(language.text("common.ok")))
             )
         }
+        .toast($toast)
     }
 
     /// The single bordered box holding every patch for this game as a switch row, matching the
@@ -372,6 +374,10 @@ struct GamePatchesView: View {
                         messageKey: failure.localizationKey,
                         messageArgument: failure.localizationArgument
                     )
+                } else if actualState == isOn {
+                    let name = item.project?.name ?? language.text("patch.locked_project")
+                    let key = isOn ? "patch.toggle_on_success" : "patch.toggle_off_success"
+                    toast = ToastMessage(text: language.text(key, name))
                 }
             }
         }

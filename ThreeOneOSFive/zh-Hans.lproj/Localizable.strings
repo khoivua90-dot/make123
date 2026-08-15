@@ -55,6 +55,8 @@
 "patch.rules_count" = "%lld 条替换规则";
 "patch.menu_title" = "补丁菜单";
 "patch.menu_auto_badge" = "AUTO";
+"patch.toggle_on_success" = "已开启 %@";
+"patch.toggle_off_success" = "已关闭 %@";
 "patch.project" = "项目";
 "patch.project_name" = "项目名称";
 "patch.rules" = "规则";
