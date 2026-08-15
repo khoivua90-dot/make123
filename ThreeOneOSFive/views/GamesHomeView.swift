@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct GamesHomeView: View {
     @Environment(\.appLanguage) private var language
@@ -12,6 +13,10 @@ struct GamesHomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
+                deviceInfoCard
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+
                 LazyVGrid(columns: columns, spacing: 14) {
                     ForEach(games) { game in
                         NavigationLink {
@@ -73,6 +78,47 @@ struct GamesHomeView: View {
             games = fetched
         }
         isLoadingGames = false
+    }
+
+    private var deviceInfoCard: some View {
+        HStack(spacing: 0) {
+            deviceInfoRow(icon: "apple.logo", label: "iOS", value: shortOSVersion)
+            Divider().frame(height: 30)
+            deviceInfoRow(icon: "iphone", label: language.text("common.device"), value: UIDevice.current.model)
+        }
+        .padding(.vertical, 12)
+        .background(AppTheme.consoleBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+        )
+    }
+
+    private func deviceInfoRow(icon: String, label: String, value: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(AppTheme.accent)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text(value)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var shortOSVersion: String {
+        let version = AppInfo.osVersion
+        if version.hasSuffix(".0") {
+            return String(version.dropLast(2))
+        }
+        return version
     }
 }
 
