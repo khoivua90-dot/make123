@@ -9,10 +9,28 @@ struct GamesHomeView: View {
     @StateObject private var store = PatchProjectStore()
     @State private var games: [RemoteGameSummary] = []
     @State private var isLoadingGames = false
+    @State private var showLanguagePicker = false
+    @AppStorage("language.hasPicked") private var hasPickedLanguage = false
+    @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
 
     private let columns = [GridItem(.adaptive(minimum: 150), spacing: 14)]
 
     var body: some View {
+        ZStack {
+            homeStack
+
+            if showLanguagePicker {
+                languagePickerOverlay
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            }
+        }
+        .animation(.easeInOut(duration: 0.22), value: showLanguagePicker)
+        .task {
+            if !hasPickedLanguage { showLanguagePicker = true }
+        }
+    }
+
+    private var homeStack: some View {
         NavigationStack {
             ZStack {
                 TechBackground()
@@ -131,6 +149,57 @@ struct GamesHomeView: View {
             return String(version.dropLast(2))
         }
         return version
+    }
+
+    /// Shown once, the very first time the app is reached (right after the first key redeems
+    /// successfully) — the app doesn't know which language to speak yet, so the prompt itself is
+    /// bilingual rather than guessing.
+    private var languagePickerOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.6)
+                .ignoresSafeArea()
+
+            VStack(spacing: 18) {
+                Image(systemName: "globe")
+                    .font(.system(size: 30, weight: .semibold))
+                    .foregroundStyle(AppTheme.techGlow)
+
+                Text("Chọn ngôn ngữ / Choose Language")
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.primary)
+
+                VStack(spacing: 12) {
+                    languageOptionButton(title: "Tiếng Việt", code: .vietnamese)
+                    languageOptionButton(title: "English", code: .english)
+                }
+            }
+            .padding(24)
+            .frame(maxWidth: 320)
+            .techCard()
+            .padding(.horizontal, 32)
+        }
+        .preferredColorScheme(.dark)
+    }
+
+    private func languageOptionButton(title: String, code: AppLanguage) -> some View {
+        Button {
+            languageCode = code.rawValue
+            hasPickedLanguage = true
+            showLanguagePicker = false
+        } label: {
+            Text(title)
+                .font(.body.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(AppTheme.techCardFill, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
+                )
+                .foregroundStyle(.primary)
+        }
+        .buttonStyle(.plain)
     }
 }
 
