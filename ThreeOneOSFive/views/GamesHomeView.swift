@@ -28,7 +28,7 @@ struct GamesHomeView: View {
                                 GameCardView(
                                     title: game.name,
                                     subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
-                                    bannerColor: Color(hex: game.bannerColor) ?? AppTheme.accent,
+                                    bannerColor: AppTheme.resolvedBannerColor(game.bannerColor),
                                     iconURL: game.iconURL,
                                     systemIconName: "app.fill"
                                 )

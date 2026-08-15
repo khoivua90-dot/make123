@@ -32,6 +32,13 @@ enum AppTheme {
     static func rowColor(_ index: Int) -> Color {
         rowPalette[index % rowPalette.count]
     }
+
+    /// The web admin can set a game's banner to "transparent" (no background at all) instead of
+    /// a hex color, so this resolves that sentinel to `.clear` before falling back to parsing
+    /// hex, rather than treating an unparsable value as "use the default accent".
+    static func resolvedBannerColor(_ raw: String) -> Color {
+        raw == "transparent" ? .clear : (Color(hex: raw) ?? accent)
+    }
 }
 
 /// A dark, faintly gridded backdrop used behind the Home and per-game menu screens to give the

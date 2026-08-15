@@ -186,7 +186,7 @@ struct GamePatchesView: View {
 
     private var gameIconPlaceholder: some View {
         ZStack {
-            Color(hex: game.bannerColor) ?? AppTheme.accent
+            AppTheme.resolvedBannerColor(game.bannerColor)
             Image(systemName: "app.fill")
                 .resizable()
                 .scaledToFit()
