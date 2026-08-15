@@ -242,6 +242,8 @@ struct PatchProjectDetailView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(TechBackground())
         .navigationTitle(item?.project?.name ?? language.text("patch.title"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

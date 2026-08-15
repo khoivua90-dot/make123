@@ -12,36 +12,40 @@ struct GamesHomeView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                deviceInfoCard
-                    .padding(.horizontal, 16)
-                    .padding(.top, 12)
+            ZStack {
+                TechBackground()
 
-                LazyVGrid(columns: columns, spacing: 14) {
-                    ForEach(games) { game in
-                        NavigationLink {
-                            GamePatchesView(game: game, store: store)
-                        } label: {
-                            GameCardView(
-                                title: game.name,
-                                subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
-                                bannerColor: Color(hex: game.bannerColor) ?? AppTheme.accent,
-                                iconURL: game.iconURL,
-                                systemIconName: "app.fill"
-                            )
+                ScrollView {
+                    deviceInfoCard
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+
+                    LazyVGrid(columns: columns, spacing: 14) {
+                        ForEach(games) { game in
+                            NavigationLink {
+                                GamePatchesView(game: game, store: store)
+                            } label: {
+                                GameCardView(
+                                    title: game.name,
+                                    subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
+                                    bannerColor: Color(hex: game.bannerColor) ?? AppTheme.accent,
+                                    iconURL: game.iconURL,
+                                    systemIconName: "app.fill"
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
-                }
-                .padding(16)
+                    .padding(16)
 
-                if games.isEmpty && !isLoadingGames {
-                    Text(language.text("patch.no_games_yet"))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                        .padding(.top, 8)
+                    if games.isEmpty && !isLoadingGames {
+                        Text(language.text("patch.no_games_yet"))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                            .padding(.top, 8)
+                    }
                 }
             }
             .navigationTitle(language.text("tab.home"))
@@ -70,6 +74,7 @@ struct GamesHomeView: View {
             }
         }
         .tint(AppTheme.accent)
+        .preferredColorScheme(.dark)
     }
 
     private func loadGames() async {
@@ -81,36 +86,30 @@ struct GamesHomeView: View {
     }
 
     private var deviceInfoCard: some View {
-        HStack(spacing: 0) {
-            deviceInfoRow(icon: "apple.logo", label: "iOS", value: shortOSVersion)
-            Divider().frame(height: 30)
-            deviceInfoRow(icon: "iphone", label: language.text("common.device"), value: UIDevice.current.model)
+        VStack(spacing: 12) {
+            deviceInfoRow(icon: "apple.logo", iconColor: .purple, label: "iOS", value: shortOSVersion)
+            deviceInfoRow(icon: "iphone", iconColor: AppTheme.techGlow, label: language.text("common.device"), value: UIDevice.current.model)
         }
-        .padding(.vertical, 12)
-        .background(AppTheme.consoleBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
-        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .techCard()
     }
 
-    private func deviceInfoRow(icon: String, label: String, value: String) -> some View {
+    private func deviceInfoRow(icon: String, iconColor: Color, label: String, value: String) -> some View {
         HStack(spacing: 10) {
             Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(AppTheme.accent)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(label)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Text(value)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
+                .font(.subheadline)
+                .foregroundStyle(iconColor)
+                .frame(width: 18)
+            Text(label)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
         }
-        .frame(maxWidth: .infinity)
     }
 
     private var shortOSVersion: String {
@@ -156,13 +155,15 @@ struct GameCardView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)
-            .background(AppTheme.consoleBackground)
+            .background(AppTheme.techCardFill)
         }
+        .background(Color.black.opacity(0.001))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+                .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
         )
+        .shadow(color: AppTheme.techGlow.opacity(0.10), radius: 10, y: 0)
     }
 
     @ViewBuilder

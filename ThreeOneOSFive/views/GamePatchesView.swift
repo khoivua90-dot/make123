@@ -32,20 +32,17 @@ struct GamePatchesView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
+        ZStack {
+            TechBackground()
 
-            List {
-                if items.isEmpty {
-                    emptyState
-                        .listRowSeparator(.hidden)
-                } else {
-                    ForEach(items) { item in
-                        itemRow(item)
-                    }
+            ScrollView {
+                VStack(spacing: 20) {
+                    header
+                    menuCard
                 }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
             }
-            .listStyle(.insetGrouped)
             .refreshable {
                 await sync()
                 await loadProjectStates()
@@ -76,6 +73,65 @@ struct GamePatchesView: View {
         }
     }
 
+    /// The single bordered box holding every patch for this game as a switch row, matching the
+    /// reference "PROXY MOD MENU" card instead of a plain grouped list.
+    private var menuCard: some View {
+        VStack(spacing: 0) {
+            menuHeader
+
+            if items.isEmpty {
+                emptyState
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                        itemRow(item, colorIndex: index)
+                        if item.id != items.last?.id {
+                            Divider()
+                                .overlay(Color.white.opacity(0.06))
+                        }
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 10)
+            }
+        }
+        .techCard()
+    }
+
+    private var menuHeader: some View {
+        HStack(spacing: 8) {
+            Rectangle()
+                .fill(AppTheme.techGlow)
+                .frame(width: 3, height: 16)
+                .clipShape(RoundedRectangle(cornerRadius: 1.5))
+            Image(systemName: "bolt.fill")
+                .font(.footnote)
+                .foregroundStyle(AppTheme.techGlow)
+            Text(language.text("patch.menu_title"))
+                .font(.subheadline.weight(.heavy))
+                .foregroundStyle(.primary)
+                .textCase(.uppercase)
+                .tracking(0.5)
+            Spacer()
+            if isSyncing {
+                ProgressView()
+                    .scaleEffect(0.8)
+            } else {
+                Text(language.text("patch.menu_auto_badge"))
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(AppTheme.techGlow)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
+                    .background(AppTheme.techGlow.opacity(0.14), in: Capsule())
+                    .overlay(
+                        Capsule().strokeBorder(AppTheme.techGlow.opacity(0.4), lineWidth: 1)
+                    )
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+    }
+
     private var header: some View {
         VStack(spacing: 8) {
             gameIconView
@@ -83,9 +139,9 @@ struct GamePatchesView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+                        .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
                 )
-                .shadow(color: .black.opacity(0.25), radius: 12, y: 6)
+                .shadow(color: AppTheme.techGlow.opacity(0.18), radius: 14, y: 6)
 
             Text(game.name)
                 .font(.title3.weight(.bold))
@@ -125,7 +181,7 @@ struct GamePatchesView: View {
     }
 
     @ViewBuilder
-    private func itemRow(_ item: PatchLibraryItem) -> some View {
+    private func itemRow(_ item: PatchLibraryItem, colorIndex: Int) -> some View {
         if item.isLocked {
             Button { store.requestUnlock(for: item) } label: {
                 PatchProjectRow(item: item, language: language)
@@ -135,21 +191,22 @@ struct GamePatchesView: View {
             NavigationLink {
                 PatchProjectDetailView(store: store, projectID: item.id)
             } label: {
-                toggleRow(item)
+                toggleRow(item, colorIndex: colorIndex)
             }
         }
     }
 
-    private func toggleRow(_ item: PatchLibraryItem) -> some View {
+    private func toggleRow(_ item: PatchLibraryItem, colorIndex: Int) -> some View {
         let rules = item.project?.rules ?? []
         let toggleableCount = rules.filter(\.canToggle).count
+        let rowColor = AppTheme.rowColor(colorIndex)
 
         return HStack(spacing: 12) {
-            Image(systemName: "shippingbox.fill")
+            Image(systemName: "bolt.fill")
                 .font(.title3)
-                .foregroundStyle(AppTheme.accent)
-                .frame(width: 34, height: 34)
-                .background(AppTheme.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 9))
+                .foregroundStyle(rowColor)
+                .frame(width: 38, height: 38)
+                .background(rowColor.opacity(0.16), in: RoundedRectangle(cornerRadius: 10))
             VStack(alignment: .leading, spacing: 3) {
                 Text(item.project?.name ?? language.text("patch.locked_project"))
                     .font(.body.weight(.semibold))
@@ -164,10 +221,11 @@ struct GamePatchesView: View {
             } else {
                 Toggle("", isOn: projectToggleBinding(for: item))
                     .labelsHidden()
+                    .tint(AppTheme.techGlow)
                     .disabled(toggleableCount == 0)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 10)
     }
 
     private func projectToggleBinding(for item: PatchLibraryItem) -> Binding<Bool> {

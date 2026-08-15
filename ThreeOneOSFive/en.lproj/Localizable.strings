@@ -53,6 +53,8 @@
 "patch.tap_to_unlock" = "Tap to enter its password";
 "patch.password_protected" = "Password protected";
 "patch.rules_count" = "%lld replacement rules";
+"patch.menu_title" = "Patch Menu";
+"patch.menu_auto_badge" = "AUTO";
 "patch.project" = "Project";
 "patch.project_name" = "Project name";
 "patch.rules" = "Rules";

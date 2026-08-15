@@ -53,6 +53,8 @@
 "patch.tap_to_unlock" = "轻点以输入密码";
 "patch.password_protected" = "受密码保护";
 "patch.rules_count" = "%lld 条替换规则";
+"patch.menu_title" = "补丁菜单";
+"patch.menu_auto_badge" = "AUTO";
 "patch.project" = "项目";
 "patch.project_name" = "项目名称";
 "patch.rules" = "规则";

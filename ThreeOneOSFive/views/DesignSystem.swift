@@ -11,6 +11,90 @@ enum AppTheme {
     static let pageBackground = Color(uiColor: .systemBackground)
     static let consoleBackground = Color(uiColor: .secondarySystemBackground)
     static let pageInset: CGFloat = 16
+
+    // MARK: - Tech theme (Home / per-game menu screens)
+    static let techBackgroundTop = Color(red: 0.05, green: 0.07, blue: 0.12)
+    static let techBackgroundBottom = Color(red: 0.01, green: 0.02, blue: 0.05)
+    static let techGlow = Color(red: 0.32, green: 0.86, blue: 0.95)
+    static let techCardFill = Color.white.opacity(0.045)
+    static let techCardStroke = Color(red: 0.32, green: 0.86, blue: 0.95).opacity(0.30)
+
+    /// Cycled per-row accent so a menu card's items read as distinct switches at a glance,
+    /// matching the reference "PROXY MOD MENU" style where each toggle has its own icon color.
+    static let rowPalette: [Color] = [
+        Color(red: 1.00, green: 0.56, blue: 0.24),
+        Color(red: 0.96, green: 0.28, blue: 0.42),
+        Color(red: 0.30, green: 0.78, blue: 0.96),
+        Color(red: 0.66, green: 0.46, blue: 0.98),
+        Color(red: 0.36, green: 0.85, blue: 0.56),
+    ]
+
+    static func rowColor(_ index: Int) -> Color {
+        rowPalette[index % rowPalette.count]
+    }
+}
+
+/// A dark, faintly gridded backdrop used behind the Home and per-game menu screens to give the
+/// app a "tech tool" look consistent with the reference designs, instead of the plain system
+/// background.
+struct TechBackground: View {
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [AppTheme.techBackgroundTop, AppTheme.techBackgroundBottom],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            TechGridPattern()
+                .stroke(Color.white.opacity(0.035), lineWidth: 1)
+            RadialGradient(
+                colors: [AppTheme.techGlow.opacity(0.10), .clear],
+                center: .top,
+                startRadius: 0,
+                endRadius: 420
+            )
+        }
+        .ignoresSafeArea()
+    }
+}
+
+private struct TechGridPattern: Shape {
+    var spacing: CGFloat = 26
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        var x: CGFloat = 0
+        while x <= rect.width {
+            path.move(to: CGPoint(x: x, y: 0))
+            path.addLine(to: CGPoint(x: x, y: rect.height))
+            x += spacing
+        }
+        var y: CGFloat = 0
+        while y <= rect.height {
+            path.move(to: CGPoint(x: 0, y: y))
+            path.addLine(to: CGPoint(x: rect.width, y: y))
+            y += spacing
+        }
+        return path
+    }
+}
+
+private struct TechCardStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(AppTheme.techCardFill, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
+            )
+            .shadow(color: AppTheme.techGlow.opacity(0.12), radius: 16, y: 0)
+    }
+}
+
+extension View {
+    func techCard() -> some View {
+        modifier(TechCardStyle())
+    }
 }
 
 struct AppLogo: View {

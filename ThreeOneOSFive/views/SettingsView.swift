@@ -71,6 +71,8 @@ struct SettingsView: View {
                 Text(language.text("settings.supported_versions_footer"))
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(TechBackground())
         .tint(AppTheme.accent)
         .navigationTitle(language.text("settings.title"))
         .navigationBarTitleDisplayMode(.inline)
