@@ -43,3 +43,4 @@ DerivedData/
 *.tmp
 *.swp
 *~
+.claude/worktrees/
