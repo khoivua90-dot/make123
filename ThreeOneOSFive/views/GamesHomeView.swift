@@ -123,7 +123,9 @@ struct GamesHomeView: View {
     /// dismissed — a user who force-quits before tapping "Đóng" still won't be shown the same
     /// announcement again on next launch.
     private func checkAnnouncement() async {
-        guard let fetched = await AnnouncementService.fetch(), fetched.id != lastSeenAnnouncementID else { return }
+        guard case .announcement(let fetched) = await AnnouncementService.fetchState(),
+              fetched.id != lastSeenAnnouncementID
+        else { return }
         lastSeenAnnouncementID = fetched.id
         announcement = fetched
     }

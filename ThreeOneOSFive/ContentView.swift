@@ -2,16 +2,20 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var licenseGate = LicenseGateStore()
+    @State private var isCheckingMaintenance = true
+    @State private var maintenanceNotice: MaintenanceNotice?
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
-            if licenseGate.isChecking {
+            if isCheckingMaintenance || licenseGate.isChecking {
                 ZStack {
                     TechBackground()
                     ProgressView()
                 }
                 .preferredColorScheme(.dark)
+            } else if let maintenanceNotice {
+                MaintenanceView(notice: maintenanceNotice)
             } else if licenseGate.isUnlocked {
                 GamesHomeView()
             } else {
@@ -20,12 +24,26 @@ struct ContentView: View {
         }
         .environmentObject(licenseGate)
         .task {
-            await licenseGate.bootstrap()
+            async let maintenance: () = checkMaintenance()
+            async let license: () = licenseGate.bootstrap()
+            _ = await (maintenance, license)
         }
         .onChange(of: scenePhase) { newPhase in
             if newPhase == .active {
-                Task { await licenseGate.revalidateIfNeeded() }
+                Task {
+                    await checkMaintenance()
+                    await licenseGate.revalidateIfNeeded()
+                }
             }
         }
+    }
+
+    private func checkMaintenance() async {
+        if case .maintenance(let notice) = await AnnouncementService.fetchState() {
+            maintenanceNotice = notice
+        } else {
+            maintenanceNotice = nil
+        }
+        isCheckingMaintenance = false
     }
 }

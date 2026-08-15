@@ -390,6 +390,8 @@
 "license.expired" = "Expired";
 "license.activated_success" = "Signed in successfully";
 "license.activated_detail" = "%@ • %@";
+"maintenance.default_title" = "Under Maintenance";
+"maintenance.default_message" = "The app is under maintenance. Please check back later.";
 "license.key_label" = "KEY %@";
 "license.info_title" = "Key Info";
 "license.info_message" = "%@\n%@";

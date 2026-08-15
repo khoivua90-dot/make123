@@ -390,6 +390,8 @@
 "license.expired" = "Đã hết hạn";
 "license.activated_success" = "Đăng nhập thành công";
 "license.activated_detail" = "%@ • %@";
+"maintenance.default_title" = "Đang bảo trì";
+"maintenance.default_message" = "App đang được bảo trì, vui lòng quay lại sau.";
 "license.key_label" = "KEY %@";
 "license.info_title" = "Thông tin Key";
 "license.info_message" = "%@\n%@";

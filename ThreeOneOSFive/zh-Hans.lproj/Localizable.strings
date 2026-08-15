@@ -390,6 +390,8 @@
 "license.expired" = "已过期";
 "license.activated_success" = "登录成功";
 "license.activated_detail" = "%@ • %@";
+"maintenance.default_title" = "维护中";
+"maintenance.default_message" = "应用正在维护中，请稍后再来。";
 "license.key_label" = "KEY %@";
 "license.info_title" = "密钥信息";
 "license.info_message" = "%@\n%@";

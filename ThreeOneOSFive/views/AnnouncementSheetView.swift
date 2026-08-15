@@ -12,7 +12,7 @@ struct AnnouncementSheetView: View {
         VStack(spacing: 14) {
             Spacer()
 
-            WelcomeFaceIcon(size: 76)
+            FaceIcon(size: 76, color: Color(red: 0.165, green: 0.388, blue: 0.788), eyebrowText: "HELLO")
                 .shadow(color: Color.blue.opacity(0.45), radius: 16, y: 6)
 
             if !announcement.title.isEmpty {
