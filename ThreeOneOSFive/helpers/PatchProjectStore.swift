@@ -20,6 +20,23 @@ struct PatchStoreAlert: Identifiable {
     }
 }
 
+extension PatchStoreAlert {
+    /// On an unsupported iOS build, the exploit primitives underneath every patch operation
+    /// fail in ways that surface as unrelated errors (e.g. "app bundle not installed" when the
+    /// app is actually installed) — the real cause is always device support, so lead with that
+    /// instead of whatever PatchPackageError happened to bubble up.
+    static func failure(appState: AppState, fallbackMessageKey: String, fallbackArgument: String? = nil) -> PatchStoreAlert {
+        guard appState.isSupported else {
+            return PatchStoreAlert(
+                titleKey: "dashboard.unsupported_device",
+                messageKey: "dashboard.unsupported_message",
+                messageArgument: AppInfo.osVersion
+            )
+        }
+        return PatchStoreAlert(titleKey: "common.failed", messageKey: fallbackMessageKey, messageArgument: fallbackArgument)
+    }
+}
+
 @MainActor
 final class PatchProjectStore: ObservableObject {
     @Published private(set) var items: [PatchLibraryItem] = []

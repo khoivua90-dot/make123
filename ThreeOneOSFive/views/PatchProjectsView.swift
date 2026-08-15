@@ -209,6 +209,7 @@ struct PatchUnlockView: View {
 
 struct PatchProjectDetailView: View {
     @Environment(\.appLanguage) private var language
+    @EnvironmentObject private var appState: AppState
     @ObservedObject var store: PatchProjectStore
     let projectID: UUID
     /// The name to show in the nav title when it's known to differ from what's baked into the
@@ -394,16 +395,16 @@ struct PatchProjectDetailView: View {
             } catch let error as PatchPackageError {
                 await MainActor.run {
                     togglingRuleID = nil
-                    actionAlert = PatchStoreAlert(
-                        titleKey: "common.failed",
-                        messageKey: error.localizationKey,
-                        messageArgument: error.localizationArgument
+                    actionAlert = .failure(
+                        appState: appState,
+                        fallbackMessageKey: error.localizationKey,
+                        fallbackArgument: error.localizationArgument
                     )
                 }
             } catch {
                 await MainActor.run {
                     togglingRuleID = nil
-                    actionAlert = PatchStoreAlert(titleKey: "common.failed", messageKey: "patch.error.apply")
+                    actionAlert = .failure(appState: appState, fallbackMessageKey: "patch.error.apply")
                 }
             }
         }
@@ -446,16 +447,16 @@ struct PatchProjectDetailView: View {
             } catch let error as PatchPackageError {
                 await MainActor.run {
                     isWorking = false
-                    actionAlert = PatchStoreAlert(
-                        titleKey: "common.failed",
-                        messageKey: error.localizationKey,
-                        messageArgument: error.localizationArgument
+                    actionAlert = .failure(
+                        appState: appState,
+                        fallbackMessageKey: error.localizationKey,
+                        fallbackArgument: error.localizationArgument
                     )
                 }
             } catch {
                 await MainActor.run {
                     isWorking = false
-                    actionAlert = PatchStoreAlert(titleKey: "common.failed", messageKey: "patch.error.apply")
+                    actionAlert = .failure(appState: appState, fallbackMessageKey: "patch.error.apply")
                 }
             }
         }
@@ -474,16 +475,16 @@ struct PatchProjectDetailView: View {
             } catch let error as PatchPackageError {
                 await MainActor.run {
                     isWorking = false
-                    actionAlert = PatchStoreAlert(
-                        titleKey: "common.failed",
-                        messageKey: error.localizationKey,
-                        messageArgument: error.localizationArgument
+                    actionAlert = .failure(
+                        appState: appState,
+                        fallbackMessageKey: error.localizationKey,
+                        fallbackArgument: error.localizationArgument
                     )
                 }
             } catch {
                 await MainActor.run {
                     isWorking = false
-                    actionAlert = PatchStoreAlert(titleKey: "common.failed", messageKey: "patch.error.restore")
+                    actionAlert = .failure(appState: appState, fallbackMessageKey: "patch.error.restore")
                 }
             }
         }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GamePatchesView: View {
     @Environment(\.appLanguage) private var language
+    @EnvironmentObject private var appState: AppState
     let game: RemoteGameSummary
     @ObservedObject var store: PatchProjectStore
 
@@ -396,10 +397,10 @@ struct GamePatchesView: View {
                 togglingProjectID = nil
                 projectStates[item.id] = actualState
                 if let failure {
-                    store.alert = PatchStoreAlert(
-                        titleKey: "common.failed",
-                        messageKey: failure.localizationKey,
-                        messageArgument: failure.localizationArgument
+                    store.alert = .failure(
+                        appState: appState,
+                        fallbackMessageKey: failure.localizationKey,
+                        fallbackArgument: failure.localizationArgument
                     )
                 } else if actualState == isOn {
                     let key = isOn ? "patch.toggle_on_success" : "patch.toggle_off_success"
