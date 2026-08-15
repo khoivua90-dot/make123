@@ -12,6 +12,7 @@ struct GamePatchesView: View {
     @AppStorage("patch.importedOnlineIDs") private var importedOnlineIDsRaw = ""
     @AppStorage("patch.gameAssignments") private var gameAssignmentsRaw = "{}"
     @AppStorage("patch.remoteToLocalMap") private var remoteToLocalMapRaw = "{}"
+    @AppStorage("patch.remoteDisplayNames") private var remoteDisplayNamesRaw = "{}"
 
     private var importedOnlineIDs: Set<String> {
         Set(importedOnlineIDsRaw.split(separator: ",").map(String.init))
@@ -25,6 +26,18 @@ struct GamePatchesView: View {
     /// to the local file it downloaded into and deleted, instead of only ever growing the library.
     private var remoteToLocalMap: [String: String] {
         (try? JSONDecoder().decode([String: String].self, from: Data(remoteToLocalMapRaw.utf8))) ?? [:]
+    }
+
+    /// Local packageID -> the name currently set on the web admin. Renaming a patch's metadata
+    /// on the web doesn't touch the encrypted .3105 bytes (so the name baked into the decoded
+    /// PatchProject never changes), so the displayed title has to come from this instead of
+    /// `item.project?.name` whenever the patch was synced from the hub.
+    private var remoteDisplayNames: [String: String] {
+        (try? JSONDecoder().decode([String: String].self, from: Data(remoteDisplayNamesRaw.utf8))) ?? [:]
+    }
+
+    private func displayName(for item: PatchLibraryItem) -> String {
+        remoteDisplayNames[item.id.uuidString] ?? item.project?.name ?? language.text("patch.locked_project")
     }
 
     private var items: [PatchLibraryItem] {
@@ -191,7 +204,7 @@ struct GamePatchesView: View {
             .buttonStyle(.plain)
         } else {
             NavigationLink {
-                PatchProjectDetailView(store: store, projectID: item.id)
+                PatchProjectDetailView(store: store, projectID: item.id, titleOverride: remoteDisplayNames[item.id.uuidString])
             } label: {
                 toggleRow(item, colorIndex: colorIndex)
             }
@@ -210,7 +223,7 @@ struct GamePatchesView: View {
                 .frame(width: 38, height: 38)
                 .background(rowColor.opacity(0.16), in: RoundedRectangle(cornerRadius: 10))
             VStack(alignment: .leading, spacing: 3) {
-                Text(item.project?.name ?? language.text("patch.locked_project"))
+                Text(displayName(for: item))
                     .font(.body.weight(.semibold))
                     .foregroundStyle(.primary)
                 Text(language.text("patch.rules_count", Int64(rules.count)))
@@ -275,6 +288,7 @@ struct GamePatchesView: View {
         var imported = importedOnlineIDs
         var assignments = gameAssignments
         var remoteMap = remoteToLocalMap
+        var names = remoteDisplayNames
         var didChange = false
 
         for (serverID, localID) in remoteMap where assignments[localID] == game.id && !remoteIDsForGame.contains(serverID) {
@@ -284,6 +298,7 @@ struct GamePatchesView: View {
             }
             assignments.removeValue(forKey: localID)
             remoteMap.removeValue(forKey: serverID)
+            names.removeValue(forKey: localID)
             imported.remove(serverID)
             didChange = true
         }
@@ -307,10 +322,19 @@ struct GamePatchesView: View {
                     imported.insert(item.id)
                     assignments[packageIDString] = game.id
                     remoteMap[item.id] = packageIDString
+                    names[packageIDString] = item.name
                     didChange = true
                 }
             } catch {
                 continue
+            }
+        }
+
+        // Refresh display names for patches that were already downloaded, so a rename on the
+        // web admin shows up here on the next pull-to-refresh without re-downloading anything.
+        for item in remoteForGame {
+            if let localID = remoteMap[item.id], names[localID] != item.name {
+                names[localID] = item.name
             }
         }
 
@@ -320,6 +344,9 @@ struct GamePatchesView: View {
         }
         if let encoded = try? JSONEncoder().encode(remoteMap), let json = String(data: encoded, encoding: .utf8) {
             remoteToLocalMapRaw = json
+        }
+        if let encoded = try? JSONEncoder().encode(names), let json = String(data: encoded, encoding: .utf8) {
+            remoteDisplayNamesRaw = json
         }
         if didChange {
             store.reload()
@@ -375,9 +402,8 @@ struct GamePatchesView: View {
                         messageArgument: failure.localizationArgument
                     )
                 } else if actualState == isOn {
-                    let name = item.project?.name ?? language.text("patch.locked_project")
                     let key = isOn ? "patch.toggle_on_success" : "patch.toggle_off_success"
-                    toast = ToastMessage(text: language.text(key, name))
+                    toast = ToastMessage(text: language.text(key, displayName(for: item)))
                 }
             }
         }

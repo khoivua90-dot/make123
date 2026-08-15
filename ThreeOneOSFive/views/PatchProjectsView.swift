@@ -211,6 +211,9 @@ struct PatchProjectDetailView: View {
     @Environment(\.appLanguage) private var language
     @ObservedObject var store: PatchProjectStore
     let projectID: UUID
+    /// The name to show in the nav title when it's known to differ from what's baked into the
+    /// decoded package (e.g. renamed on the web admin after this patch was already downloaded).
+    var titleOverride: String? = nil
     @State private var showEditor = false
     @State private var editingRule: PatchRule?
     @State private var showApplyConfirmation = false
@@ -245,7 +248,7 @@ struct PatchProjectDetailView: View {
         }
         .scrollContentBackground(.hidden)
         .background(TechBackground())
-        .navigationTitle(item?.project?.name ?? language.text("patch.title"))
+        .navigationTitle(titleOverride ?? item?.project?.name ?? language.text("patch.title"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
