@@ -19,13 +19,9 @@ jobs:
           sudo xcode-select -s "$LATEST/Contents/Developer"
           xcodebuild -version
 
-      - name: Stamp build number
-        run: |
-          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $GITHUB_RUN_NUMBER" ThreeOneOSFive/Info.plist
-          echo "CFBundleVersion set to $GITHUB_RUN_NUMBER"
-
       - name: Archive (unsigned)
         run: |
+          echo "Stamping CFBundleVersion as $GITHUB_RUN_NUMBER"
           xcodebuild archive \
             -project ThreeOneOSFive.xcodeproj \
             -scheme 3105 \
@@ -36,7 +32,8 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGN_ENTITLEMENTS="" \
-            DEVELOPMENT_TEAM=""
+            DEVELOPMENT_TEAM="" \
+            CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER"
 
       - name: Package IPA
         run: |
