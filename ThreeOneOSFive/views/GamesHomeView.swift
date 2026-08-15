@@ -112,7 +112,7 @@ struct GamesHomeView: View {
 
     private var deviceInfoCard: some View {
         VStack(spacing: 12) {
-            deviceInfoRow(icon: "apple.logo", iconColor: .purple, label: "iOS", value: shortOSVersion)
+            deviceInfoRow(icon: "apple.logo", iconColor: .purple, label: language.text("common.ios"), value: shortOSVersion)
             deviceInfoRow(icon: "iphone", iconColor: AppTheme.techGlow, label: language.text("common.device"), value: AppInfo.hardwareDisplayName)
             deviceInfoRow(
                 icon: appState.isSupported ? "checkmark.seal.fill" : "xmark.seal.fill",

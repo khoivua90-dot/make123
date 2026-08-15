@@ -7,6 +7,7 @@
 "common.failed" = "Failed";
 "common.version" = "Version %@";
 "common.device" = "Device";
+"common.ios" = "iOS";
 "common.reboot" = "Reboot";
 
 "dashboard.exploit_access" = "Exploit access";
@@ -389,6 +390,7 @@
 "license.expired" = "Expired";
 "license.activated_success" = "Signed in successfully";
 "license.activated_detail" = "%@ • %@";
+"license.key_label" = "KEY %@";
 "license.info_title" = "Key Info";
 "license.info_message" = "%@\n%@";
 "license.error.not_found" = "Key not found.";

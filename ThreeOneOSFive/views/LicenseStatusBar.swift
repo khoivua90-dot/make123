@@ -15,7 +15,7 @@ struct LicenseStatusBar: View {
                 .shadow(color: .green.opacity(0.7), radius: 4)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("KEY \(licenseGate.maskedKeyCode)")
+                Text(language.text("license.key_label", licenseGate.maskedKeyCode))
                     .font(.caption.weight(.bold))
                     .foregroundStyle(.primary)
                 Text(remainingText)
