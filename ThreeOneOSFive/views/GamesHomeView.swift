@@ -10,8 +10,10 @@ struct GamesHomeView: View {
     @State private var games: [RemoteGameSummary] = []
     @State private var isLoadingGames = false
     @State private var showLanguagePicker = false
+    @State private var announcement: Announcement?
     @AppStorage("language.hasPicked") private var hasPickedLanguage = false
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
+    @AppStorage("announcement.lastSeenID") private var lastSeenAnnouncementID = ""
 
     private let columns = [GridItem(.adaptive(minimum: 150), spacing: 14)]
 
@@ -81,12 +83,19 @@ struct GamesHomeView: View {
                     .accessibilityLabel(language.text("tab.settings"))
                 }
             }
-            .refreshable { await loadGames() }
+            .refreshable {
+                await loadGames()
+                await checkAnnouncement()
+            }
             .task { await loadGames() }
+            .task { await checkAnnouncement() }
             .safeAreaInset(edge: .bottom) {
                 LicenseStatusBar()
             }
             .toast($licenseGate.activationToast)
+            .sheet(item: $announcement) { item in
+                AnnouncementSheetView(announcement: item)
+            }
             .sheet(item: $draftCoordinator.request) { request in
                 PatchProjectEditorView(
                     existingProject: nil,
@@ -108,6 +117,15 @@ struct GamesHomeView: View {
             games = fetched
         }
         isLoadingGames = false
+    }
+
+    /// Marks the announcement seen as soon as it's picked up to show, not when the sheet is
+    /// dismissed — a user who force-quits before tapping "Đóng" still won't be shown the same
+    /// announcement again on next launch.
+    private func checkAnnouncement() async {
+        guard let fetched = await AnnouncementService.fetch(), fetched.id != lastSeenAnnouncementID else { return }
+        lastSeenAnnouncementID = fetched.id
+        announcement = fetched
     }
 
     private var deviceInfoCard: some View {

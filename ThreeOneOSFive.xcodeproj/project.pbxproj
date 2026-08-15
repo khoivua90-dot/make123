@@ -49,6 +49,8 @@
 		3105G015 /* LicenseGateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G016; };
 		3105G017 /* KeyEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G018; };
 		3105G019 /* LicenseStatusBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G020; };
+		3105G021 /* AnnouncementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G022; };
+		3105G023 /* AnnouncementSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G024; };
 		3105C200 /* PatchDraftService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C100; };
 		3105C201 /* PatchDraftCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C101; };
 		3105C202 /* FolderPatchSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C102; };
@@ -124,6 +126,8 @@
 		3105G016 /* LicenseGateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseGateStore.swift; sourceTree = "<group>"; };
 		3105G018 /* KeyEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEntryView.swift; sourceTree = "<group>"; };
 		3105G020 /* LicenseStatusBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseStatusBar.swift; sourceTree = "<group>"; };
+		3105G022 /* AnnouncementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementService.swift; sourceTree = "<group>"; };
+		3105G024 /* AnnouncementSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementSheetView.swift; sourceTree = "<group>"; };
 		3105C100 /* PatchDraftService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDraftService.swift; sourceTree = "<group>"; };
 		3105C101 /* PatchDraftCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDraftCoordinator.swift; sourceTree = "<group>"; };
 		3105C102 /* FolderPatchSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderPatchSelectionView.swift; sourceTree = "<group>"; };
@@ -208,6 +212,7 @@
 				3105G008 /* GamePatchesView.swift */,
 				3105G018 /* KeyEntryView.swift */,
 				3105G020 /* LicenseStatusBar.swift */,
+				3105G024 /* AnnouncementSheetView.swift */,
 				3105B121 /* PatchProjectsView.swift */,
 				3105B122 /* PatchProjectEditorView.swift */,
 				3105C102 /* FolderPatchSelectionView.swift */,
@@ -238,6 +243,7 @@
 				3105G012 /* DeviceIdentity.swift */,
 				3105G014 /* LicenseKeyService.swift */,
 				3105G016 /* LicenseGateStore.swift */,
+				3105G022 /* AnnouncementService.swift */,
 				3105C100 /* PatchDraftService.swift */,
 				3105C101 /* PatchDraftCoordinator.swift */,
 				3105F102 /* WallpaperLabModels.swift */,
@@ -374,6 +380,8 @@
 				3105G015,
 				3105G017,
 				3105G019,
+				3105G021,
+				3105G023,
 				3105C200,
 				3105C201,
 				3105C202,
