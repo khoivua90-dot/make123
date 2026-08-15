@@ -387,6 +387,7 @@
 "license.change_key" = "Đổi Key";
 "license.remaining" = "Còn %lld ngày %lld giờ";
 "license.expired" = "Đã hết hạn";
+"license.activated_success" = "Đăng nhập thành công";
 "license.info_title" = "Thông tin Key";
 "license.info_message" = "%@\n%@";
 "license.error.not_found" = "Key không tồn tại.";

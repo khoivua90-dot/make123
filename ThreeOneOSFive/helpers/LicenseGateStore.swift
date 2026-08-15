@@ -11,6 +11,7 @@ final class LicenseGateStore: ObservableObject {
     @Published private(set) var isChecking = true
     @Published private(set) var expiresAt: Date?
     @Published var errorMessage: String?
+    @Published var activationToast: ToastMessage?
 
     private let defaults = UserDefaults.standard
     private let keyCodeDefaultsKey = "license.keyCode"
@@ -56,6 +57,7 @@ final class LicenseGateStore: ObservableObject {
             storedKeyCode = code
             expiresAt = result.expiresAt
             isUnlocked = true
+            activationToast = ToastMessage(text: LocalizedStringResource.text("license.activated_success"))
             return true
         } catch let error as LicenseKeyError {
             errorMessage = LocalizedStringResource.errorText(error)
@@ -90,8 +92,12 @@ final class LicenseGateStore: ObservableObject {
 /// message through the app's language system without needing an `AppLanguage` passed in from
 /// every call site.
 private enum LocalizedStringResource {
-    static func errorText(_ error: LicenseKeyError) -> String {
+    static func text(_ key: String) -> String {
         let code = AppLanguage(rawValue: UserDefaults.standard.string(forKey: AppLanguage.storageKey) ?? "") ?? .english
-        return code.text(error.localizationKey)
+        return code.text(key)
+    }
+
+    static func errorText(_ error: LicenseKeyError) -> String {
+        text(error.localizationKey)
     }
 }

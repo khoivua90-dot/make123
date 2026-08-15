@@ -387,6 +387,7 @@
 "license.change_key" = "Change Key";
 "license.remaining" = "%lld days %lld hours left";
 "license.expired" = "Expired";
+"license.activated_success" = "Signed in successfully";
 "license.info_title" = "Key Info";
 "license.info_message" = "%@\n%@";
 "license.error.not_found" = "Key not found.";

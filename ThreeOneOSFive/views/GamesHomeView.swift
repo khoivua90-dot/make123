@@ -4,6 +4,8 @@ import UIKit
 struct GamesHomeView: View {
     @Environment(\.appLanguage) private var language
     @EnvironmentObject private var draftCoordinator: PatchDraftCoordinator
+    @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var licenseGate: LicenseGateStore
     @StateObject private var store = PatchProjectStore()
     @State private var games: [RemoteGameSummary] = []
     @State private var isLoadingGames = false
@@ -56,6 +58,7 @@ struct GamesHomeView: View {
                         SettingsView()
                     } label: {
                         Image(systemName: "gearshape")
+                            .foregroundStyle(Color(red: 0.15, green: 0.48, blue: 0.93))
                     }
                     .accessibilityLabel(language.text("tab.settings"))
                 }
@@ -65,6 +68,7 @@ struct GamesHomeView: View {
             .safeAreaInset(edge: .bottom) {
                 LicenseStatusBar()
             }
+            .toast($licenseGate.activationToast)
             .sheet(item: $draftCoordinator.request) { request in
                 PatchProjectEditorView(
                     existingProject: nil,
@@ -92,6 +96,12 @@ struct GamesHomeView: View {
         VStack(spacing: 12) {
             deviceInfoRow(icon: "apple.logo", iconColor: .purple, label: "iOS", value: shortOSVersion)
             deviceInfoRow(icon: "iphone", iconColor: AppTheme.techGlow, label: language.text("common.device"), value: AppInfo.hardwareDisplayName)
+            deviceInfoRow(
+                icon: appState.isSupported ? "checkmark.seal.fill" : "xmark.seal.fill",
+                iconColor: appState.isSupported ? .green : .red,
+                label: language.text("settings.support"),
+                value: language.text(appState.isSupported ? "settings.supported" : "settings.unsupported")
+            )
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
