@@ -378,3 +378,19 @@
 "wallpaper.error.install" = "Installation failed and any descriptors added during this attempt were rolled back.";
 "wallpaper.error.restore" = "CheatiOSVip could not safely remove every descriptor from this installation.";
 "wallpaper.error.unknown" = "An unexpected error occurred. Review Session Logs for details.";
+
+// MARK: - License key gate
+"license.title" = "Enter Activation Key";
+"license.subtitle" = "Enter your key to unlock CheatiOSVip DSW on this device.";
+"license.placeholder" = "Enter key";
+"license.activate" = "Activate";
+"license.change_key" = "Change Key";
+"license.remaining" = "%lld days %lld hours left";
+"license.expired" = "Expired";
+"license.info_title" = "Key Info";
+"license.info_message" = "%@\n%@";
+"license.error.not_found" = "Key not found.";
+"license.error.revoked" = "This key has been revoked.";
+"license.error.expired" = "This key has expired.";
+"license.error.device_mismatch" = "This key is already in use on another device.";
+"license.error.network" = "Couldn't reach the server.";

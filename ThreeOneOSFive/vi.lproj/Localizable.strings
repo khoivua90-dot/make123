@@ -378,3 +378,19 @@
 "wallpaper.error.install" = "Cài đặt thất bại và mọi descriptor đã thêm trong lần thử này đã được rollback.";
 "wallpaper.error.restore" = "CheatiOSVip không thể xóa an toàn toàn bộ descriptor của lần cài này.";
 "wallpaper.error.unknown" = "Đã xảy ra lỗi không mong muốn. Hãy kiểm tra Nhật ký phiên để biết chi tiết.";
+
+// MARK: - License key gate
+"license.title" = "Nhập Key Kích Hoạt";
+"license.subtitle" = "Nhập key được cấp để mở khóa CheatiOSVip DSW trên thiết bị này.";
+"license.placeholder" = "Nhập mã key";
+"license.activate" = "Kích hoạt";
+"license.change_key" = "Đổi Key";
+"license.remaining" = "Còn %lld ngày %lld giờ";
+"license.expired" = "Đã hết hạn";
+"license.info_title" = "Thông tin Key";
+"license.info_message" = "%@\n%@";
+"license.error.not_found" = "Key không tồn tại.";
+"license.error.revoked" = "Key đã bị thu hồi.";
+"license.error.expired" = "Key đã hết hạn.";
+"license.error.device_mismatch" = "Key này đã được dùng trên thiết bị khác.";
+"license.error.network" = "Không thể kết nối máy chủ.";

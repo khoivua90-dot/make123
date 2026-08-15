@@ -62,6 +62,9 @@ struct GamesHomeView: View {
             }
             .refreshable { await loadGames() }
             .task { await loadGames() }
+            .safeAreaInset(edge: .bottom) {
+                LicenseStatusBar()
+            }
             .sheet(item: $draftCoordinator.request) { request in
                 PatchProjectEditorView(
                     existingProject: nil,
