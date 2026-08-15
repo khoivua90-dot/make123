@@ -11,9 +11,9 @@ struct GamesHomeView: View {
     @State private var isLoadingGames = false
     @State private var showLanguagePicker = false
     @State private var announcement: Announcement?
+    @State private var shownAnnouncementIDs: Set<String> = []
     @AppStorage("language.hasPicked") private var hasPickedLanguage = false
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
-    @Environment(\.scenePhase) private var scenePhase
 
     private let columns = [GridItem(.adaptive(minimum: 150), spacing: 14)]
 
@@ -89,11 +89,6 @@ struct GamesHomeView: View {
             }
             .task { await loadGames() }
             .task { await checkAnnouncement() }
-            .onChange(of: scenePhase) { newPhase in
-                if newPhase == .active {
-                    Task { await checkAnnouncement() }
-                }
-            }
             .safeAreaInset(edge: .bottom) {
                 LicenseStatusBar()
             }
@@ -124,11 +119,14 @@ struct GamesHomeView: View {
         isLoadingGames = false
     }
 
-    /// Deliberately not "seen once and never again" — closing the sheet only dismisses it for
-    /// this visit. As long as the web admin leaves the announcement on, it shows again every
-    /// time the app is opened or comes back to the foreground.
+    /// Shows a given announcement at most once per app process: the id is only remembered in
+    /// memory, not persisted, so a fresh launch after being swiped away in the app switcher
+    /// shows it again — simply backgrounding/foregrounding without killing the app does not.
     private func checkAnnouncement() async {
-        guard case .announcement(let fetched) = await AnnouncementService.fetchState() else { return }
+        guard case .announcement(let fetched) = await AnnouncementService.fetchState(),
+              !shownAnnouncementIDs.contains(fetched.id)
+        else { return }
+        shownAnnouncementIDs.insert(fetched.id)
         announcement = fetched
     }
 
