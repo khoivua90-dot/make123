@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// Bottom sheet popup for a server-pushed announcement, matching the reference "welcome" style:
-/// blue badge icon, title, message, an optional link, and a full-width close button.
+/// Full-height bottom sheet popup for a server-pushed announcement, matching the reference
+/// "welcome" style: content centered in a mostly-empty sheet, a smiling-face badge icon, title,
+/// message, an optional link, and a full-width close button.
 struct AnnouncementSheetView: View {
     let announcement: Announcement
     @Environment(\.appLanguage) private var language
@@ -9,16 +10,16 @@ struct AnnouncementSheetView: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            Spacer(minLength: 8)
+            Spacer()
 
             ZStack {
                 Circle().fill(Color.blue)
-                Image(systemName: "megaphone.fill")
-                    .font(.system(size: 22, weight: .semibold))
+                Image(systemName: "face.smiling.fill")
+                    .font(.system(size: 30, weight: .regular))
                     .foregroundStyle(.white)
             }
-            .frame(width: 56, height: 56)
-            .shadow(color: Color.blue.opacity(0.5), radius: 14, y: 6)
+            .frame(width: 76, height: 76)
+            .shadow(color: Color.blue.opacity(0.5), radius: 16, y: 6)
 
             if !announcement.title.isEmpty {
                 Text(announcement.title)
@@ -51,10 +52,10 @@ struct AnnouncementSheetView: View {
             .foregroundStyle(.white)
             .padding(.top, 6)
 
-            Spacer(minLength: 12)
+            Spacer()
         }
         .padding(.horizontal, 28)
-        .presentationDetents([.medium])
+        .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .preferredColorScheme(.dark)
     }
