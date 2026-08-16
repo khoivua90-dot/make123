@@ -5,9 +5,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
-#include <sys/ptrace.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+// sys/ptrace.h is not in the public iOS SDK — declare manually.
+#define PT_DENY_ATTACH 31
+int ptrace(int request, pid_t pid, caddr_t addr, int data);
 
 // Hard-kill: no Swift exception, no error log, no useful crash report for attacker.
 static void __attribute__((noreturn)) die(void) {
