@@ -81,9 +81,14 @@ enum LicenseKeyService {
     }
 
     static func redeem(code: String, deviceId: String, deviceModel: String) async throws -> LicenseRedeemResult {
-        var request = URLRequest(url: baseURL.appendingPathComponent("api/keys/redeem"))
+        var request = URLRequest(url: baseURL.appendingPathComponent(PatchHubService.pathRedeem))
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.setValue(PatchHubService.clientToken, forHTTPHeaderField: "X-App-Token")
+        let (ts, nonce, sig) = PatchHubService.signKeyRequest(code: code, deviceId: deviceId)
+        request.setValue(ts,    forHTTPHeaderField: "X-Request-Time")
+        request.setValue(nonce, forHTTPHeaderField: "X-Request-Nonce")
+        request.setValue(sig,   forHTTPHeaderField: "X-Request-Sig")
         request.httpBody = formBody(["code": code, "deviceId": deviceId, "deviceModel": deviceModel])
 
         let data: Data
@@ -100,15 +105,21 @@ enum LicenseKeyService {
     }
 
     static func status(code: String, deviceId: String) async throws -> LicenseRedeemResult {
-        var components = URLComponents(url: baseURL.appendingPathComponent("api/keys/status"), resolvingAgainstBaseURL: false)!
+        var components = URLComponents(url: baseURL.appendingPathComponent(PatchHubService.pathStatus), resolvingAgainstBaseURL: false)!
         components.queryItems = [
             URLQueryItem(name: "code", value: code),
             URLQueryItem(name: "deviceId", value: deviceId)
         ]
+        var statusRequest = URLRequest(url: components.url!)
+        statusRequest.setValue(PatchHubService.clientToken, forHTTPHeaderField: "X-App-Token")
+        let (ts, nonce, sig) = PatchHubService.signKeyRequest(code: code, deviceId: deviceId)
+        statusRequest.setValue(ts,    forHTTPHeaderField: "X-Request-Time")
+        statusRequest.setValue(nonce, forHTTPHeaderField: "X-Request-Nonce")
+        statusRequest.setValue(sig,   forHTTPHeaderField: "X-Request-Sig")
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await URLSession.shared.data(from: components.url!)
+            (data, response) = try await URLSession.shared.data(for: statusRequest)
         } catch {
             throw LicenseKeyError.network
         }

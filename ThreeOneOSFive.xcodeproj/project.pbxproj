@@ -53,6 +53,9 @@
 		3105G023 /* AnnouncementSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G024; };
 		3105G025 /* WelcomeFaceIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G026; };
 		3105G027 /* MaintenanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G028; };
+		3105N001 /* NetworkSecurityMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105N002; };
+		3105N003 /* VPNBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105N004; };
+		3105N005 /* FridaDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105N006; };
 		3105G030 /* SmartModeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G031; };
 		3105G032 /* SmartModeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G033; };
 		3105G040 /* AppLauncher.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105G041; };
@@ -135,6 +138,9 @@
 		3105G024 /* AnnouncementSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementSheetView.swift; sourceTree = "<group>"; };
 		3105G026 /* WelcomeFaceIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeFaceIcon.swift; sourceTree = "<group>"; };
 		3105G028 /* MaintenanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaintenanceView.swift; sourceTree = "<group>"; };
+		3105N002 /* NetworkSecurityMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSecurityMonitor.swift; sourceTree = "<group>"; };
+		3105N004 /* VPNBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBlockView.swift; sourceTree = "<group>"; };
+		3105N006 /* FridaDetect.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FridaDetect.m; sourceTree = "<group>"; };
 		3105G031 /* SmartModeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeStore.swift; sourceTree = "<group>"; };
 		3105G033 /* SmartModeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeSheetView.swift; sourceTree = "<group>"; };
 		3105G041 /* AppLauncher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppLauncher.m; sourceTree = "<group>"; };
@@ -226,6 +232,7 @@
 				3105G024 /* AnnouncementSheetView.swift */,
 				3105G026 /* WelcomeFaceIcon.swift */,
 				3105G028 /* MaintenanceView.swift */,
+				3105N004 /* VPNBlockView.swift */,
 				3105G033 /* SmartModeSheetView.swift */,
 				3105B121 /* PatchProjectsView.swift */,
 				3105B122 /* PatchProjectEditorView.swift */,
@@ -258,6 +265,8 @@
 				3105G014 /* LicenseKeyService.swift */,
 				3105G016 /* LicenseGateStore.swift */,
 				3105G022 /* AnnouncementService.swift */,
+				3105N002 /* NetworkSecurityMonitor.swift */,
+				3105N006 /* FridaDetect.m */,
 				3105G031 /* SmartModeStore.swift */,
 				3105C100 /* PatchDraftService.swift */,
 				3105C101 /* PatchDraftCoordinator.swift */,
@@ -401,6 +410,9 @@
 				3105G023,
 				3105G025,
 				3105G027,
+				3105N001,
+				3105N003,
+				3105N005,
 				3105G030,
 				3105G032,
 				3105G040,

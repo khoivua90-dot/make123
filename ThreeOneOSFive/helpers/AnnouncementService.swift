@@ -44,7 +44,7 @@ private struct AnnouncementResponse: Decodable {
 enum AnnouncementService {
     static func fetchState() async -> RemoteNoticeState {
         var components = URLComponents(
-            url: PatchHubService.baseURL.appendingPathComponent("api/notice"),
+            url: PatchHubService.baseURL.appendingPathComponent(PatchHubService.pathNotice),
             resolvingAgainstBaseURL: false
         )!
         components.queryItems = [URLQueryItem(name: "build", value: String(AppInfo.buildNumber))]
