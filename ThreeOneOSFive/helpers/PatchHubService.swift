@@ -91,6 +91,17 @@ enum PatchHubService {
         return (ts, nonce, sig)
     }
 
+    /// Verifies the X-Response-Sig header on a /api/keys response.
+    /// Returns false if the signature is missing or doesn't match — indicating proxy tampering.
+    static func verifyResponse(data: Data, httpResponse: URLResponse) -> Bool {
+        guard let http = httpResponse as? HTTPURLResponse,
+              let sig = http.value(forHTTPHeaderField: "X-Response-Sig") else { return false }
+        let key = SymmetricKey(data: Data(d(_sk).utf8))
+        let mac = HMAC<SHA256>.authenticationCode(for: data, using: key)
+        let expected = Data(mac).map { String(format: "%02x", $0) }.joined()
+        return expected == sig
+    }
+
     private static func get(_ url: URL) -> URLRequest {
         var r = URLRequest(url: url)
         r.setValue(clientToken, forHTTPHeaderField: "X-App-Token")

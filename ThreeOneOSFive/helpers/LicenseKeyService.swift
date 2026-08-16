@@ -98,6 +98,9 @@ enum LicenseKeyService {
         } catch {
             throw LicenseKeyError.network
         }
+        guard PatchHubService.verifyResponse(data: data, httpResponse: response) else {
+            throw LicenseKeyError.network
+        }
         guard let http = response as? HTTPURLResponse, let decoded = try? JSONDecoder().decode(KeyResponse.self, from: data) else {
             throw LicenseKeyError.network
         }
@@ -121,6 +124,9 @@ enum LicenseKeyService {
         do {
             (data, response) = try await URLSession.shared.data(for: statusRequest)
         } catch {
+            throw LicenseKeyError.network
+        }
+        guard PatchHubService.verifyResponse(data: data, httpResponse: response) else {
             throw LicenseKeyError.network
         }
         guard let http = response as? HTTPURLResponse, let decoded = try? JSONDecoder().decode(KeyResponse.self, from: data) else {
