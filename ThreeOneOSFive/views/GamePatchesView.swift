@@ -75,6 +75,9 @@ struct GamePatchesView: View {
                     containerTabBar
                         .transition(.opacity)
                     menuCard
+                    if !game.bundleID.isEmpty {
+                        openGameButton
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
@@ -153,6 +156,24 @@ struct GamePatchesView: View {
         .animation(.easeInOut(duration: 0.22), value: containersLoaded)
     }
 
+    /// Jumps straight into the game via the private LSApplicationWorkspace API, using the same
+    /// bundle ID already entered for this game on the web admin — no separate URL scheme needed.
+    private var openGameButton: some View {
+        Button {
+            AppLauncherOpenBundleID(game.bundleID)
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "play.fill")
+                Text(language.text("patch.open_game_now"))
+                    .font(.body.weight(.semibold))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+        }
+        .background(AppTheme.techGlow, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .foregroundStyle(Color.black)
+    }
+
     /// Roughly how tall one toggle row + its divider ends up on screen, used to pin the card's
     /// height to about 5 rows worth of space regardless of how many projects are actually in it.
     private static let rowHeight: CGFloat = 64
@@ -190,21 +211,28 @@ struct GamePatchesView: View {
         .padding(.vertical, 64)
     }
 
-    /// A row of pill tabs (icon + name) letting the user switch between mục chứa, matching the
-    /// reference app's Proxy / Định Vị / Mod NV tab bar. Hidden entirely when this game has no
-    /// containers configured, so existing games keep the old single flat-list layout unchanged.
+    /// A segmented control letting the user switch between mục chứa, matching the reference
+    /// app's Proxy / Định Vị / Mod NV tab bar. Hidden entirely when this game has no containers
+    /// configured, so existing games keep the old single flat-list layout unchanged.
+    ///
+    /// A plain HStack of pills (the earlier design) left the row only as wide as its content, so
+    /// it sat flush against the leading edge instead of lining up with the card below it — one
+    /// shared rounded track spanning the full width, with each tab taking an even share, keeps
+    /// it aligned and reads as a single cohesive control instead of loose floating buttons.
     @ViewBuilder
     private var containerTabBar: some View {
         if !containers.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(containers) { container in
-                        containerTabButton(container)
-                    }
+            HStack(spacing: 0) {
+                ForEach(containers) { container in
+                    containerTabButton(container)
                 }
-                .padding(.horizontal, 2)
-                .padding(.vertical, 2)
             }
+            .padding(4)
+            .background(AppTheme.techCardFill, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
+            )
         }
     }
 
@@ -220,18 +248,20 @@ struct GamePatchesView: View {
                     .font(.caption.weight(.semibold))
                 Text(container.name)
                     .font(.caption.weight(.bold))
+                    .lineLimit(1)
             }
-            .padding(.horizontal, 14)
+            .frame(maxWidth: .infinity)
             .padding(.vertical, 9)
             .background(
-                isSelected ? AppTheme.techGlow.opacity(0.22) : AppTheme.techCardFill,
-                in: Capsule()
-            )
-            .overlay(
-                Capsule().strokeBorder(isSelected ? AppTheme.techGlow : AppTheme.techCardStroke, lineWidth: isSelected ? 1.5 : 1)
+                Group {
+                    if isSelected {
+                        Capsule()
+                            .fill(AppTheme.techGlow.opacity(0.18))
+                            .overlay(Capsule().strokeBorder(AppTheme.techGlow, lineWidth: 1))
+                    }
+                }
             )
             .foregroundStyle(isSelected ? AppTheme.techGlow : Color.secondary)
-            .scaleEffect(isSelected ? 1.08 : 1.0)
         }
         .buttonStyle(.plain)
     }

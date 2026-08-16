@@ -55,6 +55,7 @@
 "patch.tap_to_unlock" = "Chạm để nhập mật khẩu";
 "patch.password_protected" = "Có mật khẩu bảo vệ";
 "patch.rules_count" = "%lld quy tắc thay thế";
+"patch.open_game_now" = "Mở Game Ngay";
 "patch.menu_title" = "Menu Patch";
 "patch.menu_auto_badge" = "AUTO";
 "patch.toggle_on_success" = "Đã bật %@";

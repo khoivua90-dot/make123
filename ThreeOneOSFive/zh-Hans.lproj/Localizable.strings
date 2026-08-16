@@ -55,6 +55,7 @@
 "patch.tap_to_unlock" = "轻点以输入密码";
 "patch.password_protected" = "受密码保护";
 "patch.rules_count" = "%lld 条替换规则";
+"patch.open_game_now" = "立即打开游戏";
 "patch.menu_title" = "补丁菜单";
 "patch.menu_auto_badge" = "AUTO";
 "patch.toggle_on_success" = "已开启 %@";
