@@ -55,8 +55,6 @@
 		3105G027 /* MaintenanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G028; };
 		3105G030 /* SmartModeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G031; };
 		3105G032 /* SmartModeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G033; };
-		3105G034 /* FloatingMenuContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G035; };
-		3105G036 /* FloatingOverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G037; };
 		3105C200 /* PatchDraftService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C100; };
 		3105C201 /* PatchDraftCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C101; };
 		3105C202 /* FolderPatchSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C102; };
@@ -138,8 +136,6 @@
 		3105G028 /* MaintenanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaintenanceView.swift; sourceTree = "<group>"; };
 		3105G031 /* SmartModeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeStore.swift; sourceTree = "<group>"; };
 		3105G033 /* SmartModeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeSheetView.swift; sourceTree = "<group>"; };
-		3105G035 /* FloatingMenuContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingMenuContentView.swift; sourceTree = "<group>"; };
-		3105G037 /* FloatingOverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingOverlayController.swift; sourceTree = "<group>"; };
 		3105C100 /* PatchDraftService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDraftService.swift; sourceTree = "<group>"; };
 		3105C101 /* PatchDraftCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDraftCoordinator.swift; sourceTree = "<group>"; };
 		3105C102 /* FolderPatchSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderPatchSelectionView.swift; sourceTree = "<group>"; };
@@ -228,7 +224,6 @@
 				3105G026 /* WelcomeFaceIcon.swift */,
 				3105G028 /* MaintenanceView.swift */,
 				3105G033 /* SmartModeSheetView.swift */,
-				3105G035 /* FloatingMenuContentView.swift */,
 				3105B121 /* PatchProjectsView.swift */,
 				3105B122 /* PatchProjectEditorView.swift */,
 				3105C102 /* FolderPatchSelectionView.swift */,
@@ -261,7 +256,6 @@
 				3105G016 /* LicenseGateStore.swift */,
 				3105G022 /* AnnouncementService.swift */,
 				3105G031 /* SmartModeStore.swift */,
-				3105G037 /* FloatingOverlayController.swift */,
 				3105C100 /* PatchDraftService.swift */,
 				3105C101 /* PatchDraftCoordinator.swift */,
 				3105F102 /* WallpaperLabModels.swift */,
@@ -404,8 +398,6 @@
 				3105G027,
 				3105G030,
 				3105G032,
-				3105G034,
-				3105G036,
 				3105C200,
 				3105C201,
 				3105C202,
