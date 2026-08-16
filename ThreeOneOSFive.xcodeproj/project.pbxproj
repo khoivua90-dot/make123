@@ -56,6 +56,7 @@
 		3105N001 /* NetworkSecurityMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105N002; };
 		3105N003 /* VPNBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105N004; };
 		3105N005 /* FridaDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105N006; };
+		3105N007 /* IntegrityGuard.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105N008; };
 		3105G030 /* SmartModeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G031; };
 		3105G032 /* SmartModeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G033; };
 		3105G040 /* AppLauncher.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105G041; };
@@ -141,6 +142,7 @@
 		3105N002 /* NetworkSecurityMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSecurityMonitor.swift; sourceTree = "<group>"; };
 		3105N004 /* VPNBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBlockView.swift; sourceTree = "<group>"; };
 		3105N006 /* FridaDetect.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FridaDetect.m; sourceTree = "<group>"; };
+		3105N008 /* IntegrityGuard.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = IntegrityGuard.m; sourceTree = "<group>"; };
 		3105G031 /* SmartModeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeStore.swift; sourceTree = "<group>"; };
 		3105G033 /* SmartModeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeSheetView.swift; sourceTree = "<group>"; };
 		3105G041 /* AppLauncher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppLauncher.m; sourceTree = "<group>"; };
@@ -267,6 +269,7 @@
 				3105G022 /* AnnouncementService.swift */,
 				3105N002 /* NetworkSecurityMonitor.swift */,
 				3105N006 /* FridaDetect.m */,
+				3105N008 /* IntegrityGuard.m */,
 				3105G031 /* SmartModeStore.swift */,
 				3105C100 /* PatchDraftService.swift */,
 				3105C101 /* PatchDraftCoordinator.swift */,
@@ -413,6 +416,7 @@
 				3105N001,
 				3105N003,
 				3105N005,
+				3105N007,
 				3105G030,
 				3105G032,
 				3105G040,

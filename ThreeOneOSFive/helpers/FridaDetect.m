@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+extern void runIntegrityCheck(void);
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <signal.h>
@@ -43,6 +44,9 @@ static const unsigned char kGadget[]  = { 0x74, 0x72, 0x77, 0x74, 0x76, 0x67 };
 // Runs before main() and before Swift runtime — very hard to hook.
 __attribute__((constructor))
 static void security_check(void) {
+
+    // 0. Verify binary constants haven't been patched.
+    runIntegrityCheck();
 
     // 1. Deny debugger attachment (ptrace trick).
     //    If a debugger is already attached this kills the process immediately.
