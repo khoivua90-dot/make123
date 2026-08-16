@@ -1,4 +1,5 @@
 import Foundation
+import Security
 
 /// Gates the whole app behind a license key, mirroring the reference "enter key first" flow:
 /// nothing else renders until `isUnlocked` is true. A rejection the server explicitly returned
@@ -13,12 +14,57 @@ final class LicenseGateStore: ObservableObject {
     @Published var errorMessage: String?
     @Published var activationToast: ToastMessage?
 
-    private let defaults = UserDefaults.standard
-    private let keyCodeDefaultsKey = "license.keyCode"
+    // Key code is stored in Keychain (not UserDefaults) so it can't be read or
+    // modified with a file manager on a jailbroken device.
+    private static let kcService = "com.cheatiosvip.license"
+    private static let kcAccount = "key-code"
 
     private(set) var storedKeyCode: String? {
-        get { defaults.string(forKey: keyCodeDefaultsKey) }
-        set { defaults.set(newValue, forKey: keyCodeDefaultsKey) }
+        get { Self.keychainLoad() }
+        set {
+            if let value = newValue { Self.keychainSave(value) }
+            else { Self.keychainDelete() }
+        }
+    }
+
+    private static func keychainLoad() -> String? {
+        let q: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: kcService,
+            kSecAttrAccount as String: kcAccount,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var ref: CFTypeRef?
+        guard SecItemCopyMatching(q as CFDictionary, &ref) == errSecSuccess,
+              let data = ref as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private static func keychainSave(_ value: String) {
+        let data = Data(value.utf8)
+        let q: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: kcService,
+            kSecAttrAccount as String: kcAccount
+        ]
+        let attrs: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        ]
+        if SecItemUpdate(q as CFDictionary, attrs as CFDictionary) == errSecItemNotFound {
+            var item = q; attrs.forEach { item[$0.key] = $0.value }
+            SecItemAdd(item as CFDictionary, nil)
+        }
+    }
+
+    private static func keychainDelete() {
+        let q: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: kcService,
+            kSecAttrAccount as String: kcAccount
+        ]
+        SecItemDelete(q as CFDictionary)
     }
 
     var maskedKeyCode: String {
