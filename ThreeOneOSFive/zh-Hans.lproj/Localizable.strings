@@ -402,3 +402,9 @@
 "license.error.device_mismatch" = "该密钥已在其他设备上使用。";
 "license.error.device_limit_reached" = "该密钥已达到设备数量上限。";
 "license.error.network" = "无法连接服务器。";
+
+"smart_mode.title" = "智能模式";
+"smart_mode.subtitle" = "开启悬浮齿轮图标即可快速打开某个游戏的补丁菜单，无需切回应用。退出应用后图标仍会显示，只有在多任务中划掉应用才会消失。";
+"smart_mode.toggle_title" = "启用智能模式";
+"smart_mode.toggle_subtitle" = "在屏幕上显示悬浮图标";
+"smart_mode.pick_game" = "选择游戏";

@@ -135,24 +135,51 @@ struct GamePatchesView: View {
                     loadingPlaceholder
                 } else if displayedItems.isEmpty {
                     emptyState
-                } else {
-                    VStack(spacing: 0) {
-                        ForEach(Array(displayedItems.enumerated()), id: \.element.id) { index, item in
-                            itemRow(item, colorIndex: index)
-                            if item.id != displayedItems.last?.id {
-                                Divider()
-                                    .overlay(Color.white.opacity(0.06))
-                            }
-                        }
+                } else if displayedItems.count > Self.maxVisibleRows {
+                    // More projects than fit in the fixed ~5-row frame: keep the card's height
+                    // pinned and let the extra ones scroll inside it instead of stretching the
+                    // whole screen taller.
+                    ScrollView(showsIndicators: false) {
+                        rowsList
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 10)
+                    .frame(height: Self.rowHeight * CGFloat(Self.maxVisibleRows))
+                } else {
+                    rowsList
                 }
             }
-            .transition(.opacity)
+            .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
         }
         .techCard()
         .animation(.easeInOut(duration: 0.22), value: containersLoaded)
+    }
+
+    /// Roughly how tall one toggle row + its divider ends up on screen, used to pin the card's
+    /// height to about 5 rows worth of space regardless of how many projects are actually in it.
+    private static let rowHeight: CGFloat = 64
+    private static let maxVisibleRows = 5
+
+    private var rowsList: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(displayedItems.enumerated()), id: \.element.id) { index, item in
+                itemRow(item, colorIndex: index)
+                    .transition(
+                        .opacity.combined(with: .move(edge: .top)).combined(with: .scale(scale: 0.94, anchor: .top))
+                    )
+                    // Overrides the ambient tab-switch animation for just this row so each one
+                    // settles in a beat after the previous one, instead of the whole list popping
+                    // in as a single flat block.
+                    .animation(
+                        .spring(response: 0.4, dampingFraction: 0.78).delay(Double(index) * 0.045),
+                        value: selectedContainerID
+                    )
+                if item.id != displayedItems.last?.id {
+                    Divider()
+                        .overlay(Color.white.opacity(0.06))
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.bottom, 10)
     }
 
     private var loadingPlaceholder: some View {
@@ -184,7 +211,9 @@ struct GamePatchesView: View {
     private func containerTabButton(_ container: RemoteContainerSummary) -> some View {
         let isSelected = selectedContainerID == container.id
         return Button {
-            selectedContainerID = container.id
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.62)) {
+                selectedContainerID = container.id
+            }
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: container.icon)
@@ -195,13 +224,14 @@ struct GamePatchesView: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 9)
             .background(
-                isSelected ? AppTheme.techGlow.opacity(0.18) : AppTheme.techCardFill,
+                isSelected ? AppTheme.techGlow.opacity(0.22) : AppTheme.techCardFill,
                 in: Capsule()
             )
             .overlay(
-                Capsule().strokeBorder(isSelected ? AppTheme.techGlow : AppTheme.techCardStroke, lineWidth: 1)
+                Capsule().strokeBorder(isSelected ? AppTheme.techGlow : AppTheme.techCardStroke, lineWidth: isSelected ? 1.5 : 1)
             )
             .foregroundStyle(isSelected ? AppTheme.techGlow : Color.secondary)
+            .scaleEffect(isSelected ? 1.08 : 1.0)
         }
         .buttonStyle(.plain)
     }

@@ -7,11 +7,17 @@ struct GamesHomeView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var licenseGate: LicenseGateStore
     @StateObject private var store = PatchProjectStore()
+    @StateObject private var smartModeStore = SmartModeStore()
     @State private var games: [RemoteGameSummary] = []
     @State private var isLoadingGames = false
     @State private var showLanguagePicker = false
     @State private var announcement: Announcement?
     @State private var shownAnnouncementIDs: Set<String> = []
+    @State private var showSettings = false
+    @State private var showSmartModeSheet = false
+    @State private var isPressingGear = false
+    @State private var gearPressProgress: CGFloat = 0
+    @State private var gearPressTask: Task<Void, Never>?
     @AppStorage("language.hasPicked") private var hasPickedLanguage = false
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
 
@@ -74,14 +80,12 @@ struct GamesHomeView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink {
-                        SettingsView()
-                    } label: {
-                        Image(systemName: "gearshape")
-                            .foregroundStyle(Color(red: 0.15, green: 0.48, blue: 0.93))
-                    }
-                    .accessibilityLabel(language.text("tab.settings"))
+                    gearButton
+                        .accessibilityLabel(language.text("tab.settings"))
                 }
+            }
+            .navigationDestination(isPresented: $showSettings) {
+                SettingsView()
             }
             .refreshable {
                 await loadGames()
@@ -106,6 +110,11 @@ struct GamesHomeView: View {
                     draftCoordinator.clear()
                 }
             }
+            .sheet(isPresented: $showSmartModeSheet) {
+                SmartModeSheetView(store: smartModeStore, games: games) {
+                    syncSmartModeOverlay()
+                }
+            }
         }
         .tint(AppTheme.accent)
         .preferredColorScheme(.dark)
@@ -117,6 +126,82 @@ struct GamesHomeView: View {
             games = fetched
         }
         isLoadingGames = false
+        syncSmartModeOverlay()
+    }
+
+    /// A short tap opens Settings as before; holding for ~3s (tracked by `gearPressProgress`,
+    /// drawn as a filling ring) opens the smart-mode sheet instead. Only one of the two fires per
+    /// touch, decided at release by whether the hold ever reached full progress.
+    private var gearButton: some View {
+        ZStack {
+            Circle()
+                .trim(from: 0, to: gearPressProgress)
+                .stroke(AppTheme.techGlow, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .frame(width: 30, height: 30)
+                .opacity(isPressingGear ? 1 : 0)
+            Image(systemName: "gearshape")
+                .foregroundStyle(Color(red: 0.15, green: 0.48, blue: 0.93))
+                .scaleEffect(isPressingGear ? 0.88 : 1)
+        }
+        .frame(width: 34, height: 34)
+        .contentShape(Rectangle())
+        .animation(.easeOut(duration: 0.15), value: isPressingGear)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !isPressingGear { startGearPress() }
+                }
+                .onEnded { _ in
+                    let completedHold = gearPressProgress >= 0.999
+                    endGearPress()
+                    if !completedHold {
+                        showSettings = true
+                    }
+                }
+        )
+    }
+
+    private func startGearPress() {
+        isPressingGear = true
+        gearPressProgress = 0
+        gearPressTask?.cancel()
+        gearPressTask = Task {
+            let duration = 3.0
+            let step = 0.02
+            var elapsed = 0.0
+            while elapsed < duration, !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: UInt64(step * 1_000_000_000))
+                elapsed += step
+                await MainActor.run { gearPressProgress = min(1, elapsed / duration) }
+            }
+            if !Task.isCancelled, elapsed >= duration {
+                await MainActor.run { showSmartModeSheet = true }
+            }
+        }
+    }
+
+    private func endGearPress() {
+        isPressingGear = false
+        gearPressTask?.cancel()
+        gearPressTask = nil
+        withAnimation(.easeOut(duration: 0.2)) {
+            gearPressProgress = 0
+        }
+    }
+
+    /// Starts or stops the floating quick-access gear to match whatever's currently saved —
+    /// called after games load and after the smart-mode sheet closes, so a toggle/game change
+    /// takes effect immediately without needing to relaunch the app.
+    private func syncSmartModeOverlay() {
+        guard smartModeStore.isEnabled,
+              let gameID = smartModeStore.selectedGameID,
+              let game = games.first(where: { $0.id == gameID })
+        else {
+            FloatingOverlayController.shared.stop()
+            return
+        }
+        FloatingOverlayController.shared.start(game: game, store: store)
     }
 
     /// Shows a given announcement at most once per app process: the id is only remembered in

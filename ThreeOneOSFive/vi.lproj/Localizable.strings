@@ -402,3 +402,9 @@
 "license.error.device_mismatch" = "Key này đã được dùng trên thiết bị khác.";
 "license.error.device_limit_reached" = "Key này đã đạt giới hạn số thiết bị cho phép.";
 "license.error.network" = "Không thể kết nối máy chủ.";
+
+"smart_mode.title" = "Chế độ thông minh";
+"smart_mode.subtitle" = "Bật icon nổi để mở nhanh menu patch của 1 game mà không cần quay lại app. Icon vẫn hiện khi bạn thoát app, chỉ mất khi vuốt tắt app trong đa nhiệm.";
+"smart_mode.toggle_title" = "Kích hoạt chế độ thông minh";
+"smart_mode.toggle_subtitle" = "Hiện icon nổi trên màn hình";
+"smart_mode.pick_game" = "Chọn game";

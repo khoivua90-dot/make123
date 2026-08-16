@@ -402,3 +402,9 @@
 "license.error.device_mismatch" = "This key is already in use on another device.";
 "license.error.device_limit_reached" = "This key has reached its device limit.";
 "license.error.network" = "Couldn't reach the server.";
+
+"smart_mode.title" = "Smart Mode";
+"smart_mode.subtitle" = "Turn on the floating gear to quickly open a game's patch menu without switching back to the app. It stays visible after you leave the app, and only disappears if you swipe it away in the app switcher.";
+"smart_mode.toggle_title" = "Enable smart mode";
+"smart_mode.toggle_subtitle" = "Show a floating gear on screen";
+"smart_mode.pick_game" = "Choose a game";
