@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3105A500"
-               BuildableName = "3105.app"
-               BlueprintName = "3105"
+               BuildableName = "imguicheat.app"
+               BlueprintName = "imguicheat"
                ReferencedContainer = "container:ThreeOneOSFive.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,8 +45,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3105A500"
-            BuildableName = "3105.app"
-            BlueprintName = "3105"
+            BuildableName = "imguicheat.app"
+            BlueprintName = "imguicheat"
             ReferencedContainer = "container:ThreeOneOSFive.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,8 +62,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3105A500"
-            BuildableName = "3105.app"
-            BlueprintName = "3105"
+            BuildableName = "imguicheat.app"
+            BlueprintName = "imguicheat"
             ReferencedContainer = "container:ThreeOneOSFive.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

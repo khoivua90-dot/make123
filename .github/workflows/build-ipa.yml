@@ -24,10 +24,10 @@ jobs:
           echo "Stamping CFBundleVersion as $GITHUB_RUN_NUMBER"
           xcodebuild archive \
             -project ThreeOneOSFive.xcodeproj \
-            -scheme 3105 \
+            -scheme imguicheat \
             -configuration Release \
             -sdk iphoneos \
-            -archivePath "$RUNNER_TEMP/3105.xcarchive" \
+            -archivePath "$RUNNER_TEMP/imguicheat.xcarchive" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
@@ -37,18 +37,18 @@ jobs:
 
       - name: Package IPA
         run: |
-          APP_PATH="$RUNNER_TEMP/3105.xcarchive/Products/Applications/3105.app"
+          APP_PATH="$RUNNER_TEMP/imguicheat.xcarchive/Products/Applications/imguicheat.app"
           PAYLOAD_DIR="$RUNNER_TEMP/Payload"
           mkdir -p "$PAYLOAD_DIR"
           cp -R "$APP_PATH" "$PAYLOAD_DIR/"
           cd "$RUNNER_TEMP"
-          zip -r -y 3105-unsigned.ipa Payload
+          zip -r -y imguicheat-unsigned.ipa Payload
           mkdir -p "${{ github.workspace }}/out"
-          mv 3105-unsigned.ipa "${{ github.workspace }}/out/"
+          mv imguicheat-unsigned.ipa "${{ github.workspace }}/out/"
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: 3105-unsigned-ipa
-          path: out/3105-unsigned.ipa
+          name: imguicheat-unsigned-ipa
+          path: out/imguicheat-unsigned.ipa
           retention-days: 14
