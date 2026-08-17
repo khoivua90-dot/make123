@@ -506,6 +506,19 @@ struct GamePatchesView: View {
             } else {
                 containerAssign.removeValue(forKey: localID)
             }
+            // Auto-unlock already-downloaded patches whose remote password we now know.
+            if let password = item.password, !password.isEmpty,
+               let localUUID = UUID(uuidString: localID),
+               let localItem = store.items.first(where: { $0.id == localUUID }),
+               localItem.isLocked {
+                await Task.detached(priority: .utility) {
+                    guard let data = try? PatchProjectLibrary.readPackage(at: localItem.packageURL),
+                          let summary = try? PatchPackageCodec.inspect(data),
+                          let decoded = try? PatchPackageCodec.decode(data, password: password) else { return }
+                    try? PatchKeyStore.store(decoded.contentKey, for: summary)
+                }.value
+                didChange = true
+            }
         }
 
         importedOnlineIDsRaw = imported.joined(separator: ",")
