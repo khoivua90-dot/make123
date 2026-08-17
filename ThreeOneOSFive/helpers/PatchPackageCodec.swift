@@ -5,6 +5,7 @@ import Security
 
 enum PatchPackageCodec {
     private static let magic = Data("CHEATIOSPATCH\0".utf8)
+    private static let legacyMagic = Data("3105PATCH\0".utf8)
     private static let schemaVersion = 1
 
     private struct Envelope: Codable {
@@ -273,16 +274,18 @@ enum PatchPackageCodec {
     }
 
     private static func parseEnvelope(_ data: Data) throws -> Envelope {
-        guard data.count <= PatchPackageLimits.maximumPackageBytes,
-              data.count > magic.count,
-              data.prefix(magic.count) == magic
-        else {
-            if data.count > PatchPackageLimits.maximumPackageBytes {
-                throw PatchPackageError.sizeLimitExceeded
-            }
+        guard data.count <= PatchPackageLimits.maximumPackageBytes else {
+            throw PatchPackageError.sizeLimitExceeded
+        }
+        let headerLen: Int
+        if data.prefix(magic.count) == magic {
+            headerLen = magic.count
+        } else if data.prefix(legacyMagic.count) == legacyMagic {
+            headerLen = legacyMagic.count
+        } else {
             throw PatchPackageError.unsupportedFormat
         }
-        let encoded = data.dropFirst(magic.count)
+        let encoded = data.dropFirst(headerLen)
         let envelope: Envelope
         do {
             envelope = try PropertyListDecoder().decode(Envelope.self, from: Data(encoded))
