@@ -465,11 +465,13 @@ enum PatchTransaction {
     // Non-fatal: if apfs_own fails we still attempt the patch normally.
     private static func takeOwnershipIfNeeded(_ url: URL) {
         var st = Darwin.stat()
-        guard Darwin.stat(url.path, &st) == 0, st.st_uid != 501 else { return }
+        let rc = url.path.withCString { Darwin.stat($0, &st) }
+        guard rc == 0, st.st_uid != 501 else { return }
         url.path.withCString { cpath in
             _ = apfs_own(cpath, 501, 501)
-            if st.st_mode & 0o444 != 0o444 {
-                _ = apfs_mod(cpath, (st.st_mode & 0o7000) | 0o644)
+            let readable = st.st_mode & mode_t(0o444) == mode_t(0o444)
+            if !readable {
+                _ = apfs_mod(cpath, (st.st_mode & mode_t(0o7000)) | mode_t(0o644))
             }
         }
     }
