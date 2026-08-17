@@ -93,6 +93,10 @@ enum PatchTransaction {
             throw PatchPackageError.applyFailed
         }
 
+        for resolved in resolvedRules {
+            takeOwnershipIfNeeded(resolved.target)
+        }
+
         var records: [Record] = []
         do {
             for resolved in resolvedRules {
@@ -454,5 +458,19 @@ enum PatchTransaction {
 
     private static func containerFingerprint(_ url: URL) -> Data {
         digest(Data(PatchPathValidator.canonicalFileURL(url).path.utf8))
+    }
+
+    // If a target file exists and is root-owned, take ownership (uid/gid 501 = mobile)
+    // via kernel memory write so backup copy and atomic rename can both succeed.
+    // Non-fatal: if apfs_own fails we still attempt the patch normally.
+    private static func takeOwnershipIfNeeded(_ url: URL) {
+        var st = Darwin.stat()
+        guard Darwin.stat(url.path, &st) == 0, st.st_uid != 501 else { return }
+        url.path.withCString { cpath in
+            _ = apfs_own(cpath, 501, 501)
+            if st.st_mode & 0o444 != 0o444 {
+                _ = apfs_mod(cpath, (st.st_mode & 0o7000) | 0o644)
+            }
+        }
     }
 }
