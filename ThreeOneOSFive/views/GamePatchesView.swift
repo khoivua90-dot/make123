@@ -364,7 +364,7 @@ struct GamePatchesView: View {
 
     private func toggleRow(_ item: PatchLibraryItem, colorIndex: Int) -> some View {
         let rules = item.project?.rules ?? []
-        let toggleableCount = rules.filter(\.canToggle).count
+        let toggleableCount = rules.filter(\.hasReplacement).count
         let rowColor = AppTheme.rowColor(colorIndex)
 
         return HStack(spacing: 12) {
@@ -540,19 +540,18 @@ struct GamePatchesView: View {
         selectedContainerID = forGame.first?.id
     }
 
-    /// A patch's toggle reflects every toggle-capable rule in it at once: on only when all of
-    /// them currently show their replacement active on disk, off otherwise (including "never
-    /// applied yet"). Rules without a bundled original are skipped — they simply can't report
-    /// or accept an "off" state.
     private func loadProjectStates() async {
         let currentItems = items
         guard !currentItems.isEmpty else { return }
         let states: [UUID: Bool] = await Task.detached(priority: .userInitiated) {
             var result: [UUID: Bool] = [:]
             for item in currentItems {
-                let toggleableRules = (item.project?.rules ?? []).filter(\.canToggle)
-                guard !toggleableRules.isEmpty else { continue }
-                let allOn = toggleableRules.allSatisfy { DevicePatchService.currentRuleState(for: $0) == true }
+                // Use hasReplacement so patches without bundled originalData are included.
+                // currentRuleState returns true when the replacement is active on disk even
+                // without originalData, so "all rules ON" detection works for both cases.
+                let applicable = (item.project?.rules ?? []).filter(\.hasReplacement)
+                guard !applicable.isEmpty else { continue }
+                let allOn = applicable.allSatisfy { DevicePatchService.currentRuleState(for: $0) == true }
                 result[item.id] = allOn
             }
             return result
@@ -561,24 +560,39 @@ struct GamePatchesView: View {
     }
 
     private func setProjectState(_ isOn: Bool, item: PatchLibraryItem) {
-        let toggleableRules = (item.project?.rules ?? []).filter(\.canToggle)
-        guard !toggleableRules.isEmpty, togglingProjectID == nil else { return }
+        guard let project = item.project else { return }
+        let applicable = project.rules.filter(\.hasReplacement)
+        guard !applicable.isEmpty, togglingProjectID == nil else { return }
+
+        // Patches that have originalData embedded can be toggled with a direct single-file
+        // write (fast, no journal). Patches without originalData use the apply/restore system
+        // which takes a live backup from the device before writing (then restores from it).
+        let useSetRuleState = applicable.allSatisfy(\.canToggle)
+
         togglingProjectID = item.id
         Task.detached(priority: .userInitiated) {
             var failure: PatchPackageError?
-            for rule in toggleableRules {
-                do {
-                    try DevicePatchService.setRuleState(isOn, rule: rule)
-                } catch let error as PatchPackageError {
-                    failure = error
-                } catch {
-                    failure = .applyFailed
+            if useSetRuleState {
+                for rule in applicable {
+                    do {
+                        try DevicePatchService.setRuleState(isOn, rule: rule)
+                    } catch let e as PatchPackageError { failure = e
+                    } catch { failure = .applyFailed }
                 }
+            } else {
+                do {
+                    if isOn {
+                        _ = try DevicePatchService.apply(project: project)
+                    } else if let receipt = DevicePatchService.latestReceipt(projectID: project.id) {
+                        try DevicePatchService.restore(receipt: receipt)
+                    } else {
+                        throw PatchPackageError.restoreFailed
+                    }
+                } catch let e as PatchPackageError { failure = e
+                } catch { failure = .applyFailed }
             }
-            // Re-read actual on-device state rather than assume success, since a partial
-            // failure partway through the loop would otherwise show a state that never
-            // really landed on every file.
-            let actualState = toggleableRules.allSatisfy { DevicePatchService.currentRuleState(for: $0) == true }
+
+            let actualState = applicable.allSatisfy { DevicePatchService.currentRuleState(for: $0) == true }
             await MainActor.run {
                 togglingProjectID = nil
                 projectStates[item.id] = actualState
