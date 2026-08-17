@@ -62,6 +62,21 @@ Những build không có trong bảng sẽ được đánh dấu là không hỗ
 
 3105 được phát triển và thiết kế bởi [YangJiii](https://x.com/duongduong0908). Xem [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) để biết các dự án và nhà phát triển nền tảng đã được sử dụng/tham khảo.
 
+## Thông báo bản sửa đổi / phát hành thương mại
+
+Đây là phiên bản sửa đổi, không chính thức của 3105 bởi YangJiii.
+
+- Phần mã gốc của 3105 được phát hành theo **GNU General Public License v3.0 (GPL-3.0)**.
+- Các phần sửa đổi trong phiên bản này do **CheatiOS** thực hiện.
+- Ngày sửa đổi: **2026-08-18**.
+- Đây **không phải bản phát hành chính thức của 3105** và không được YangJiii xác nhận hoặc bảo trợ.
+- Các phần chịu GPL vẫn phải tuân theo các quyền và nghĩa vụ của GPL-3.0.
+- Khi phân phối binary hoặc phiên bản thực thi, mã nguồn tương ứng phải được cung cấp theo yêu cầu của GPL-3.0.
+- Các thành phần bên thứ ba vẫn tuân theo giấy phép và thông báo bản quyền tương ứng của dự án nguồn.
+
+Xem toàn bộ nội dung giấy phép tại `LICENSE`.
+Xem ghi công upstream và điều khoản của bên thứ ba tại `THIRD_PARTY_NOTICES.md`.
+
 ## Giấy phép
 
 Phần mã gốc của 3105 được phát hành theo [GNU General Public License v3.0](LICENSE). Thành phần của bên thứ ba vẫn tuân theo bản quyền và điều khoản của dự án nguồn tương ứng; xem [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

@@ -82,6 +82,21 @@ Do not publish logs, app containers, cookies, account databases, or patch payloa
 
 3105 is developed and designed by [YangJiii](https://x.com/duongduong0908). The project builds on research and community work from FilzaSlop, Pocket Poster/Nugget, CrazyMind90, forcequitOS, Dopamine, and their contributors. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution and upstream links.
 
+## Commercial / Modified Version Notice
+
+This repository is a modified, unofficial version of 3105 by YangJiii.
+
+- Original portions of 3105 are distributed under the **GNU General Public License v3.0 (GPL-3.0)**.
+- Modifications in this version are made by **CheatiOS**.
+- Modification date: **2026-08-18**.
+- This project is **not an official release of 3105** and is not endorsed by YangJiii.
+- GPL-licensed portions remain subject to the rights and obligations of GPL-3.0.
+- When distributing a binary or other executable version, the corresponding source must be made available in accordance with GPL-3.0.
+- Third-party components remain subject to their respective upstream licenses and copyright notices.
+
+For the complete license text, see `LICENSE`.
+For upstream attribution and third-party terms, see `THIRD_PARTY_NOTICES.md`.
+
 ## License
 
 Original portions of 3105 are distributed under the [GNU General Public License v3.0](LICENSE). Third-party components remain subject to their respective upstream copyright and license terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

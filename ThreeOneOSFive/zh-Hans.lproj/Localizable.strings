@@ -34,7 +34,7 @@
 "dashboard.unsupported_message" = "暂不支持 iOS %@。\n\n当前支持：\n• iOS 18.0–18.7.1\n• iOS 26.x\n• iOS 27.0 beta 1–4";
 "dashboard.installation" = "应用安装";
 "dashboard.enterprise_signing" = "CheatiOSVip 仅在使用企业证书签名时运行。不支持 SideStore、AltStore、3uTools 或 LiveContainer。";
-"tab.home" = "imguicheat";
+"tab.home" = "CheatiOSVip DSW";
 "tab.files" = "文件";
 "tab.patches" = "补丁";
 "tab.settings" = "设置";
@@ -384,7 +384,7 @@
 
 // MARK: - License key gate
 "license.title" = "输入激活密钥";
-"license.subtitle" = "输入您的密钥以在此设备上解锁 imguicheat。";
+"license.subtitle" = "输入您的密钥以在此设备上解锁 CheatiOSVip DSW。";
 "license.placeholder" = "输入密钥";
 "license.activate" = "激活";
 "license.change_key" = "更换密钥";
