@@ -4,7 +4,7 @@ import Foundation
 import Security
 
 enum PatchPackageCodec {
-    private static let magic = Data("3105PATCH\0".utf8)
+    private static let magic = Data("CHEATIOSPATCH\0".utf8)
     private static let schemaVersion = 1
 
     private struct Envelope: Codable {
