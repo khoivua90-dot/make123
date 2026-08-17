@@ -13,12 +13,15 @@ final class NetworkSecurityMonitor: ObservableObject {
     var isBlocked: Bool { isVPNActive || isProxyActive }
 
     private var pathMonitor: NWPathMonitor?
+    private var latestPath: NWPath?
 
     func start() {
-        refresh()
         let m = NWPathMonitor()
-        m.pathUpdateHandler = { [weak self] _ in
-            Task { @MainActor in self?.refresh() }
+        m.pathUpdateHandler = { [weak self] path in
+            Task { @MainActor in
+                self?.latestPath = path
+                self?.applyPath(path)
+            }
         }
         m.start(queue: DispatchQueue(label: "cios.netsec", qos: .utility))
         pathMonitor = m
@@ -30,15 +33,35 @@ final class NetworkSecurityMonitor: ObservableObject {
     }
 
     func refresh() {
-        isVPNActive  = Self.detectVPN()
+        if let p = latestPath {
+            applyPath(p)
+        } else {
+            isProxyActive = Self.detectProxy()
+        }
+    }
+
+    // MARK: - Private
+
+    private func applyPath(_ path: NWPath) {
+        // On iOS, type .other is the VPN tunnel interface family.
+        // We require the active network path to route through it so that
+        // dormant utun interfaces (iCloud Private Relay, Screen Time content
+        // filter, MDM profiles) that have an IPv4 address but carry no user
+        // traffic don't cause a false positive.
+        let pathUsesVPNType = path.usesInterfaceType(.other)
+
+        // Belt-and-suspenders: also confirm a tunnel interface actually has an
+        // AF_INET address, so a USB-Ethernet dongle alone (also .other) can't
+        // trigger the block.
+        let tunnelHasIPv4 = Self.tunnelInterfaceHasIPv4()
+
+        isVPNActive   = pathUsesVPNType && tunnelHasIPv4
         isProxyActive = Self.detectProxy()
     }
 
-    // MARK: - Detection
-
-    /// Returns true when a VPN tunnel interface has an active IPv4 address —
-    /// that is the reliable signal that iOS shows the VPN badge in the status bar.
-    private static func detectVPN() -> Bool {
+    /// Returns true when any tunnel interface (utun*, ipsec*, ppp*) carries an
+    /// active IPv4 address — the reliable signal that a VPN tunnel is up.
+    private static func tunnelInterfaceHasIPv4() -> Bool {
         var ifaddr: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&ifaddr) == 0, let head = ifaddr else { return false }
         defer { freeifaddrs(head) }
@@ -47,12 +70,8 @@ final class NetworkSecurityMonitor: ObservableObject {
         while let node = cur {
             let name = String(cString: node.pointee.ifa_name)
             let isTunnel = name.hasPrefix("utun") || name.hasPrefix("ipsec") || name.hasPrefix("ppp")
-            if isTunnel, let addr = node.pointee.ifa_addr {
-                // Only flag when there is a real IPv4 address — link-local IPv6
-                // exists on utun0 even without VPN, so we ignore AF_INET6 here.
-                if addr.pointee.sa_family == UInt8(AF_INET) {
-                    return true
-                }
+            if isTunnel, let addr = node.pointee.ifa_addr, addr.pointee.sa_family == UInt8(AF_INET) {
+                return true
             }
             cur = node.pointee.ifa_next
         }
