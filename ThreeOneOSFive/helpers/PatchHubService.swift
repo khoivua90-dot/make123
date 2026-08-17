@@ -104,6 +104,7 @@ enum PatchHubService {
     private static func get(_ url: URL) -> URLRequest {
         var r = URLRequest(url: url)
         r.setValue(clientToken, forHTTPHeaderField: "X-App-Token")
+        r.setValue(DeviceIdentity.current, forHTTPHeaderField: "X-Device-Id")
         return r
     }
 
