@@ -456,6 +456,20 @@ struct GamePatchesView: View {
             didChange = true
         }
 
+        // If a patch is marked imported but its local file is missing (e.g. after a storage path
+        // change from PatchProjects/ to .DSWLib/), reset the import flag so it re-downloads.
+        for item in remoteForGame {
+            guard let localID = remoteMap[item.id],
+                  let localUUID = UUID(uuidString: localID),
+                  !store.items.contains(where: { $0.id == localUUID }) else { continue }
+            imported.remove(item.id)
+            assignments.removeValue(forKey: localID)
+            remoteMap.removeValue(forKey: item.id)
+            names.removeValue(forKey: localID)
+            containerAssign.removeValue(forKey: localID)
+            didChange = true
+        }
+
         let pending = remoteForGame.filter { !imported.contains($0.id) }
         for item in pending {
             do {
