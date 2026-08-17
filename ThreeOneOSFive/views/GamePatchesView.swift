@@ -1,4 +1,5 @@
 import SwiftUI
+import Darwin
 
 struct GamePatchesView: View {
     @Environment(\.appLanguage) private var language
@@ -13,6 +14,8 @@ struct GamePatchesView: View {
     @State private var containers: [RemoteContainerSummary] = []
     @State private var selectedContainerID: String?
     @State private var containersLoaded = false
+    @State private var showDebugSheet = false
+    @State private var debugBundleID = ""
     @AppStorage("patch.importedOnlineIDs") private var importedOnlineIDsRaw = ""
     @AppStorage("patch.gameAssignments") private var gameAssignmentsRaw = "{}"
     @AppStorage("patch.remoteToLocalMap") private var remoteToLocalMapRaw = "{}"
@@ -112,6 +115,18 @@ struct GamePatchesView: View {
         }
         .sheet(item: $store.passwordRequest, onDismiss: store.cancelUnlock) { _ in
             PatchUnlockView(store: store)
+        }
+        .sheet(isPresented: $showDebugSheet) {
+            NavigationView {
+                ExploitDebugView(bundleID: debugBundleID)
+                    .navigationTitle("DEBUG")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Đóng") { showDebugSheet = false }
+                        }
+                    }
+            }
         }
         .alert(item: $store.alert) { alert in
             Alert(
@@ -595,6 +610,19 @@ struct GamePatchesView: View {
         guard let project = item.project else { return }
         let applicable = project.rules.filter(\.hasReplacement)
         guard !applicable.isEmpty, togglingProjectID == nil else { return }
+
+        // iOS 16: test sandbox trực tiếp, nếu chưa escape → hiện debug panel
+        if isOn && AppInfo.versionTuple.major == 16 {
+            let testPath = "/var/mobile/.cheatiosvip_test"
+            let fd = Darwin.open(testPath, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)
+            let escaped = fd >= 0
+            if fd >= 0 { Darwin.close(fd); Darwin.unlink(testPath) }
+            if !escaped {
+                debugBundleID = project.rules.first?.bundleID ?? ""
+                showDebugSheet = true
+                return
+            }
+        }
 
         // Patches that have originalData embedded can be toggled with a direct single-file
         // write (fast, no journal). Patches without originalData use the apply/restore system
