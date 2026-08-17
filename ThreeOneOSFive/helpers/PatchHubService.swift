@@ -57,7 +57,8 @@ enum PatchHubService {
     private static let _p: [UInt8] = [0x28, 0x3D, 0x64, 0x27, 0x3B]
     private static let _c: [UInt8] = [0x28, 0x3D, 0x64, 0x28, 0x3F]
     private static let _n: [UInt8] = [0x28, 0x3D, 0x64, 0x25, 0x3F]
-    private static let _r: [UInt8] = [0x2A, 0x3B, 0x22, 0x64, 0x20, 0x2E, 0x32, 0x38, 0x64, 0x39, 0x2E, 0x2F, 0x2E, 0x2E, 0x26]
+    private static let _a: [UInt8] = [0x28, 0x3D, 0x64, 0x2A, 0x3E, 0x3F, 0x23] // cv/auth
+    private static let _r: [UInt8] =[0x2A, 0x3B, 0x22, 0x64, 0x20, 0x2E, 0x32, 0x38, 0x64, 0x39, 0x2E, 0x2F, 0x2E, 0x2E, 0x26]
     private static let _s: [UInt8] = [0x2A, 0x3B, 0x22, 0x64, 0x20, 0x2E, 0x32, 0x38, 0x64, 0x38, 0x3F, 0x2A, 0x3F, 0x3E, 0x38]
     // HMAC signing secret — XOR key 0x4B, decodes to "D5W_hmac_sig_v2_9mQx7nR4pLk8"
     private static let _sk: [UInt8] = [
@@ -106,6 +107,15 @@ enum PatchHubService {
         r.setValue(clientToken, forHTTPHeaderField: "X-App-Token")
         r.setValue(DeviceIdentity.current, forHTTPHeaderField: "X-Device-Id")
         return r
+    }
+
+    /// Lightweight server-side key check. Called before any patch is toggled ON so bypassing
+    /// the UI gate or faking a device ID still can't activate patches without a valid server key.
+    static func verifyAccess() async -> Bool {
+        let url = baseURL.appendingPathComponent(d(_a))
+        guard let (_, response) = try? await URLSession.shared.data(for: get(url)),
+              let http = response as? HTTPURLResponse else { return false }
+        return (200...299).contains(http.statusCode)
     }
 
     static func fetchGames() async throws -> [RemoteGameSummary] {

@@ -603,6 +603,17 @@ struct GamePatchesView: View {
 
         togglingProjectID = item.id
         Task.detached(priority: .userInitiated) {
+            // Verify key with server before every toggle-ON so a bypassed/fake key can't activate patches.
+            if isOn {
+                guard await PatchHubService.verifyAccess() else {
+                    await MainActor.run {
+                        togglingProjectID = nil
+                        projectStates[item.id] = false
+                        toast = ToastMessage(text: "Xác thực key thất bại. Vui lòng thử lại.")
+                    }
+                    return
+                }
+            }
             var failure: PatchPackageError?
             if useSetRuleState {
                 for rule in applicable {
