@@ -6,7 +6,6 @@ enum ExploitSupportPolicy {
     /// only actually been verified against the ranges below — FilzaSlop's own README, and
     /// independently `rooootdev/lara`'s support table, both draw the same line at 18.7.1: iOS
     /// 18.7.2 and later change something the current offsets don't account for.
-    static let verifiedIOS16Range = "16.0–16.7.x"
     static let verifiedIOS17Range = "17.0–17.7.x"
     static let verifiedIOS18Range = "18.0–18.7.1"
     static let verifiedIOS26Range = "26.0–26.6.1"
@@ -23,9 +22,6 @@ enum ExploitSupportPolicy {
     }
 
     static func isSupported(major: Int, minor: Int, patch: Int, build: String) -> Bool {
-        if major == 16 {
-            return true
-        }
         if major == 17 {
             return true
         }
