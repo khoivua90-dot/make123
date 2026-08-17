@@ -61,12 +61,26 @@ struct GamesHomeView: View {
                     .padding(16)
 
                     if games.isEmpty && !isLoadingGames {
-                        Text(language.text("patch.no_games_yet"))
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-                            .padding(.top, 8)
+                        VStack(spacing: 12) {
+                            Text("App đang tiến hành nâng cấp mới, truy cập ngay Telegram để nhận thông báo mới")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
+                            Button {
+                                if let url = URL(string: "https://t.me/crackcyipa") {
+                                    UIApplication.shared.open(url)
+                                }
+                            } label: {
+                                Text("Vào ngay")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.black)
+                                    .padding(.horizontal, 22)
+                                    .padding(.vertical, 9)
+                                    .background(AppTheme.techGlow, in: Capsule())
+                            }
+                        }
+                        .padding(.top, 8)
                     }
                 }
             }
