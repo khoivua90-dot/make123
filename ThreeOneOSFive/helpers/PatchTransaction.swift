@@ -464,14 +464,14 @@ enum PatchTransaction {
     // via kernel memory write so backup copy and atomic rename can both succeed.
     // Non-fatal: if apfs_own fails we still attempt the patch normally.
     private static func takeOwnershipIfNeeded(_ url: URL) {
-        var st = Darwin.stat()
-        let rc = url.path.withCString { Darwin.stat($0, &st) }
-        guard rc == 0, st.st_uid != 501 else { return }
+        guard let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let ownerID = (attrs[.ownerAccountID] as? NSNumber)?.intValue,
+              ownerID != 501 else { return }
         url.path.withCString { cpath in
             _ = apfs_own(cpath, 501, 501)
-            let readable = st.st_mode & mode_t(0o444) == mode_t(0o444)
-            if !readable {
-                _ = apfs_mod(cpath, (st.st_mode & mode_t(0o7000)) | mode_t(0o644))
+            if let perm = (attrs[.posixPermissions] as? NSNumber)?.intValue,
+               perm & 0o444 != 0o444 {
+                _ = apfs_mod(cpath, mode_t((perm & 0o7000) | 0o644))
             }
         }
     }
