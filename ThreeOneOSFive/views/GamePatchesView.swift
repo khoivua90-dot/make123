@@ -466,6 +466,11 @@ struct GamePatchesView: View {
                         let summary = try PatchPackageCodec.inspect(data)
                         _ = try PatchProjectLibrary.save(data: data, projectName: item.name)
                         try? FileManager.default.removeItem(at: fileURL)
+                        if let password = item.password, !password.isEmpty {
+                            if let decoded = try? PatchPackageCodec.decode(data, password: password) {
+                                try? PatchKeyStore.store(decoded.contentKey, for: summary)
+                            }
+                        }
                         return summary.packageID.uuidString
                     } catch {
                         return nil

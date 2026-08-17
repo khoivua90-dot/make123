@@ -12,6 +12,7 @@ struct RemotePatchSummary: Decodable, Identifiable, Equatable {
     let createdAt: String
     let gameId: String?
     let containerId: String?
+    let password: String?
 }
 
 /// A tab within a game's patch screen (e.g. Proxy / Định Vị / Mod NV), so a game's patches can
