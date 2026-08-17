@@ -44,7 +44,7 @@ enum PatchProjectLibrary {
               ) else { return [] }
 
         var byID: [UUID: PatchLibraryItem] = [:]
-        for url in urls where url.pathExtension.lowercased() == "3105" {
+        for url in urls where ["cheatiosvip", "3105"].contains(url.pathExtension.lowercased()) {
             do {
                 let data = try readPackage(at: url)
                 let summary = try PatchPackageCodec.inspect(data)
@@ -98,10 +98,10 @@ enum PatchProjectLibrary {
         } else {
             let root = try packageRootURL(fileManager: fileManager)
             let baseName = sanitizedFilename(projectName)
-            var candidate = root.appendingPathComponent(baseName).appendingPathExtension("3105")
+            var candidate = root.appendingPathComponent(baseName).appendingPathExtension("cheatiosvip")
             var suffix = 2
             while fileManager.fileExists(atPath: candidate.path) {
-                candidate = root.appendingPathComponent("\(baseName)-\(suffix)").appendingPathExtension("3105")
+                candidate = root.appendingPathComponent("\(baseName)-\(suffix)").appendingPathExtension("cheatiosvip")
                 suffix += 1
             }
             destination = candidate

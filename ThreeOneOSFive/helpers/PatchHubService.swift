@@ -162,7 +162,7 @@ enum PatchHubService {
 
         let destination = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
-            .appendingPathExtension("3105")
+            .appendingPathExtension("cheatiosvip")
         try FileManager.default.moveItem(at: tempURL, to: destination)
         return destination
     }

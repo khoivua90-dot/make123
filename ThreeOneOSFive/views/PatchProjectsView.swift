@@ -2,8 +2,9 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 private enum PatchPackagePickerPolicy {
-    static let packageType = UTType(filenameExtension: "3105") ?? .data
-    static let allowedContentTypes: [UTType] = [packageType, .data]
+    static let packageType = UTType(filenameExtension: "cheatiosvip") ?? .data
+    static let legacyType = UTType(filenameExtension: "3105") ?? .data
+    static let allowedContentTypes: [UTType] = [packageType, legacyType, .data]
     static let copiesSelectedDocument = true
 }
 
