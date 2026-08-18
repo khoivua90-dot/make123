@@ -93,7 +93,7 @@ struct GamesHomeView: View {
                                         systemIconName: "app.fill"
                                     )
                                 }
-                                .buttonStyle(.plain)
+                                .buttonStyle(GameCard3DPressStyle())
                             }
                         }
                         .padding(.horizontal, 16)
@@ -307,6 +307,21 @@ struct GamesHomeView: View {
     }
 }
 
+// MARK: - Button style: 3D press effect without blocking NavigationLink
+
+private struct GameCard3DPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .rotation3DEffect(
+                .degrees(configuration.isPressed ? -6 : 0),
+                axis: (x: 1, y: 0, z: 0),
+                perspective: 0.8
+            )
+            .animation(.spring(response: 0.28, dampingFraction: 0.72), value: configuration.isPressed)
+    }
+}
+
 // MARK: - 3D Game Card
 
 struct GameCardView: View {
@@ -316,21 +331,13 @@ struct GameCardView: View {
     let iconURL: URL?
     let systemIconName: String
 
-    @State private var tiltX: Double = 0
-    @State private var tiltY: Double = 0
-    @State private var isPressed = false
     @State private var shimmerPhase: CGFloat = -0.4
 
     var body: some View {
         GeometryReader { geo in
             cardContent(cardW: geo.size.width)
-                .simultaneousGesture(tiltGesture(cardW: geo.size.width, cardH: 210))
         }
         .frame(height: 210)
-        .rotation3DEffect(.degrees(tiltX), axis: (x: 1, y: 0, z: 0), perspective: 0.8)
-        .rotation3DEffect(.degrees(tiltY), axis: (x: 0, y: 1, z: 0), perspective: 0.8)
-        .scaleEffect(isPressed ? 0.965 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
         .shadow(color: bannerColor.opacity(0.5), radius: 24, x: 0, y: 14)
         .shadow(color: .black.opacity(0.4), radius: 8, x: 0, y: 4)
     }
@@ -393,8 +400,7 @@ struct GameCardView: View {
                     .shadow(color: bannerColor.opacity(0.9), radius: 16, x: 0, y: 0)
                     .shadow(color: bannerColor.opacity(0.45), radius: 38, x: 0, y: 0)
                     .shadow(color: .black.opacity(0.65), radius: 12, x: 0, y: 10)
-                    .offset(y: isPressed ? 3 : -5)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+                    .offset(y: -5)
                 Spacer(minLength: 54)
             }
 
@@ -435,26 +441,6 @@ struct GameCardView: View {
                     lineWidth: 1.2
                 )
         )
-    }
-
-    private func tiltGesture(cardW: CGFloat, cardH: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 0, coordinateSpace: .local)
-            .onChanged { v in
-                let x = min(max(v.location.x, 0), cardW)
-                let y = min(max(v.location.y, 0), cardH)
-                withAnimation(.interactiveSpring(response: 0.18, dampingFraction: 0.85)) {
-                    tiltY = (x / cardW - 0.5) * 20
-                    tiltX = -(y / cardH - 0.5) * 12
-                    isPressed = true
-                }
-            }
-            .onEnded { _ in
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.65)) {
-                    tiltX = 0
-                    tiltY = 0
-                    isPressed = false
-                }
-            }
     }
 
     @ViewBuilder
