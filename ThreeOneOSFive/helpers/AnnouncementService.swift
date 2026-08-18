@@ -48,8 +48,11 @@ enum AnnouncementService {
             resolvingAgainstBaseURL: false
         )!
         components.queryItems = [URLQueryItem(name: "build", value: String(AppInfo.buildNumber))]
-        guard let url = components.url,
-              let (data, response) = try? await URLSession.shared.data(from: url),
+        guard let url = components.url else { return .none }
+        var request = URLRequest(url: url)
+        request.setValue(PatchHubService.clientToken, forHTTPHeaderField: "X-App-Token")
+        request.setValue(DeviceIdentity.current, forHTTPHeaderField: "X-Device-Id")
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
               let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
               let decoded = try? JSONDecoder().decode(AnnouncementResponse.self, from: data)
         else {
