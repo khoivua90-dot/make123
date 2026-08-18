@@ -109,7 +109,7 @@ enum FileReplacementService {
 
         let targetAttributes = try fileManager.attributesOfItem(atPath: targetURL.path)
         let stagingURL = targetURL.deletingLastPathComponent()
-            .appendingPathComponent(".3105-replacement-\(UUID().uuidString)")
+            .appendingPathComponent(".dsw-replacement-\(UUID().uuidString)")
         let stagingAttributes = retainedAttributes(from: targetAttributes)
         guard fileManager.createFile(
             atPath: stagingURL.path,

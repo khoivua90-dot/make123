@@ -283,7 +283,7 @@ enum FileManagerService {
         }
 
         let stagingURL = directoryURL.appendingPathComponent(
-            ".3105-import-\(UUID().uuidString)",
+            ".dsw-import-\(UUID().uuidString)",
             isDirectory: false
         )
         try createExclusiveFile(

@@ -185,7 +185,7 @@ struct WallpaperLabView: View {
 
     private var resetSection: some View {
         Section {
-            LabeledContent(language.text("wallpaper.installed_by_3105")) {
+            LabeledContent(language.text("wallpaper.installed_by_app")) {
                 Text("\(activeReceipts.reduce(0) { $0 + $1.installedDescriptors.count })")
                     .monospacedDigit()
             }
@@ -490,7 +490,7 @@ struct WallpaperLabView: View {
 #if targetEnvironment(simulator)
         if ProcessInfo.processInfo.arguments.contains("--simulate-wallpaper-data") {
             let root = FileManager.default.temporaryDirectory.appendingPathComponent(
-                "3105-Simulated-PosterBoard",
+                "DSW-Simulated-PosterBoard",
                 isDirectory: true
             )
             let descriptors = root.appendingPathComponent(

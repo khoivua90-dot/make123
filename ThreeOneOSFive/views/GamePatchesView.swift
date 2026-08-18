@@ -34,7 +34,7 @@ struct GamePatchesView: View {
     }
 
     /// Local packageID -> the name currently set on the web admin. Renaming a patch's metadata
-    /// on the web doesn't touch the encrypted .3105 bytes (so the name baked into the decoded
+    /// on the web doesn't touch the encrypted package bytes (so the name baked into the decoded
     /// PatchProject never changes), so the displayed title has to come from this instead of
     /// `item.project?.name` whenever the patch was synced from the hub.
     private var remoteDisplayNames: [String: String] {
@@ -425,7 +425,7 @@ struct GamePatchesView: View {
     /// they show up here without any manual tap. Also removes local copies whose server entry
     /// disappeared (deleted on the web, or reassigned to a different game) — a pull-to-refresh
     /// should mirror the server exactly, not just ever grow. The gameId <-> local packageID and
-    /// serverID <-> local packageID mappings are recorded locally since the encrypted .3105
+    /// serverID <-> local packageID mappings are recorded locally since the encrypted package
     /// format itself carries no game association.
     private func sync() async {
         guard !isSyncing else { return }

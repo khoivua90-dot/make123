@@ -5,7 +5,6 @@ import Security
 
 enum PatchPackageCodec {
     private static let magic = Data("CHEATIOSPATCH\0".utf8)
-    private static let legacyMagic = Data("3105PATCH\0".utf8)
     private static let schemaVersion = 1
 
     private struct Envelope: Codable {
@@ -277,14 +276,10 @@ enum PatchPackageCodec {
         guard data.count <= PatchPackageLimits.maximumPackageBytes else {
             throw PatchPackageError.sizeLimitExceeded
         }
-        let headerLen: Int
-        if data.prefix(magic.count) == magic {
-            headerLen = magic.count
-        } else if data.prefix(legacyMagic.count) == legacyMagic {
-            headerLen = legacyMagic.count
-        } else {
+        guard data.prefix(magic.count) == magic else {
             throw PatchPackageError.unsupportedFormat
         }
+        let headerLen = magic.count
         let encoded = data.dropFirst(headerLen)
         let envelope: Envelope
         do {
@@ -400,10 +395,10 @@ enum PatchPackageCodec {
     }
 
     private static func keyAAD(for packageID: UUID) -> Data {
-        Data("3105PATCH/v1/key/\(packageID.uuidString)".utf8)
+        Data("DSWPATCH/v1/key/\(packageID.uuidString)".utf8)
     }
 
     private static func payloadAAD(for packageID: UUID) -> Data {
-        Data("3105PATCH/v1/payload/\(packageID.uuidString)".utf8)
+        Data("DSWPATCH/v1/payload/\(packageID.uuidString)".utf8)
     }
 }
