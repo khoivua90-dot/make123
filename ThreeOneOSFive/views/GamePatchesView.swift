@@ -69,6 +69,19 @@ struct GamePatchesView: View {
         ZStack {
             TechBackground()
 
+            // Ambient glow based on game banner color
+            VStack {
+                RadialGradient(
+                    colors: [AppTheme.resolvedBannerColor(game.bannerColor).opacity(0.18), .clear],
+                    center: .center, startRadius: 0, endRadius: 240
+                )
+                .frame(height: 360)
+                .blur(radius: 60)
+                Spacer()
+            }
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+
             ScrollView {
                 VStack(spacing: 20) {
                     header
@@ -164,14 +177,27 @@ struct GamePatchesView: View {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "play.fill")
+                    .font(.body.weight(.bold))
                 Text(language.text("patch.open_game_now"))
-                    .font(.body.weight(.semibold))
+                    .font(.body.weight(.bold))
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .padding(.vertical, 16)
         }
-        .background(AppTheme.techGlow, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(
+            LinearGradient(
+                colors: [AppTheme.techGlow, AppTheme.techGlow.opacity(0.75)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(.white.opacity(0.25), lineWidth: 1)
+        )
         .foregroundStyle(Color.black)
+        .shadow(color: AppTheme.techGlow.opacity(0.45), radius: 18, x: 0, y: 8)
     }
 
     /// Roughly how tall one toggle row + its divider ends up on screen, used to pin the card's
@@ -214,25 +240,37 @@ struct GamePatchesView: View {
     /// A segmented control letting the user switch between mục chứa, matching the reference
     /// app's Proxy / Định Vị / Mod NV tab bar. Hidden entirely when this game has no containers
     /// configured, so existing games keep the old single flat-list layout unchanged.
-    ///
-    /// A plain HStack of pills (the earlier design) left the row only as wide as its content, so
-    /// it sat flush against the leading edge instead of lining up with the card below it — one
-    /// shared rounded track spanning the full width, with each tab taking an even share, keeps
-    /// it aligned and reads as a single cohesive control instead of loose floating buttons.
     @ViewBuilder
     private var containerTabBar: some View {
         if !containers.isEmpty {
-            HStack(spacing: 0) {
+            HStack(spacing: 5) {
                 ForEach(containers) { container in
                     containerTabButton(container)
                 }
             }
-            .padding(4)
-            .background(AppTheme.techCardFill, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
+            .padding(5)
+            .background(
+                ZStack {
+                    Color.white.opacity(0.035)
+                    LinearGradient(
+                        colors: [AppTheme.techGlow.opacity(0.05), .clear],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    )
+                }
             )
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [.white.opacity(0.15), AppTheme.techGlow.opacity(0.35), .clear],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: AppTheme.techGlow.opacity(0.15), radius: 12, x: 0, y: 6)
         }
     }
 
@@ -243,21 +281,28 @@ struct GamePatchesView: View {
                 selectedContainerID = container.id
             }
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Image(systemName: container.icon)
-                    .font(.caption.weight(.semibold))
+                    .font(.caption.weight(.bold))
                 Text(container.name)
                     .font(.caption.weight(.bold))
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 9)
+            .padding(.vertical, 10)
             .background(
                 Group {
                     if isSelected {
-                        Capsule()
-                            .fill(AppTheme.techGlow.opacity(0.18))
-                            .overlay(Capsule().strokeBorder(AppTheme.techGlow, lineWidth: 1))
+                        LinearGradient(
+                            colors: [AppTheme.techGlow.opacity(0.28), AppTheme.techGlow.opacity(0.12)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                                .strokeBorder(AppTheme.techGlow.opacity(0.75), lineWidth: 1)
+                        )
+                        .shadow(color: AppTheme.techGlow.opacity(0.3), radius: 8)
                     }
                 }
             )
@@ -270,10 +315,11 @@ struct GamePatchesView: View {
         HStack(spacing: 8) {
             Rectangle()
                 .fill(AppTheme.techGlow)
-                .frame(width: 3, height: 16)
-                .clipShape(RoundedRectangle(cornerRadius: 1.5))
+                .frame(width: 3, height: 18)
+                .clipShape(RoundedRectangle(cornerRadius: 2))
+                .shadow(color: AppTheme.techGlow.opacity(0.9), radius: 6)
             Image(systemName: "bolt.fill")
-                .font(.footnote)
+                .font(.footnote.weight(.bold))
                 .foregroundStyle(AppTheme.techGlow)
             Text(language.text("patch.menu_title"))
                 .font(.subheadline.weight(.heavy))
@@ -291,9 +337,8 @@ struct GamePatchesView: View {
                     .padding(.horizontal, 9)
                     .padding(.vertical, 4)
                     .background(AppTheme.techGlow.opacity(0.14), in: Capsule())
-                    .overlay(
-                        Capsule().strokeBorder(AppTheme.techGlow.opacity(0.4), lineWidth: 1)
-                    )
+                    .overlay(Capsule().strokeBorder(AppTheme.techGlow.opacity(0.5), lineWidth: 1))
+                    .shadow(color: AppTheme.techGlow.opacity(0.35), radius: 8)
             }
         }
         .padding(.horizontal, 16)
@@ -301,29 +346,54 @@ struct GamePatchesView: View {
     }
 
     private var header: some View {
-        VStack(spacing: 8) {
-            gameIconView
-                .frame(width: 84, height: 84)
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
-                )
-                .shadow(color: AppTheme.techGlow.opacity(0.18), radius: 14, y: 6)
+        VStack(spacing: 0) {
+            ZStack {
+                // Colored ambient aura
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                AppTheme.resolvedBannerColor(game.bannerColor).opacity(0.45),
+                                .clear
+                            ],
+                            center: .center, startRadius: 0, endRadius: 90
+                        )
+                    )
+                    .frame(width: 180, height: 180)
+                    .blur(radius: 28)
+
+                gameIconView
+                    .frame(width: 100, height: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 26, style: .continuous)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [.white.opacity(0.35), AppTheme.resolvedBannerColor(game.bannerColor).opacity(0.55), .clear],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
+                    .shadow(color: AppTheme.resolvedBannerColor(game.bannerColor).opacity(0.65), radius: 22, x: 0, y: 0)
+                    .shadow(color: .black.opacity(0.55), radius: 12, x: 0, y: 10)
+            }
 
             Text(game.name)
-                .font(.title3.weight(.bold))
+                .font(.title2.weight(.bold))
                 .multilineTextAlignment(.center)
+                .padding(.top, 16)
 
             if !game.bundleID.isEmpty {
                 Text(game.bundleID)
                     .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
+                    .padding(.top, 4)
             }
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 12)
-        .padding(.bottom, 18)
+        .padding(.bottom, 22)
     }
 
     @ViewBuilder
@@ -366,16 +436,28 @@ struct GamePatchesView: View {
         let rules = item.project?.rules ?? []
         let toggleableCount = rules.filter(\.hasReplacement).count
         let rowColor = AppTheme.rowColor(colorIndex)
+        let isOn = projectStates[item.id] ?? false
 
-        return HStack(spacing: 12) {
+        return HStack(spacing: 13) {
             Image(systemName: "bolt.fill")
-                .font(.title3)
-                .foregroundStyle(rowColor)
-                .frame(width: 38, height: 38)
-                .background(rowColor.opacity(0.16), in: RoundedRectangle(cornerRadius: 10))
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 42, height: 42)
+                .background(
+                    LinearGradient(
+                        colors: [rowColor.opacity(0.9), rowColor.opacity(0.55)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(rowColor.opacity(0.5), lineWidth: 1)
+                )
+                .shadow(color: rowColor.opacity(isOn ? 0.6 : 0.3), radius: isOn ? 10 : 5, x: 0, y: 3)
             VStack(alignment: .leading, spacing: 3) {
                 Text(displayName(for: item))
-                    .font(.body.weight(.semibold))
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
                 Text(language.text("patch.rules_count", Int64(rules.count)))
                     .font(.caption)
@@ -391,7 +473,17 @@ struct GamePatchesView: View {
                     .disabled(toggleableCount == 0)
             }
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 12)
+        .background(
+            Group {
+                if isOn {
+                    LinearGradient(
+                        colors: [rowColor.opacity(0.07), .clear],
+                        startPoint: .leading, endPoint: .trailing
+                    )
+                }
+            }
+        )
     }
 
     private func projectToggleBinding(for item: PatchLibraryItem) -> Binding<Bool> {

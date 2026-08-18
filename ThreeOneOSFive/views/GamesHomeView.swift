@@ -15,7 +15,7 @@ struct GamesHomeView: View {
     @AppStorage("language.hasPicked") private var hasPickedLanguage = false
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
 
-    private let columns = [GridItem(.adaptive(minimum: 150), spacing: 14)]
+    private let columns = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
 
     var body: some View {
         ZStack {
@@ -37,50 +37,91 @@ struct GamesHomeView: View {
             ZStack {
                 TechBackground()
 
+                // Ambient glow at top
+                VStack {
+                    RadialGradient(
+                        colors: [AppTheme.techGlow.opacity(0.14), .clear],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 220
+                    )
+                    .frame(height: 320)
+                    .blur(radius: 50)
+                    Spacer()
+                }
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+
                 ScrollView {
-                    deviceInfoCard
-                        .padding(.horizontal, 16)
-                        .padding(.top, 12)
+                    VStack(spacing: 20) {
+                        deviceInfoCard
+                            .padding(.horizontal, 16)
+                            .padding(.top, 12)
 
-                    LazyVGrid(columns: columns, spacing: 14) {
-                        ForEach(games) { game in
-                            NavigationLink {
-                                GamePatchesView(game: game, store: store)
-                            } label: {
-                                GameCardView(
-                                    title: game.name,
-                                    subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
-                                    bannerColor: AppTheme.resolvedBannerColor(game.bannerColor),
-                                    iconURL: game.iconURL,
-                                    systemIconName: "app.fill"
-                                )
+                        if !games.isEmpty {
+                            HStack(spacing: 8) {
+                                Rectangle()
+                                    .fill(AppTheme.techGlow)
+                                    .frame(width: 3, height: 15)
+                                    .clipShape(Capsule())
+                                Text("GAMES")
+                                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(.secondary)
+                                    .kerning(2.5)
+                                Spacer()
+                                Text("\(games.count)")
+                                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(AppTheme.techGlow.opacity(0.8))
+                                    .padding(.horizontal, 9)
+                                    .padding(.vertical, 4)
+                                    .background(AppTheme.techGlow.opacity(0.12), in: Capsule())
+                                    .overlay(Capsule().strokeBorder(AppTheme.techGlow.opacity(0.3), lineWidth: 1))
                             }
-                            .buttonStyle(.plain)
+                            .padding(.horizontal, 16)
                         }
-                    }
-                    .padding(16)
 
-                    if games.isEmpty && !isLoadingGames {
-                        VStack(spacing: 12) {
-                            Text("App đang tiến hành nâng cấp mới, truy cập ngay Telegram để nhận thông báo mới")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 32)
-                            Button {
-                                if let url = URL(string: "https://t.me/crackcyipa") {
-                                    UIApplication.shared.open(url)
+                        LazyVGrid(columns: columns, spacing: 14) {
+                            ForEach(games) { game in
+                                NavigationLink {
+                                    GamePatchesView(game: game, store: store)
+                                } label: {
+                                    GameCardView(
+                                        title: game.name,
+                                        subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
+                                        bannerColor: AppTheme.resolvedBannerColor(game.bannerColor),
+                                        iconURL: game.iconURL,
+                                        systemIconName: "app.fill"
+                                    )
                                 }
-                            } label: {
-                                Text("Vào ngay")
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(.black)
-                                    .padding(.horizontal, 22)
-                                    .padding(.vertical, 9)
-                                    .background(AppTheme.techGlow, in: Capsule())
+                                .buttonStyle(.plain)
                             }
                         }
-                        .padding(.top, 8)
+                        .padding(.horizontal, 16)
+
+                        if games.isEmpty && !isLoadingGames {
+                            VStack(spacing: 12) {
+                                Text("App đang tiến hành nâng cấp mới, truy cập ngay Telegram để nhận thông báo mới")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 32)
+                                Button {
+                                    if let url = URL(string: "https://t.me/crackcyipa") {
+                                        UIApplication.shared.open(url)
+                                    }
+                                } label: {
+                                    Text("Vào ngay")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(.black)
+                                        .padding(.horizontal, 22)
+                                        .padding(.vertical, 9)
+                                        .background(AppTheme.techGlow, in: Capsule())
+                                }
+                            }
+                            .padding(.top, 8)
+                        }
+
+                        Spacer(minLength: 24)
                     }
                 }
             }
@@ -144,37 +185,66 @@ struct GamesHomeView: View {
         announcement = fetched
     }
 
+    // MARK: Device info — compact horizontal glass strip
+
     private var deviceInfoCard: some View {
-        VStack(spacing: 12) {
-            deviceInfoRow(icon: "apple.logo", iconColor: .purple, label: language.text("common.ios"), value: shortOSVersion)
-            deviceInfoRow(icon: "iphone", iconColor: AppTheme.techGlow, label: language.text("common.device"), value: AppInfo.hardwareDisplayName)
-            deviceInfoRow(
+        HStack(spacing: 0) {
+            deviceChip(icon: "apple.logo", iconColor: .purple, value: "iOS \(shortOSVersion)")
+            chipDivider
+            deviceChip(icon: "iphone", iconColor: AppTheme.techGlow, value: AppInfo.hardwareDisplayName)
+            chipDivider
+            deviceChip(
                 icon: appState.isSupported ? "checkmark.seal.fill" : "xmark.seal.fill",
                 iconColor: appState.isSupported ? .green : .red,
-                label: language.text("settings.support"),
                 value: language.text(appState.isSupported ? "settings.supported" : "settings.unsupported")
             )
         }
-        .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .techCard()
+        .background(
+            ZStack {
+                Color.white.opacity(0.04)
+                LinearGradient(
+                    colors: [AppTheme.techGlow.opacity(0.07), .clear],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        )
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [.white.opacity(0.2), AppTheme.techGlow.opacity(0.45), .clear],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: AppTheme.techGlow.opacity(0.18), radius: 18, x: 0, y: 8)
     }
 
-    private func deviceInfoRow(icon: String, iconColor: Color, label: String, value: String) -> some View {
-        HStack(spacing: 10) {
+    private func deviceChip(icon: String, iconColor: Color, value: String) -> some View {
+        VStack(spacing: 5) {
             Image(systemName: icon)
-                .font(.subheadline)
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(iconColor)
-                .frame(width: 18)
-            Text(label)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Spacer()
             Text(value)
-                .font(.subheadline.weight(.semibold))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
+                .minimumScaleFactor(0.65)
         }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 4)
+    }
+
+    private var chipDivider: some View {
+        Rectangle()
+            .fill(Color.white.opacity(0.1))
+            .frame(width: 1, height: 38)
     }
 
     private var shortOSVersion: String {
@@ -237,6 +307,8 @@ struct GamesHomeView: View {
     }
 }
 
+// MARK: - 3D Game Card
+
 struct GameCardView: View {
     let title: String
     let subtitle: String
@@ -244,42 +316,145 @@ struct GameCardView: View {
     let iconURL: URL?
     let systemIconName: String
 
-    var body: some View {
-        VStack(spacing: 0) {
-            ZStack {
-                bannerColor
-                iconView
-                    .frame(width: 56, height: 56)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(Color.white.opacity(0.28), lineWidth: 1)
-                    )
-                    .shadow(color: .black.opacity(0.3), radius: 10, y: 6)
-            }
-            .frame(height: 88)
+    @State private var tiltX: Double = 0
+    @State private var tiltY: Double = 0
+    @State private var isPressed = false
+    @State private var shimmerPhase: CGFloat = -0.4
 
-            VStack(alignment: .leading, spacing: 3) {
+    var body: some View {
+        GeometryReader { geo in
+            cardContent(cardW: geo.size.width)
+                .simultaneousGesture(tiltGesture(cardW: geo.size.width, cardH: 210))
+        }
+        .frame(height: 210)
+        .rotation3DEffect(.degrees(tiltX), axis: (x: 1, y: 0, z: 0), perspective: 0.8)
+        .rotation3DEffect(.degrees(tiltY), axis: (x: 0, y: 1, z: 0), perspective: 0.8)
+        .scaleEffect(isPressed ? 0.965 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+        .shadow(color: bannerColor.opacity(0.5), radius: 24, x: 0, y: 14)
+        .shadow(color: .black.opacity(0.4), radius: 8, x: 0, y: 4)
+    }
+
+    private func cardContent(cardW: CGFloat) -> some View {
+        ZStack(alignment: .bottom) {
+            // Deep gradient
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            bannerColor.opacity(0.92),
+                            bannerColor.opacity(0.36),
+                            Color(red: 0.04, green: 0.05, blue: 0.10)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            // Animated shimmer sweep
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [.clear, .white.opacity(0.09), .clear],
+                        startPoint: UnitPoint(x: shimmerPhase, y: 0),
+                        endPoint: UnitPoint(x: shimmerPhase + 0.45, y: 1)
+                    )
+                )
+                .onAppear {
+                    withAnimation(.linear(duration: 3.5).repeatForever(autoreverses: false)) {
+                        shimmerPhase = 1.4
+                    }
+                }
+
+            // Corner ambient highlight
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [.white.opacity(0.20), .clear],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: cardW * 0.55
+                    )
+                )
+                .frame(width: cardW, height: cardW)
+                .offset(x: -cardW * 0.2, y: -cardW * 0.22)
+                .allowsHitTesting(false)
+
+            // Floating icon — lifts when idle, presses down when tapped
+            VStack(spacing: 0) {
+                Spacer()
+                iconView
+                    .frame(width: 78, height: 78)
+                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .strokeBorder(.white.opacity(0.28), lineWidth: 1.2)
+                    )
+                    .shadow(color: bannerColor.opacity(0.9), radius: 16, x: 0, y: 0)
+                    .shadow(color: bannerColor.opacity(0.45), radius: 38, x: 0, y: 0)
+                    .shadow(color: .black.opacity(0.65), radius: 12, x: 0, y: 10)
+                    .offset(y: isPressed ? 3 : -5)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+                Spacer(minLength: 54)
+            }
+
+            // Bottom name strip with gradient fade
+            VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(.primary)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
                     .lineLimit(1)
-                Text(subtitle)
-                    .font(.caption2.monospaced())
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                if !subtitle.trimmingCharacters(in: .whitespaces).isEmpty {
+                    Text(subtitle)
+                        .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(.white.opacity(0.45))
+                        .lineLimit(1)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(12)
-            .background(AppTheme.techCardFill)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.62)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .allowsHitTesting(false)
+            )
         }
-        .background(Color.black.opacity(0.001))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [.white.opacity(0.35), bannerColor.opacity(0.6), .clear],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.2
+                )
         )
-        .shadow(color: AppTheme.techGlow.opacity(0.10), radius: 10, y: 0)
+    }
+
+    private func tiltGesture(cardW: CGFloat, cardH: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .local)
+            .onChanged { v in
+                let x = min(max(v.location.x, 0), cardW)
+                let y = min(max(v.location.y, 0), cardH)
+                withAnimation(.interactiveSpring(response: 0.18, dampingFraction: 0.85)) {
+                    tiltY = (x / cardW - 0.5) * 20
+                    tiltX = -(y / cardH - 0.5) * 12
+                    isPressed = true
+                }
+            }
+            .onEnded { _ in
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.65)) {
+                    tiltX = 0
+                    tiltY = 0
+                    isPressed = false
+                }
+            }
     }
 
     @ViewBuilder
@@ -297,7 +472,7 @@ struct GameCardView: View {
         Image(systemName: systemIconName)
             .resizable()
             .scaledToFit()
-            .padding(13)
+            .padding(14)
             .foregroundStyle(.white)
     }
 }

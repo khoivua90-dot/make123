@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum AppTheme {
     static let accent = Color(
@@ -12,15 +13,13 @@ enum AppTheme {
     static let consoleBackground = Color(uiColor: .secondarySystemBackground)
     static let pageInset: CGFloat = 16
 
-    // MARK: - Tech theme (Home / per-game menu screens)
-    static let techBackgroundTop = Color(red: 0.05, green: 0.07, blue: 0.12)
-    static let techBackgroundBottom = Color(red: 0.01, green: 0.02, blue: 0.05)
-    static let techGlow = Color(red: 0.32, green: 0.86, blue: 0.95)
-    static let techCardFill = Color.white.opacity(0.045)
-    static let techCardStroke = Color(red: 0.32, green: 0.86, blue: 0.95).opacity(0.30)
+    // MARK: - Tech theme — Matrix hacker green
+    static let techBackgroundTop    = Color(red: 0.01, green: 0.04, blue: 0.01)
+    static let techBackgroundBottom = Color(red: 0.00, green: 0.01, blue: 0.00)
+    static let techGlow             = Color(red: 0.09, green: 0.92, blue: 0.33)   // Matrix green
+    static let techCardFill         = Color(red: 0.09, green: 0.92, blue: 0.33).opacity(0.055)
+    static let techCardStroke       = Color(red: 0.09, green: 0.92, blue: 0.33).opacity(0.28)
 
-    /// Cycled per-row accent so a menu card's items read as distinct switches at a glance,
-    /// matching the reference "PROXY MOD MENU" style where each toggle has its own icon color.
     static let rowPalette: [Color] = [
         Color(red: 1.00, green: 0.56, blue: 0.24),
         Color(red: 0.96, green: 0.28, blue: 0.42),
@@ -33,29 +32,34 @@ enum AppTheme {
         rowPalette[index % rowPalette.count]
     }
 
-    /// The web admin can set a game's banner to "transparent" (no background at all) instead of
-    /// a hex color, so this resolves that sentinel to `.clear` before falling back to parsing
-    /// hex, rather than treating an unparsable value as "use the default accent".
     static func resolvedBannerColor(_ raw: String) -> Color {
         raw == "transparent" ? .clear : (Color(hex: raw) ?? accent)
     }
 }
 
-/// A dark, faintly gridded backdrop used behind the Home and per-game menu screens to give the
-/// app a "tech tool" look consistent with the reference designs, instead of the plain system
-/// background.
+// MARK: - Matrix Rain Background
+
 struct TechBackground: View {
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [AppTheme.techBackgroundTop, AppTheme.techBackgroundBottom],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            TechGridPattern()
-                .stroke(Color.white.opacity(0.035), lineWidth: 1)
+            // Near-black green base
+            Color(red: 0.00, green: 0.022, blue: 0.00)
+
+            // Falling code columns
+            MatrixRainView()
+                .opacity(0.72)
+
+            // Edge vignette for depth
             RadialGradient(
-                colors: [AppTheme.techGlow.opacity(0.10), .clear],
+                colors: [.clear, Color.black.opacity(0.60)],
+                center: .center,
+                startRadius: 140,
+                endRadius: 560
+            )
+
+            // Ambient green glow from top
+            RadialGradient(
+                colors: [AppTheme.techGlow.opacity(0.08), .clear],
                 center: .top,
                 startRadius: 0,
                 endRadius: 420
@@ -65,26 +69,164 @@ struct TechBackground: View {
     }
 }
 
-private struct TechGridPattern: Shape {
-    var spacing: CGFloat = 26
+// MARK: - UIViewRepresentable wrapper
 
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        var x: CGFloat = 0
-        while x <= rect.width {
-            path.move(to: CGPoint(x: x, y: 0))
-            path.addLine(to: CGPoint(x: x, y: rect.height))
-            x += spacing
+struct MatrixRainView: UIViewRepresentable {
+    func makeUIView(context: Context) -> MatrixRainUIView { MatrixRainUIView() }
+    func updateUIView(_ uiView: MatrixRainUIView, context: Context) {}
+}
+
+// MARK: - Core UIView that draws the rain
+
+final class MatrixRainUIView: UIView {
+
+    private var displayLink: CADisplayLink?
+
+    private let colSpacing: CGFloat = 13
+    private let rowSpacing: CGFloat = 14
+    private let font = UIFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+
+    // Characters used in rain — mix of digits, letters, katakana for Matrix vibe
+    private let charset: [Character] = Array(
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
+        "!@#$%&*+-=~<>|\\/?[]{}ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉ"
+    )
+
+    private struct Column {
+        var x: CGFloat
+        var headY: CGFloat
+        var speed: CGFloat
+        var trailLen: Int
+        var chars: [Character]
+    }
+
+    private var columns: [Column] = []
+
+    // MARK: Init
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .clear
+        isOpaque = false
+        contentMode = .redraw
+    }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
+    // MARK: Lifecycle
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let needed = max(1, Int(bounds.width / colSpacing))
+        if columns.count != needed { buildColumns(count: needed) }
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        window != nil ? startRain() : stopRain()
+    }
+
+    deinit { stopRain() }
+
+    // MARK: Column setup
+
+    private func buildColumns(count: Int) {
+        let h = max(bounds.height, 100)
+        columns = (0..<count).map { i in
+            let tl = Int.random(in: 8...22)
+            return Column(
+                x: CGFloat(i) * colSpacing + colSpacing * 0.5,
+                headY: CGFloat.random(in: -h...h),
+                speed: CGFloat.random(in: 2.5...10),
+                trailLen: tl,
+                chars: (0...tl).map { [self] _ in charset.randomElement()! }
+            )
         }
-        var y: CGFloat = 0
-        while y <= rect.height {
-            path.move(to: CGPoint(x: 0, y: y))
-            path.addLine(to: CGPoint(x: rect.width, y: y))
-            y += spacing
+    }
+
+    // MARK: Display link
+
+    private func startRain() {
+        stopRain()
+        let link = CADisplayLink(target: self, selector: #selector(tick(_:)))
+        link.preferredFrameRateRange = .init(minimum: 18, maximum: 28, preferred: 24)
+        link.add(to: .main, forMode: .common)
+        displayLink = link
+    }
+
+    private func stopRain() {
+        displayLink?.invalidate()
+        displayLink = nil
+    }
+
+    @objc private func tick(_ link: CADisplayLink) {
+        let h = bounds.height
+        let charsetCount = UInt32(charset.count)
+        for i in 0..<columns.count {
+            // Advance head
+            columns[i].headY += columns[i].speed
+
+            // Random character mutation (gives the "flickering" feel)
+            if arc4random_uniform(3) == 0 {
+                let j = Int(arc4random_uniform(UInt32(columns[i].chars.count)))
+                columns[i].chars[j] = charset[Int(arc4random_uniform(charsetCount))]
+            }
+
+            // Reset column when tail exits bottom
+            let tailY = columns[i].headY - CGFloat(columns[i].trailLen) * rowSpacing
+            if tailY > h {
+                let tl = Int.random(in: 8...24)
+                columns[i].headY = -CGFloat.random(in: 0...(h * 0.7))
+                columns[i].speed = CGFloat.random(in: 2.5...10)
+                columns[i].trailLen = tl
+                columns[i].chars = (0...tl).map { _ in charset[Int(arc4random_uniform(charsetCount))] }
+            }
         }
-        return path
+        setNeedsDisplay()
+    }
+
+    // MARK: Drawing
+
+    override func draw(_ rect: CGRect) {
+        guard let ctx = UIGraphicsGetCurrentContext() else { return }
+        ctx.clear(rect)
+
+        for col in columns {
+            for j in 0...col.trailLen {
+                let cy = col.headY - CGFloat(j) * rowSpacing
+                guard cy > -rowSpacing && cy < rect.height else { continue }
+
+                let fraction = 1.0 - CGFloat(j) / CGFloat(col.trailLen)
+                let alpha = fraction * fraction
+
+                let color: UIColor
+                switch j {
+                case 0:
+                    // Head: near-white with green tint
+                    color = UIColor(red: 0.88, green: 1.00, blue: 0.90, alpha: 1.0)
+                case 1:
+                    // Neck: full bright green
+                    color = UIColor(red: 0.12, green: 1.00, blue: 0.38, alpha: 1.0)
+                default:
+                    // Trail: fading green
+                    let g = max(0.08, 0.75 * alpha)
+                    color = UIColor(red: 0.0, green: g, blue: 0.04, alpha: alpha * 0.90)
+                }
+
+                let ci = j % col.chars.count
+                let str = String(col.chars[ci]) as NSString
+                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color]
+                let sz = str.size(withAttributes: attrs)
+                str.draw(
+                    at: CGPoint(x: col.x - sz.width * 0.5, y: cy),
+                    withAttributes: attrs
+                )
+            }
+        }
     }
 }
+
+// MARK: - Tech card style
 
 private struct TechCardStyle: ViewModifier {
     func body(content: Content) -> some View {
@@ -94,7 +236,7 @@ private struct TechCardStyle: ViewModifier {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
             )
-            .shadow(color: AppTheme.techGlow.opacity(0.12), radius: 16, y: 0)
+            .shadow(color: AppTheme.techGlow.opacity(0.14), radius: 16, y: 0)
     }
 }
 
@@ -111,9 +253,6 @@ struct ToastMessage: Identifiable, Equatable {
     var text: String
 }
 
-/// A brief, self-dismissing confirmation pill (e.g. "Đã bật Auto Aim Fix") shown after a
-/// successful toggle, so a patch flip has clear positive feedback without the interruption of
-/// a blocking alert (alerts stay reserved for failures).
 private struct ToastOverlay: ViewModifier {
     @Binding var toast: ToastMessage?
 
@@ -162,6 +301,8 @@ extension View {
         modifier(ToastOverlay(toast: message))
     }
 }
+
+// MARK: - App Logo
 
 struct AppLogo: View {
     var size: CGFloat = 44
