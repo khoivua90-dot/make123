@@ -3,7 +3,7 @@ import SwiftUI
 /// Pinned footer on the Home screen showing the active key (masked) and remaining time, matching
 /// the reference layout: status dot, masked key + countdown, an info button, and "Đổi Key".
 struct LicenseStatusBar: View {
-    @EnvironmentObject private var licenseGate: LicenseGateStore
+    @EnvironmentObject private var licenseGate: PPAPIKeyGateStore
     @Environment(\.appLanguage) private var language
     @State private var showInfo = false
 
@@ -58,6 +58,6 @@ struct LicenseStatusBar: View {
     }
 
     private var remainingText: String {
-        licenseGate.remainingTimeText(language: language)
+        licenseGate.remainingTimeText
     }
 }

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var licenseGate = LicenseGateStore()
+    @StateObject private var licenseGate = PPAPIKeyGateStore()
     @StateObject private var netSecurity = NetworkSecurityMonitor()
     @State private var isCheckingMaintenance = true
     @State private var maintenanceNotice: MaintenanceNotice?
@@ -21,10 +21,8 @@ struct ContentView: View {
                 .preferredColorScheme(.dark)
             } else if let maintenanceNotice {
                 MaintenanceView(notice: maintenanceNotice)
-            } else if licenseGate.isUnlocked {
-                GamesHomeView()
             } else {
-                KeyEntryView()
+                GamesHomeView()
             }
         }
         .environmentObject(licenseGate)
@@ -39,7 +37,6 @@ struct ContentView: View {
                 netSecurity.refresh()
                 Task {
                     await checkMaintenance()
-                    await licenseGate.revalidateIfNeeded()
                 }
             }
         }

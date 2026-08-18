@@ -5,7 +5,7 @@ struct GamesHomeView: View {
     @Environment(\.appLanguage) private var language
     @EnvironmentObject private var draftCoordinator: PatchDraftCoordinator
     @EnvironmentObject private var appState: AppState
-    @EnvironmentObject private var licenseGate: LicenseGateStore
+    @EnvironmentObject private var licenseGate: PPAPIKeyGateStore
     @StateObject private var store = PatchProjectStore()
     @State private var games: [RemoteGameSummary] = []
     @State private var isLoadingGames = false
