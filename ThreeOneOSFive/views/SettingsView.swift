@@ -75,6 +75,15 @@ struct SettingsView: View {
             } footer: {
                 Text(language.text("settings.supported_versions_footer"))
             }
+
+            Section {
+            } footer: {
+                Text("Ứng dụng này là một bản fork/remake dựa trên mã nguồn FilzaSlop và được phát triển, chỉnh sửa độc lập.\nỨng dụng này không phải là ứng dụng của 3105.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            }
         }
         .scrollContentBackground(.hidden)
         .background(TechBackground())
