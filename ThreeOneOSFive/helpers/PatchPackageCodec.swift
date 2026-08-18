@@ -395,10 +395,10 @@ enum PatchPackageCodec {
     }
 
     private static func keyAAD(for packageID: UUID) -> Data {
-        Data("DSWPATCH/v1/key/\(packageID.uuidString)".utf8)
+        Data("3105PATCH/v1/key/\(packageID.uuidString)".utf8)
     }
 
     private static func payloadAAD(for packageID: UUID) -> Data {
-        Data("DSWPATCH/v1/payload/\(packageID.uuidString)".utf8)
+        Data("3105PATCH/v1/payload/\(packageID.uuidString)".utf8)
     }
 }
