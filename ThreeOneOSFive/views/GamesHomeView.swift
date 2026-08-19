@@ -196,7 +196,7 @@ struct GamesHomeView: View {
             deviceInfoRow(
                 icon: "apple.logo",
                 iconColor: Color(red: 0.68, green: 0.28, blue: 0.98),
-                label: language.text("common.ios"),
+                label: language.text("settings.ios_version"),
                 value: shortOSVersion,
                 valueColor: AppTheme.neonCyan
             )
