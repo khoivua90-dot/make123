@@ -90,11 +90,21 @@ class AppState: ObservableObject {
     }
 
     private func resolveMHAFallback() {
-        // iOS 17 và 18: MCM cấp token khi CodeDirectory = MHA.
-        if hasMobileHouseArrestCodeDirectory() {
+        guard hasMobileHouseArrestCodeDirectory() else {
+            exploitStatus = .failed(method: "mha-cert", code: -1)
+            return
+        }
+        // Xác minh MCM thực sự cấp sandbox extension trên thiết bị này.
+        // iOS 18 containermanagerd yêu cầu platform binary / entitlement riêng;
+        // eSigned app chỉ với bundle ID đúng vẫn bị từ chối trên iOS 18.2+.
+        var testErr: NSString?
+        let testPath = MCMActivateContainerPath(2, "com.apple.mobilesafari", false, &testErr)
+        if testPath != nil {
             exploitStatus = .success(method: "mha")
         } else {
-            exploitStatus = .failed(method: "mha-cert", code: -1)
+            let reason = (testErr as String?) ?? "denied"
+            NSLog("[3105] MCM probe failed: \(reason)")
+            exploitStatus = .failed(method: "mha-os", code: -2)
         }
     }
 }

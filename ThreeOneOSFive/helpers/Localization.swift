@@ -59,7 +59,11 @@ extension ExploitStatus {
                 : method
             return language.text("status.ok_via", localizedMethod)
         case .failed(let method, let code):
-            return language.text("status.failed_via", method, code)
+            switch method {
+            case "mha-cert": return language.text("status.failed_mha_cert")
+            case "mha-os":   return language.text("status.failed_mha_os")
+            default:         return language.text("status.failed_via", method, code)
+            }
         case .unsupported(let message):
             return language.text("status.unsupported_reason", message)
         }

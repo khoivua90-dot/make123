@@ -128,7 +128,7 @@
 "patch.error.replacement_required" = "保存前，请为每个目标路径选择替换文件。";
 "patch.error.keychain" = "无法安全保存或读取已记住的解锁密钥。";
 "patch.error.app_unavailable" = "未安装应用 bundle %@，或无法打开该应用。未更改任何补丁文件。";
-"patch.error.sandbox_denied" = "无法访问 %@ 的容器。iOS 18：使用付费证书重新签名并保留 bundle ID com.apple.mobile.MobileHouseArrest。iOS 17：需要 TrollStore。";
+"patch.error.sandbox_denied" = "无法访问 %@ 的容器。A15 及以下（iPhone 13/14）需要 TrollStore。A18+（iPhone 16 及以上）：kexploit 自动授权。";
 "patch.error.symlink" = "补丁目标路径不能经过符号链接。";
 "patch.error.apply" = "无法应用补丁。之前的所有写入均已回滚。";
 "patch.error.restore" = "无法安全恢复原始文件。未覆盖任何未经验证的目标。";
@@ -148,6 +148,8 @@
 
 "status.not_attempted" = "尚未尝试";
 "status.running" = "正在运行漏洞利用...";
+"status.failed_mha_cert" = "请使用 bundle ID com.apple.mobile.MobileHouseArrest 重新签名";
+"status.failed_mha_os" = "MCM 被 iOS 18 拦截 — 此设备需要 TrollStore 或 A18+（iPhone 16+）";
 "status.ok_via" = "通过 %@ 成功";
 "status.failed_via" = "%@ 失败（%lld）";
 "status.unsupported_reason" = "不支持：%@";
