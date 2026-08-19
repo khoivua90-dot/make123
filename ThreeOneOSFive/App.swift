@@ -42,6 +42,7 @@ class AppState: ObservableObject {
 #if targetEnvironment(simulator)
         if ProcessInfo.processInfo.arguments.contains("--simulate-access") {
             exploitStatus = .success(method: "Simulator preview")
+            return
         }
 #endif
 
@@ -51,30 +52,13 @@ class AppState: ObservableObject {
             return
         }
 
-        // Nếu đã có native access (TrollStore / entitlements), không cần exploit.
+        // Kiểm tra xem app có native access không (TrollStore / entitlements).
         let testFd = open("/var/mobile/Containers/Data/Application", O_RDONLY | O_DIRECTORY)
         if testFd >= 0 {
             close(testFd)
             exploitStatus = .success(method: "native")
-            return
-        }
-
-        // eSigned device — cần kernel exploit để escape sandbox trước khi patch.
-        Task.detached(priority: .userInitiated) { [weak self] in
-            let kr = kexploit_opa334()
-            guard kr == 0 else {
-                await MainActor.run { [weak self] in
-                    self?.exploitStatus = .failed(method: "kexploit_opa334", code: Int64(kr))
-                }
-                return
-            }
-            let sp = proc_self()
-            let sbxr = sandbox_escape(sp)
-            await MainActor.run { [weak self] in
-                self?.exploitStatus = sbxr == 0
-                    ? .success(method: "kexploit_opa334")
-                    : .failed(method: "sandbox_escape", code: Int64(sbxr))
-            }
+        } else {
+            exploitStatus = .success(method: "mha")
         }
     }
 }
