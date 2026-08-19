@@ -77,10 +77,14 @@ extension Color {
 
 struct TechBackground: View {
     var body: some View {
-        Image("AppBg")
-            .resizable()
-            .scaledToFill()
-            .ignoresSafeArea()
+        GeometryReader { geo in
+            Image("AppBg")
+                .resizable()
+                .scaledToFill()
+                .frame(width: geo.size.width, height: geo.size.height)
+                .clipped()
+        }
+        .ignoresSafeArea()
     }
 }
 
