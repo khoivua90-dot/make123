@@ -1,13 +1,15 @@
 import SwiftUI
 import Darwin
-import Security
 
-// Returns true nếu CodeDirectory identifier (chữ ký thực) là com.apple.mobile.MobileHouseArrest.
-// Info.plist bundle ID có thể đúng nhưng CodeDirectory vẫn sai nếu signing tool tự đổi.
+// csops CS_OPS_IDENTITY returns the CodeDirectory identifier string for a pid.
+// SecTaskCreateFromSelf/SecTaskCopySigningIdentifier are macOS-only; csops works on iOS.
+@_silgen_name("csops")
+private func csops_raw(_ pid: pid_t, _ ops: UInt32, _ useraddr: UnsafeMutableRawPointer?, _ usersize: Int) -> Int32
+
 func hasMobileHouseArrestCodeDirectory() -> Bool {
-    guard let task = SecTaskCreateFromSelf(kCFAllocatorDefault) else { return false }
-    let id = SecTaskCopySigningIdentifier(task, nil) as String?
-    return id == "com.apple.mobile.MobileHouseArrest"
+    var buf = [UInt8](repeating: 0, count: 256)
+    guard csops_raw(getpid(), 8 /* CS_OPS_IDENTITY */, &buf, buf.count) == 0 else { return false }
+    return String(cString: buf) == "com.apple.mobile.MobileHouseArrest"
 }
 
 @main
