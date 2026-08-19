@@ -1,5 +1,14 @@
 import SwiftUI
 import Darwin
+import Security
+
+// Returns true nếu CodeDirectory identifier (chữ ký thực) là com.apple.mobile.MobileHouseArrest.
+// Info.plist bundle ID có thể đúng nhưng CodeDirectory vẫn sai nếu signing tool tự đổi.
+func hasMobileHouseArrestCodeDirectory() -> Bool {
+    guard let task = SecTaskCreateFromSelf(kCFAllocatorDefault) else { return false }
+    let id = SecTaskCopySigningIdentifier(task, nil) as String?
+    return id == "com.apple.mobile.MobileHouseArrest"
+}
 
 @main
 struct ThreeOneOSFiveApp: App {
@@ -57,8 +66,20 @@ class AppState: ObservableObject {
         if testFd >= 0 {
             close(testFd)
             exploitStatus = .success(method: "native")
+            return
+        }
+        // iOS 18+: MCM cấp sandbox extension token khi CodeDirectory = MHA.
+        // iOS 17: MCM có thêm lớp kiểm tra, trick bundle ID không đủ.
+        if v.major >= 18 {
+            if hasMobileHouseArrestCodeDirectory() {
+                exploitStatus = .success(method: "mha")
+            } else {
+                // CodeDirectory sai — free eSign tool đổi App ID → MCM từ chối.
+                exploitStatus = .failed(method: "mha-cert", code: -1)
+            }
         } else {
-            exploitStatus = .success(method: "mha")
+            // iOS 17 eSigned: MCM không hỗ trợ dù có đúng CodeDirectory.
+            exploitStatus = .failed(method: "mha", code: -1)
         }
     }
 }

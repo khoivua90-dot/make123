@@ -128,7 +128,7 @@
 "patch.error.replacement_required" = "保存前，请为每个目标路径选择替换文件。";
 "patch.error.keychain" = "无法安全保存或读取已记住的解锁密钥。";
 "patch.error.app_unavailable" = "未安装应用 bundle %@，或无法打开该应用。未更改任何补丁文件。";
-"patch.error.sandbox_denied" = "系统沙盒阻止访问 %@ 的容器。iOS 17/18 上需通过 TrollStore 安装才能进行补丁操作。";
+"patch.error.sandbox_denied" = "无法访问 %@ 的容器。iOS 18：使用付费证书重新签名并保留 bundle ID com.apple.mobile.MobileHouseArrest。iOS 17：需要 TrollStore。";
 "patch.error.symlink" = "补丁目标路径不能经过符号链接。";
 "patch.error.apply" = "无法应用补丁。之前的所有写入均已回滚。";
 "patch.error.restore" = "无法安全恢复原始文件。未覆盖任何未经验证的目标。";

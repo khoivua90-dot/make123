@@ -128,7 +128,7 @@
 "patch.error.replacement_required" = "Hãy chọn tệp thay thế cho mọi đường dẫn đích trước khi lưu.";
 "patch.error.keychain" = "Không thể lưu hoặc đọc khóa mở gói một cách an toàn.";
 "patch.error.app_unavailable" = "Bundle app %@ chưa được cài hoặc không thể mở. Patch chưa thay đổi file nào.";
-"patch.error.sandbox_denied" = "Sandbox OS chặn truy cập container của %@. Cần cài app qua TrollStore để patch trên iOS 17/18.";
+"patch.error.sandbox_denied" = "Không thể truy cập container của %@. iOS 18: ký bằng paid cert giữ nguyên bundle ID com.apple.mobile.MobileHouseArrest. iOS 17: cần TrollStore.";
 "patch.error.symlink" = "Đường dẫn patch không được đi qua liên kết tượng trưng.";
 "patch.error.apply" = "Không thể áp dụng patch. Mọi file đã ghi trước đó đã được rollback.";
 "patch.error.restore" = "Không thể khôi phục file gốc an toàn. App không ghi đè đích chưa được xác minh.";
