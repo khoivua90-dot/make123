@@ -75,6 +75,7 @@
 		3105K204 /* AnnouncementSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K104; };
 		3105K205 /* MaintenanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K105; };
 		3105K230 /* GameNoticeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K130; };
+		3105K231 /* LicenseInfoSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K131; };
 		3105K206 /* SmartModeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K106; };
 		3105K207 /* VPNBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K107; };
 		3105K208 /* WelcomeFaceIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K108; };
@@ -175,6 +176,7 @@
 		3105K103 /* KeyEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEntryView.swift; sourceTree = "<group>"; };
 		3105K104 /* AnnouncementSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementSheetView.swift; sourceTree = "<group>"; };
 		3105K130 /* GameNoticeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameNoticeSheetView.swift; sourceTree = "<group>"; };
+		3105K131 /* LicenseInfoSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseInfoSheetView.swift; sourceTree = "<group>"; };
 		3105K105 /* MaintenanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaintenanceView.swift; sourceTree = "<group>"; };
 		3105K106 /* SmartModeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeSheetView.swift; sourceTree = "<group>"; };
 		3105K107 /* VPNBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBlockView.swift; sourceTree = "<group>"; };
@@ -276,6 +278,7 @@
 				3105K103 /* KeyEntryView.swift */,
 				3105K104 /* AnnouncementSheetView.swift */,
 				3105K130 /* GameNoticeSheetView.swift */,
+				3105K131 /* LicenseInfoSheetView.swift */,
 				3105K105 /* MaintenanceView.swift */,
 				3105K106 /* SmartModeSheetView.swift */,
 				3105K107 /* VPNBlockView.swift */,
@@ -480,6 +483,7 @@
 				3105K204,
 				3105K205,
 				3105K230,
+				3105K231,
 				3105K206,
 				3105K207,
 				3105K208,

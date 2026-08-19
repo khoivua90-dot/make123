@@ -3,6 +3,7 @@ import SwiftUI
 struct LicenseStatusBar: View {
     @EnvironmentObject private var licenseGate: LicenseGateStore
     @Environment(\.appLanguage) private var language
+    @State private var showInfo = false
 
     var body: some View {
         HStack(spacing: 14) {
@@ -54,9 +55,14 @@ struct LicenseStatusBar: View {
             Spacer()
 
             // Info button
-            Image(systemName: "info.circle")
-                .font(.system(size: 17, weight: .medium))
-                .foregroundStyle(Color(red: 0.42, green: 0.52, blue: 0.72))
+            Button {
+                showInfo = true
+            } label: {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(Color(red: 0.42, green: 0.52, blue: 0.72))
+            }
+            .buttonStyle(.plain)
 
             // ĐỔI KEY button
             Button {
@@ -96,5 +102,9 @@ struct LicenseStatusBar: View {
         )
         .shadow(color: AppTheme.neonPurple.opacity(0.22), radius: 20, y: -4)
         .padding(.horizontal, 16)
+        .sheet(isPresented: $showInfo) {
+            LicenseInfoSheetView()
+                .environmentObject(licenseGate)
+        }
     }
 }

@@ -11,6 +11,7 @@ final class LicenseGateStore: ObservableObject {
     @Published private(set) var isUnlocked = false
     @Published private(set) var isChecking = true
     @Published private(set) var expiresAt: Date?
+    @Published private(set) var licenseDevices: [LicenseDeviceEntry] = []
     @Published var errorMessage: String?
     @Published var activationToast: ToastMessage?
 
@@ -111,6 +112,7 @@ final class LicenseGateStore: ObservableObject {
             )
             storedKeyCode = code
             expiresAt = result.expiresAt
+            licenseDevices = result.devices
             isUnlocked = true
             let language = LocalizedStringResource.currentLanguage
             let detail = language.text("license.activated_detail", AppInfo.hardwareDisplayName, remainingTimeText(language: language))
@@ -128,6 +130,7 @@ final class LicenseGateStore: ObservableObject {
     func changeKey() {
         storedKeyCode = nil
         expiresAt = nil
+        licenseDevices = []
         isUnlocked = false
         errorMessage = nil
     }
@@ -136,6 +139,7 @@ final class LicenseGateStore: ObservableObject {
         do {
             let result = try await LicenseKeyService.status(code: code, deviceId: DeviceIdentity.current)
             expiresAt = result.expiresAt
+            licenseDevices = result.devices
             isUnlocked = true
         } catch LicenseKeyError.network {
             // Connectivity issue only — keep whatever unlocked state we already had.

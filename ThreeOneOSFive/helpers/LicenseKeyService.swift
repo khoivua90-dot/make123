@@ -1,9 +1,15 @@
 import Foundation
 
+struct LicenseDeviceEntry {
+    let deviceModel: String?
+    let redeemedAt: Date?
+}
+
 struct LicenseRedeemResult {
     let redeemedAt: Date
     let durationDays: Int
     let expiresAt: Date
+    let devices: [LicenseDeviceEntry]
 }
 
 enum LicenseKeyError: Error {
@@ -32,12 +38,18 @@ enum LicenseKeyError: Error {
 enum LicenseKeyService {
     private static let baseURL = PatchHubService.baseURL
 
+    private struct KeyDeviceEntry: Decodable {
+        let deviceModel: String?
+        let redeemedAt: String?
+    }
+
     private struct KeyResponse: Decodable {
         let ok: Bool
         let error: String?
         let redeemedAt: String?
         let durationDays: Int?
         let expiresAt: String?
+        let devices: [KeyDeviceEntry]?
     }
 
     private static let dateFormatterWithFraction: ISO8601DateFormatter = {
@@ -70,7 +82,10 @@ enum LicenseKeyService {
         else {
             throw mapError(response.error)
         }
-        return LicenseRedeemResult(redeemedAt: redeemedAt, durationDays: durationDays, expiresAt: expiresAt)
+        let devices = (response.devices ?? []).map {
+            LicenseDeviceEntry(deviceModel: $0.deviceModel, redeemedAt: parseDate($0.redeemedAt))
+        }
+        return LicenseRedeemResult(redeemedAt: redeemedAt, durationDays: durationDays, expiresAt: expiresAt, devices: devices)
     }
 
     private static func formBody(_ params: [String: String]) -> Data {
