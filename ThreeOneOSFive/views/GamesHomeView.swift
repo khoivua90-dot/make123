@@ -104,8 +104,13 @@ struct GamesHomeView: View {
             .task { await loadGames() }
             .task { await checkAnnouncement() }
             .task { await loadGameNotices() }
-            .navigationDestination(item: $selectedGame) { game in
-                GamePatchesView(game: game, store: store)
+            .navigationDestination(isPresented: Binding(
+                get: { selectedGame != nil },
+                set: { if !$0 { selectedGame = nil } }
+            )) {
+                if let game = selectedGame {
+                    GamePatchesView(game: game, store: store)
+                }
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 VStack(spacing: 10) {
