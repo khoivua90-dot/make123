@@ -290,11 +290,22 @@ struct GamesHomeView: View {
                 )
                 .frame(height: 1)
 
-            Text("🎮  GAME HỖ TRỢ")
-                .font(.system(size: 11, weight: .heavy))
-                .kerning(1.5)
-                .foregroundStyle(Color(red: 0.52, green: 0.68, blue: 0.95))
-                .fixedSize()
+            HStack(spacing: 6) {
+                Image(systemName: "gamecontroller.fill")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [AppTheme.techGlow, AppTheme.neonPurple],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        )
+                    )
+                    .shadow(color: AppTheme.techGlow.opacity(0.60), radius: 6)
+                Text("GAME HỖ TRỢ")
+                    .font(.system(size: 11, weight: .heavy))
+                    .kerning(1.5)
+                    .foregroundStyle(Color(red: 0.52, green: 0.68, blue: 0.95))
+            }
+            .fixedSize()
 
             Rectangle()
                 .fill(
