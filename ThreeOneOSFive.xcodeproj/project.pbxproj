@@ -74,6 +74,33 @@
 		3105A234 /* AppDataBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A105; };
 		3105A228 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3105A120; };
 		3105A211 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3105A031; };
+		3105P101 /* patchfinder.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105P001; };
+		3105X101 /* xpf.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105X001; };
+		3105X102 /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105X002; };
+		3105X103 /* decompress.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105X003; };
+		3105X104 /* bad_recovery.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105X004; };
+		3105X105 /* non_ppl.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105X005; };
+		3105X106 /* ppl.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105X006; };
+		3105H101 /* arm64.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H001; };
+		3105H102 /* Base64.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H002; };
+		3105H103 /* BufferedStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H003; };
+		3105H104 /* CodeDirectory.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H004; };
+		3105H105 /* CSBlob.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H005; };
+		3105H106 /* DER.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H006; };
+		3105H107 /* DyldSharedCache.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H007; };
+		3105H108 /* Entitlements.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H008; };
+		3105H109 /* Fat.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H009; };
+		3105H110 /* FileStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H010; };
+		3105H111 /* Host.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H011; };
+		3105H112 /* MachO.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H012; };
+		3105H113 /* MachOLoadCommand.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H013; };
+		3105H114 /* MemoryStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H014; };
+		3105H115 /* PatchFinder.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H015; };
+		3105H116 /* PatchFinder_arm64.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H016; };
+		3105H117 /* Util.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105H017; };
+		3105U101 /* file.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105U001; };
+		3105U102 /* hexdump.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105U002; };
+		3105U103 /* process.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105U003; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -163,6 +190,34 @@
 		3105A121 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3105A122 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3105B123 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		3105P001 /* patchfinder.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = patchfinder.m; sourceTree = "<group>"; };
+		3105P002 /* patchfinder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = patchfinder.h; sourceTree = "<group>"; };
+		3105X001 /* xpf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xpf.c; sourceTree = "<group>"; };
+		3105X002 /* common.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = common.c; sourceTree = "<group>"; };
+		3105X003 /* decompress.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = decompress.c; sourceTree = "<group>"; };
+		3105X004 /* bad_recovery.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bad_recovery.c; sourceTree = "<group>"; };
+		3105X005 /* non_ppl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = non_ppl.c; sourceTree = "<group>"; };
+		3105X006 /* ppl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ppl.c; sourceTree = "<group>"; };
+		3105H001 /* arm64.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = arm64.c; sourceTree = "<group>"; };
+		3105H002 /* Base64.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = Base64.c; sourceTree = "<group>"; };
+		3105H003 /* BufferedStream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = BufferedStream.c; sourceTree = "<group>"; };
+		3105H004 /* CodeDirectory.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CodeDirectory.c; sourceTree = "<group>"; };
+		3105H005 /* CSBlob.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CSBlob.c; sourceTree = "<group>"; };
+		3105H006 /* DER.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DER.c; sourceTree = "<group>"; };
+		3105H007 /* DyldSharedCache.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DyldSharedCache.c; sourceTree = "<group>"; };
+		3105H008 /* Entitlements.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = Entitlements.c; sourceTree = "<group>"; };
+		3105H009 /* Fat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = Fat.c; sourceTree = "<group>"; };
+		3105H010 /* FileStream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = FileStream.c; sourceTree = "<group>"; };
+		3105H011 /* Host.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = Host.c; sourceTree = "<group>"; };
+		3105H012 /* MachO.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MachO.c; sourceTree = "<group>"; };
+		3105H013 /* MachOLoadCommand.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MachOLoadCommand.c; sourceTree = "<group>"; };
+		3105H014 /* MemoryStream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MemoryStream.c; sourceTree = "<group>"; };
+		3105H015 /* PatchFinder.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PatchFinder.c; sourceTree = "<group>"; };
+		3105H016 /* PatchFinder_arm64.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PatchFinder_arm64.c; sourceTree = "<group>"; };
+		3105H017 /* Util.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = Util.c; sourceTree = "<group>"; };
+		3105U001 /* file.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = file.c; sourceTree = "<group>"; };
+		3105U002 /* hexdump.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = hexdump.c; sourceTree = "<group>"; };
+		3105U003 /* process.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = process.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -195,6 +250,9 @@
 				3105A404 /* views */,
 				3105A405 /* helpers */,
 				3105A406 /* kexploit */,
+				3105P400 /* kpf */,
+				3105X400 /* XPF */,
+				3105U400 /* utils */,
 				3105A120 /* Localizable.strings */,
 				3105A031 /* Assets.xcassets */,
 			);
@@ -312,6 +370,71 @@
 				3105A097 /* xpaci.h */,
 			);
 			path = kexploit;
+			sourceTree = "<group>";
+		};
+		3105P400 /* kpf */ = {
+			isa = PBXGroup;
+			children = (
+				3105P001 /* patchfinder.m */,
+				3105P002 /* patchfinder.h */,
+			);
+			path = kpf;
+			sourceTree = "<group>";
+		};
+		3105X400 /* XPF */ = {
+			isa = PBXGroup;
+			children = (
+				3105X410 /* src */,
+				3105X420 /* ChOma */,
+			);
+			path = XPF;
+			sourceTree = "<group>";
+		};
+		3105X410 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				3105X001 /* xpf.c */,
+				3105X002 /* common.c */,
+				3105X003 /* decompress.c */,
+				3105X004 /* bad_recovery.c */,
+				3105X005 /* non_ppl.c */,
+				3105X006 /* ppl.c */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		3105X420 /* ChOma */ = {
+			isa = PBXGroup;
+			children = (
+				3105H001 /* arm64.c */,
+				3105H002 /* Base64.c */,
+				3105H003 /* BufferedStream.c */,
+				3105H004 /* CodeDirectory.c */,
+				3105H005 /* CSBlob.c */,
+				3105H006 /* DER.c */,
+				3105H007 /* DyldSharedCache.c */,
+				3105H008 /* Entitlements.c */,
+				3105H009 /* Fat.c */,
+				3105H010 /* FileStream.c */,
+				3105H011 /* Host.c */,
+				3105H012 /* MachO.c */,
+				3105H013 /* MachOLoadCommand.c */,
+				3105H014 /* MemoryStream.c */,
+				3105H015 /* PatchFinder.c */,
+				3105H016 /* PatchFinder_arm64.c */,
+				3105H017 /* Util.c */,
+			);
+			path = "external/ChOma/src";
+			sourceTree = "<group>";
+		};
+		3105U400 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				3105U001 /* file.c */,
+				3105U002 /* hexdump.c */,
+				3105U003 /* process.c */,
+			);
+			path = utils;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -434,6 +557,12 @@
 				3105F203,
 				3105F204,
 				3105F205,
+				3105P101,
+				3105X101, 3105X102, 3105X103, 3105X104, 3105X105, 3105X106,
+				3105H101, 3105H102, 3105H103, 3105H104, 3105H105, 3105H106,
+				3105H107, 3105H108, 3105H109, 3105H110, 3105H111, 3105H112,
+				3105H113, 3105H114, 3105H115, 3105H116, 3105H117,
+				3105U101, 3105U102, 3105U103,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -476,7 +605,14 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = "-lz";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/ThreeOneOSFive",
+					"$(SRCROOT)/ThreeOneOSFive/XPF/src",
+					"$(SRCROOT)/ThreeOneOSFive/XPF/external/ChOma/include",
+				);
+				OTHER_CFLAGS = "-Wno-unused-function -Wno-unused-variable -Wno-incompatible-pointer-types -Wno-deprecated-declarations -Wno-format";
+				OTHER_LDFLAGS = "-lz -lsandbox";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.apple.mobile.MobileHouseArrest";
 				PRODUCT_NAME = imguicheat;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -509,7 +645,14 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = "-lz";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/ThreeOneOSFive",
+					"$(SRCROOT)/ThreeOneOSFive/XPF/src",
+					"$(SRCROOT)/ThreeOneOSFive/XPF/external/ChOma/include",
+				);
+				OTHER_CFLAGS = "-Wno-unused-function -Wno-unused-variable -Wno-incompatible-pointer-types -Wno-deprecated-declarations -Wno-format";
+				OTHER_LDFLAGS = "-lz -lsandbox";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.apple.mobile.MobileHouseArrest";
 				PRODUCT_NAME = imguicheat;
 				SWIFT_EMIT_LOC_STRINGS = YES;

@@ -1,16 +1,4 @@
 import SwiftUI
-import Darwin
-
-// csops CS_OPS_IDENTITY returns the CodeDirectory identifier string for a pid.
-// SecTaskCreateFromSelf/SecTaskCopySigningIdentifier are macOS-only; csops works on iOS.
-@_silgen_name("csops")
-private func csops_raw(_ pid: pid_t, _ ops: UInt32, _ useraddr: UnsafeMutableRawPointer?, _ usersize: Int) -> Int32
-
-func hasMobileHouseArrestCodeDirectory() -> Bool {
-    var buf = [UInt8](repeating: 0, count: 256)
-    guard csops_raw(getpid(), 8 /* CS_OPS_IDENTITY */, &buf, buf.count) == 0 else { return false }
-    return String(cString: buf) == "com.apple.mobile.MobileHouseArrest"
-}
 
 @main
 struct ThreeOneOSFiveApp: App {
@@ -43,6 +31,12 @@ class AppState: ObservableObject {
     var isSupported: Bool { unsupportedMessage == nil }
 
     func detectSupport() {
+#if targetEnvironment(simulator)
+        if ProcessInfo.processInfo.arguments.contains("--simulate-access") {
+            exploitStatus = .success(method: "Simulator preview")
+            return
+        }
+#endif
         let v = AppInfo.versionTuple
         let supported = ExploitSupportPolicy.isSupported(
             major: v.major,
@@ -50,61 +44,56 @@ class AppState: ObservableObject {
             patch: v.patch,
             build: AppInfo.osBuild
         )
-#if targetEnvironment(simulator)
-        if ProcessInfo.processInfo.arguments.contains("--simulate-access") {
-            exploitStatus = .success(method: "Simulator preview")
-            return
-        }
-#endif
-
         unsupportedMessage = supported ? nil : "iOS \(AppInfo.osVersion) (\(AppInfo.osBuild))"
-        guard supported else {
-            exploitStatus = .unsupported(unsupportedMessage ?? "")
+        if let unsupportedMessage {
+            exploitStatus = .unsupported(unsupportedMessage)
             return
         }
 
-        // Kiểm tra xem app có native access không (TrollStore / entitlements).
-        let testFd = open("/var/mobile/Containers/Data/Application", O_RDONLY | O_DIRECTORY)
-        if testFd >= 0 {
-            close(testFd)
-            exploitStatus = .success(method: "native")
+        // FilzaJailedDS exploit supports iOS 17.0–26.0.x only.
+        // iOS 26.1+ (including iOS 27) uses MCM via MobileHouseArrest — no kernel exploit needed.
+        let major = v.major
+        let minor = v.minor
+        let exploitSupported = (major == 17) || (major == 18) || (major == 26 && minor == 0)
+        guard exploitSupported else {
+            exploitStatus = .success(method: "mha")
             return
         }
 
-        // Chạy kexploit_opa334 trên background thread để tránh block UI.
-        // Nếu thành công → sandbox_escape → full filesystem access.
-        // Nếu fail → fall back sang MCM MHA path.
         exploitStatus = .running
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let result = kexploit_and_escape()
-            DispatchQueue.main.async {
-                guard let self else { return }
-                if result == 0 {
-                    self.exploitStatus = .success(method: "kexploit")
-                } else {
-                    NSLog("[3105] kexploit_and_escape failed code=\(result), trying MCM fallback")
-                    self.resolveMHAFallback()
-                }
-            }
-        }
-    }
+            guard let self else { return }
 
-    private func resolveMHAFallback() {
-        guard hasMobileHouseArrestCodeDirectory() else {
-            exploitStatus = .failed(method: "mha-cert", code: -1)
-            return
-        }
-        // Xác minh MCM thực sự cấp sandbox extension trên thiết bị này.
-        // iOS 18 containermanagerd yêu cầu platform binary / entitlement riêng;
-        // eSigned app chỉ với bundle ID đúng vẫn bị từ chối trên iOS 18.2+.
-        var testErr: NSString?
-        let testPath = MCMActivateContainerPath(2, "com.apple.mobilesafari", false, &testErr)
-        if testPath != nil {
-            exploitStatus = .success(method: "mha")
-        } else {
-            let reason = (testErr as String?) ?? "denied"
-            NSLog("[3105] MCM probe failed: \(reason)")
-            exploitStatus = .failed(method: "mha-os", code: -2)
+            let kret = kexploit_opa334()
+            guard kret == 0 else {
+                DispatchQueue.main.async { self.exploitStatus = .failed(method: "kexploit", code: Int64(kret)) }
+                return
+            }
+            NSLog("[3105] kexploit OK")
+
+            let kcret = grab_kernelcache()
+            guard kcret == 0 else {
+                DispatchQueue.main.async { self.exploitStatus = .failed(method: "grab-kc", code: Int64(kcret)) }
+                return
+            }
+            NSLog("[3105] kernelcache grabbed OK")
+
+            let xret = init_xpf()
+            guard xret == 0 else {
+                DispatchQueue.main.async { self.exploitStatus = .failed(method: "xpf", code: Int64(xret)) }
+                return
+            }
+            NSLog("[3105] XPF offsets OK")
+
+            let selfProc = proc_self()
+            let eret = sandbox_escape(selfProc)
+            guard eret == 0 else {
+                DispatchQueue.main.async { self.exploitStatus = .failed(method: "escape", code: Int64(eret)) }
+                return
+            }
+            NSLog("[3105] sandbox escaped OK proc=0x%llx", selfProc)
+
+            DispatchQueue.main.async { self.exploitStatus = .success(method: "dsw") }
         }
     }
 }

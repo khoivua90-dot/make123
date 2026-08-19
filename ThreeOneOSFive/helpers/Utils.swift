@@ -146,7 +146,7 @@ enum ExploitStatus: Equatable {
     var displayText: String {
         switch self {
         case .notStarted: return "Not attempted"
-        case .running: return "Running exploit..."
+        case .running: return "Đang chạy exploit..."
         case .success(let m): return "OK via \(m)"
         case .failed(let m, let c): return "FAILED \(m) (\(c))"
         case .unsupported(let m): return "Unsupported: \(m)"
