@@ -32,71 +32,57 @@ struct GamesHomeView: View {
         }
     }
 
+    // MARK: - Home stack
+
     private var homeStack: some View {
         NavigationStack {
             ZStack {
                 TechBackground()
 
                 ScrollView {
-                    deviceInfoCard
-                        .padding(.horizontal, 16)
-                        .padding(.top, 12)
+                    VStack(spacing: 0) {
+                        cyberHeader
+                            .padding(.horizontal, 20)
+                            .padding(.top, 8)
+                            .padding(.bottom, 16)
 
-                    LazyVGrid(columns: columns, spacing: 14) {
-                        ForEach(games) { game in
-                            NavigationLink {
-                                GamePatchesView(game: game, store: store)
-                            } label: {
-                                GameCardView(
-                                    title: game.name,
-                                    subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
-                                    bannerColor: AppTheme.resolvedBannerColor(game.bannerColor),
-                                    iconURL: game.iconURL,
-                                    systemIconName: "app.fill"
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(16)
+                        deviceInfoCard
+                            .padding(.horizontal, 16)
 
-                    if games.isEmpty && !isLoadingGames {
-                        VStack(spacing: 12) {
-                            Text("App đang tiến hành nâng cấp mới, truy cập ngay Telegram để nhận thông báo mới")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 32)
-                            Button {
-                                if let url = URL(string: "https://t.me/crackcyipa") {
-                                    UIApplication.shared.open(url)
+                        gameSectionHeader
+                            .padding(.top, 22)
+                            .padding(.bottom, 4)
+
+                        LazyVGrid(columns: columns, spacing: 14) {
+                            ForEach(games) { game in
+                                NavigationLink {
+                                    GamePatchesView(game: game, store: store)
+                                } label: {
+                                    GameCardView(
+                                        title: game.name,
+                                        subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
+                                        bannerColor: AppTheme.resolvedBannerColor(game.bannerColor),
+                                        iconURL: game.iconURL,
+                                        systemIconName: "app.fill"
+                                    )
                                 }
-                            } label: {
-                                Text("Vào ngay")
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(.black)
-                                    .padding(.horizontal, 22)
-                                    .padding(.vertical, 9)
-                                    .background(AppTheme.techGlow, in: Capsule())
+                                .buttonStyle(.plain)
                             }
                         }
-                        .padding(.top, 8)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 6)
+
+                        if games.isEmpty && !isLoadingGames {
+                            emptyGamesView
+                                .padding(.top, 24)
+                        }
+
+                        Spacer(minLength: 32)
                     }
                 }
             }
-            .navigationTitle(language.text("tab.home"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink {
-                        SettingsView()
-                    } label: {
-                        Image(systemName: "gearshape")
-                            .foregroundStyle(Color(red: 0.15, green: 0.48, blue: 0.93))
-                    }
-                    .accessibilityLabel(language.text("tab.settings"))
-                }
-            }
+            .navigationTitle("")
+            .navigationBarHidden(true)
             .refreshable {
                 await loadGames()
                 await checkAnnouncement()
@@ -125,34 +111,115 @@ struct GamesHomeView: View {
         .preferredColorScheme(.dark)
     }
 
-    private func loadGames() async {
-        isLoadingGames = true
-        if let fetched = try? await PatchHubService.fetchGames() {
-            games = fetched
+    // MARK: - Custom header
+
+    private var cyberHeader: some View {
+        HStack(alignment: .top, spacing: 0) {
+            VStack(alignment: .leading, spacing: 5) {
+                // Title row: "CheatiOSVip" + crown+DSW block
+                HStack(alignment: .bottom, spacing: 8) {
+                    Text("CheatiOSVip")
+                        .font(.system(size: 30, weight: .black))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color(red: 0.26, green: 0.55, blue: 1.00),
+                                         Color(red: 0.48, green: 0.37, blue: 1.00)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+
+                    VStack(spacing: 0) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [AppTheme.neonPurple, Color(red: 0.55, green: 0.25, blue: 0.90)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        Text("DSW")
+                            .font(.system(size: 16, weight: .heavy))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [AppTheme.neonPurple, Color(red: 0.45, green: 0.20, blue: 0.80)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                    }
+                    .padding(.bottom, 2)
+                }
+
+                Text("Trợ thủ game · An toàn · Ổn định")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(Color(red: 0.54, green: 0.62, blue: 0.78))
+            }
+
+            Spacer()
+
+            // Gear button — square rounded
+            NavigationLink {
+                SettingsView()
+            } label: {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        .fill(AppTheme.cyberBase.opacity(0.80))
+                        .frame(width: 46, height: 46)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [AppTheme.neonPurple.opacity(0.80),
+                                                 AppTheme.techGlow.opacity(0.40)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                        )
+                        .shadow(color: AppTheme.neonPurple.opacity(0.30), radius: 10)
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 19, weight: .semibold))
+                        .foregroundStyle(AppTheme.neonPurple)
+                }
+            }
+            .accessibilityLabel(language.text("tab.settings"))
         }
-        isLoadingGames = false
     }
 
-    /// Shows a given announcement at most once per app process: the id is only remembered in
-    /// memory, not persisted, so a fresh launch after being swiped away in the app switcher
-    /// shows it again — simply backgrounding/foregrounding without killing the app does not.
-    private func checkAnnouncement() async {
-        guard case .announcement(let fetched) = await AnnouncementService.fetchState(),
-              !shownAnnouncementIDs.contains(fetched.id)
-        else { return }
-        shownAnnouncementIDs.insert(fetched.id)
-        announcement = fetched
-    }
+    // MARK: - Device info card
 
     private var deviceInfoCard: some View {
-        VStack(spacing: 12) {
-            deviceInfoRow(icon: "apple.logo", iconColor: .purple, label: language.text("common.ios"), value: shortOSVersion)
-            deviceInfoRow(icon: "iphone", iconColor: AppTheme.techGlow, label: language.text("common.device"), value: AppInfo.hardwareDisplayName)
+        VStack(spacing: 0) {
+            deviceInfoRow(
+                icon: "apple.logo",
+                iconColor: Color(red: 0.68, green: 0.28, blue: 0.98),
+                label: language.text("common.ios"),
+                value: shortOSVersion,
+                valueColor: AppTheme.neonCyan
+            )
+
+            infoRowDivider
+
+            deviceInfoRow(
+                icon: "iphone",
+                iconColor: AppTheme.techGlow,
+                label: language.text("common.device"),
+                value: AppInfo.hardwareDisplayName,
+                valueColor: .white
+            )
+
+            infoRowDivider
+
             deviceInfoRow(
                 icon: appState.isSupported ? "checkmark.seal.fill" : "xmark.seal.fill",
-                iconColor: appState.isSupported ? .green : .red,
+                iconColor: appState.isSupported ? Color(red: 0.10, green: 0.85, blue: 0.50) : .red,
                 label: language.text("settings.support"),
-                value: language.text(appState.isSupported ? "settings.supported" : "settings.unsupported")
+                value: language.text(appState.isSupported ? "settings.supported" : "settings.unsupported"),
+                valueColor: appState.isSupported ? Color(red: 0.10, green: 0.90, blue: 0.52) : .red,
+                glowColor: appState.isSupported ? Color(red: 0.10, green: 0.85, blue: 0.50).opacity(0.55) : .red.opacity(0.55)
             )
         }
         .padding(.horizontal, 16)
@@ -160,55 +227,162 @@ struct GamesHomeView: View {
         .techCard()
     }
 
-    private func deviceInfoRow(icon: String, iconColor: Color, label: String, value: String) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.subheadline)
-                .foregroundStyle(iconColor)
-                .frame(width: 18)
+    private var infoRowDivider: some View {
+        Rectangle()
+            .fill(
+                LinearGradient(
+                    colors: [Color.clear, AppTheme.techGlow.opacity(0.18), Color.clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .frame(height: 0.5)
+            .padding(.vertical, 9)
+    }
+
+    private func deviceInfoRow(
+        icon: String,
+        iconColor: Color,
+        label: String,
+        value: String,
+        valueColor: Color = .white,
+        glowColor: Color = .clear
+    ) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(iconColor.opacity(0.16))
+                    .frame(width: 30, height: 30)
+                Image(systemName: icon)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(iconColor)
+            }
+
             Text(label)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color(red: 0.52, green: 0.63, blue: 0.82))
+
             Spacer()
+
             Text(value)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
+                .font(.system(size: 14, weight: .bold, design: .default))
+                .foregroundStyle(valueColor)
+                .shadow(color: glowColor, radius: 5)
         }
     }
 
     private var shortOSVersion: String {
-        let version = AppInfo.osVersion
-        if version.hasSuffix(".0") {
-            return String(version.dropLast(2))
-        }
-        return version
+        let v = AppInfo.osVersion
+        return v.hasSuffix(".0") ? String(v.dropLast(2)) : v
     }
 
-    /// Shown once, the very first time the app is reached (right after the first key redeems
-    /// successfully) — the app doesn't know which language to speak yet, so the prompt itself is
-    /// bilingual rather than guessing.
+    // MARK: - Game section
+
+    private var gameSectionHeader: some View {
+        HStack(spacing: 10) {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.clear, AppTheme.techGlow.opacity(0.45)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 1)
+
+            Text("🎮  GAME HỖ TRỢ")
+                .font(.system(size: 11, weight: .heavy))
+                .kerning(1.5)
+                .foregroundStyle(Color(red: 0.52, green: 0.68, blue: 0.95))
+                .fixedSize()
+
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [AppTheme.techGlow.opacity(0.45), Color.clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 1)
+        }
+        .padding(.horizontal, 16)
+    }
+
+    private var emptyGamesView: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(.system(size: 28, weight: .light))
+                .foregroundStyle(AppTheme.techGlow.opacity(0.6))
+
+            Text("App đang tiến hành nâng cấp mới, truy cập ngay Telegram để nhận thông báo mới")
+                .font(.subheadline)
+                .foregroundStyle(Color(red: 0.45, green: 0.58, blue: 0.80))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
+            Button {
+                if let url = URL(string: "https://t.me/crackcyipa") {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("Vào ngay")
+                        .font(.subheadline.weight(.bold))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 10)
+                .background(
+                    LinearGradient(
+                        colors: [AppTheme.neonPurple, AppTheme.techGlow],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    ),
+                    in: Capsule()
+                )
+                .shadow(color: AppTheme.neonPurple.opacity(0.45), radius: 10, y: 3)
+            }
+        }
+    }
+
+    // MARK: - Language picker overlay
+
     private var languagePickerOverlay: some View {
         ZStack {
-            Color.black.opacity(0.6)
+            Color.black.opacity(0.65)
                 .ignoresSafeArea()
 
-            VStack(spacing: 18) {
-                Image(systemName: "globe")
-                    .font(.system(size: 30, weight: .semibold))
-                    .foregroundStyle(AppTheme.techGlow)
+            VStack(spacing: 20) {
+                ZStack {
+                    Circle()
+                        .fill(AppTheme.techGlow.opacity(0.15))
+                        .frame(width: 60, height: 60)
+                        .blur(radius: 8)
+                    Image(systemName: "globe")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [AppTheme.neonCyan, AppTheme.techGlow],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                }
 
                 Text("Chọn ngôn ngữ / Choose Language")
-                    .font(.headline)
+                    .font(.headline.weight(.bold))
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
 
-                VStack(spacing: 12) {
-                    languageOptionButton(title: "Tiếng Việt", code: .vietnamese)
-                    languageOptionButton(title: "English", code: .english)
+                VStack(spacing: 10) {
+                    languageOptionButton(title: "Tiếng Việt 🇻🇳", code: .vietnamese)
+                    languageOptionButton(title: "English 🇺🇸", code: .english)
                 }
             }
-            .padding(24)
+            .padding(26)
             .frame(maxWidth: 320)
             .techCard()
             .padding(.horizontal, 32)
@@ -225,17 +399,37 @@ struct GamesHomeView: View {
             Text(title)
                 .font(.body.weight(.semibold))
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(AppTheme.techCardFill, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .padding(.vertical, 13)
+                .foregroundStyle(.white)
+                .background(AppTheme.techCardFill, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    RoundedRectangle(cornerRadius: 13, style: .continuous)
                         .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
                 )
-                .foregroundStyle(.primary)
         }
         .buttonStyle(.plain)
     }
+
+    // MARK: - Data loading
+
+    private func loadGames() async {
+        isLoadingGames = true
+        if let fetched = try? await PatchHubService.fetchGames() {
+            games = fetched
+        }
+        isLoadingGames = false
+    }
+
+    private func checkAnnouncement() async {
+        guard case .announcement(let fetched) = await AnnouncementService.fetchState(),
+              !shownAnnouncementIDs.contains(fetched.id)
+        else { return }
+        shownAnnouncementIDs.insert(fetched.id)
+        announcement = fetched
+    }
 }
+
+// MARK: - GameCardView
 
 struct GameCardView: View {
     let title: String
@@ -246,40 +440,78 @@ struct GameCardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Banner with icon
             ZStack {
-                bannerColor
-                iconView
-                    .frame(width: 56, height: 56)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(Color.white.opacity(0.28), lineWidth: 1)
-                    )
-                    .shadow(color: .black.opacity(0.3), radius: 10, y: 6)
-            }
-            .frame(height: 88)
+                LinearGradient(
+                    colors: [
+                        bannerColor.opacity(0.60),
+                        Color(red: 0.04, green: 0.05, blue: 0.13)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title)
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                Text(subtitle)
-                    .font(.caption2.monospaced())
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                // Glow behind icon
+                Circle()
+                    .fill(bannerColor.opacity(0.28))
+                    .blur(radius: 20)
+                    .frame(width: 80, height: 80)
+
+                iconView
+                    .frame(width: 62, height: 62)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.20), lineWidth: 1)
+                    )
+                    .shadow(color: bannerColor.opacity(0.50), radius: 16, y: 6)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: 100)
+
+            // Info + action
+            VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                    Text(subtitle)
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundStyle(AppTheme.techGlow.opacity(0.85))
+                        .lineLimit(1)
+                }
+
+                // Action button (visual — card NavigationLink handles tap)
+                HStack(spacing: 4) {
+                    Spacer()
+                    Text("MỞ GAME")
+                        .font(.system(size: 11, weight: .heavy))
+                        .kerning(0.8)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 9, weight: .bold))
+                    Spacer()
+                }
+                .padding(.vertical, 7)
+                .foregroundStyle(.white)
+                .background(
+                    LinearGradient(
+                        colors: [AppTheme.neonPurple.opacity(0.90), AppTheme.techGlow.opacity(0.95)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    ),
+                    in: RoundedRectangle(cornerRadius: 9, style: .continuous)
+                )
+                .shadow(color: AppTheme.neonPurple.opacity(0.45), radius: 8, y: 2)
+            }
             .padding(12)
-            .background(AppTheme.techCardFill)
+            .background(Color(red: 0.045, green: 0.062, blue: 0.122))
         }
-        .background(Color.black.opacity(0.001))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
         )
-        .shadow(color: AppTheme.techGlow.opacity(0.10), radius: 10, y: 0)
+        .shadow(color: AppTheme.neonPurple.opacity(0.16), radius: 14, y: 5)
     }
 
     @ViewBuilder
@@ -297,18 +529,16 @@ struct GameCardView: View {
         Image(systemName: systemIconName)
             .resizable()
             .scaledToFit()
-            .padding(13)
+            .padding(14)
             .foregroundStyle(.white)
     }
 }
 
-/// Shows a locally cached copy immediately if one exists (so icons still render offline after
-/// their first successful load), then refreshes from the network in the background when
-/// possible. See RemoteImageCache for the on-disk persistence.
+// MARK: - CachedAsyncImage
+
 struct CachedAsyncImage<Placeholder: View>: View {
     let url: URL?
     @ViewBuilder let placeholder: () -> Placeholder
-
     @State private var uiImage: UIImage?
 
     var body: some View {
@@ -333,15 +563,17 @@ struct CachedAsyncImage<Placeholder: View>: View {
     }
 }
 
+// MARK: - Color(hex:)
+
 extension Color {
     init?(hex: String) {
         var value = hex.trimmingCharacters(in: .whitespacesAndNewlines)
         if value.hasPrefix("#") { value.removeFirst() }
         guard value.count == 6, let rgb = UInt32(value, radix: 16) else { return nil }
         self.init(
-            red: Double((rgb >> 16) & 0xFF) / 255,
-            green: Double((rgb >> 8) & 0xFF) / 255,
-            blue: Double(rgb & 0xFF) / 255
+            red:   Double((rgb >> 16) & 0xFF) / 255,
+            green: Double((rgb >>  8) & 0xFF) / 255,
+            blue:  Double( rgb        & 0xFF) / 255
         )
     }
 }
