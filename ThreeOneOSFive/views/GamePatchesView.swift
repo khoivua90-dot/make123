@@ -596,6 +596,12 @@ struct GamePatchesView: View {
         let applicable = project.rules.filter(\.hasReplacement)
         guard !applicable.isEmpty, togglingProjectID == nil else { return }
 
+        // Chặn patch nếu kexploit chưa hoàn thành (iOS 17/18 eSigned đang khởi tạo).
+        if case .notStarted = appState.exploitStatus {
+            toast = ToastMessage(text: "Đang khởi tạo... Vui lòng thử lại sau vài giây.")
+            return
+        }
+
         // Patches that have originalData embedded can be toggled with a direct single-file
         // write (fast, no journal). Patches without originalData use the apply/restore system
         // which takes a live backup from the device before writing (then restores from it).

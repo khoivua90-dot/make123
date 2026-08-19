@@ -63,14 +63,41 @@ enum ContainerStore {
             return nil
         }
         var lookupError: NSString?
-        guard let path = MCMActivateContainerPath(2, bundleID, false, &lookupError),
-              isApplicationContainerPath(path) else {
-            let detail = lookupError.map(String.init) ?? "unavailable"
-            log("patch: MHA-C2 could not resolve \(bundleID), detail=\(detail)")
-            return nil
+        // Primary: lease-based path (requests sandbox extension from MCM).
+        // Works on iOS 26/27 with TrollStore entitlements, và trên iOS 17/18 khi
+        // code signing identity là com.apple.mobile.MobileHouseArrest.
+        if let path = MCMActivateContainerPath(2, bundleID, false, &lookupError),
+           isApplicationContainerPath(path) {
+            log("patch: MHA-C2 resolved \(bundleID)")
+            return path
         }
-        log("patch: MHA-C2 resolved \(bundleID)")
-        return path
+        // Fallback 1: plain MCM path lookup (no sandbox extension request).
+        // MCM trả path mà không cần cấp sandbox extension token.
+        // Sau sandbox_escape() patch kernel, bad_query() open() thành công.
+        var fallbackError: NSString?
+        if let path = MCMContainerPathForIdentifier(2, bundleID, false, &fallbackError),
+           isApplicationContainerPath(path) {
+            log("patch: MHA-C2 fallback (no-lease) resolved \(bundleID)")
+            return path
+        }
+        // Fallback 2: quét filesystem trực tiếp (iOS 17/18 eSigned sau sandbox_escape).
+        // MCM có thể từ chối mọi query nếu code signing identity không phải MHA.
+        // Sau sandbox_escape patch kernel extension set thành /, FileManager hoạt động bình thường.
+        if let uuids = try? FileManager.default.contentsOfDirectory(atPath: appDataRoot) {
+            for uuid in uuids {
+                guard UUID(uuidString: uuid) != nil else { continue }
+                var path = appDataRoot + "/" + uuid
+                if path.hasPrefix("/var/") { path = "/private" + path }
+                guard let meta = readContainerMetadata(containerPath: path),
+                      meta.bundleID == bundleID,
+                      isApplicationContainerPath(path) else { continue }
+                log("patch: filesystem-scan resolved \(bundleID) -> \(path)")
+                return path
+            }
+        }
+        let detail = (lookupError ?? fallbackError).map(String.init) ?? "unavailable"
+        log("patch: MHA-C2 could not resolve \(bundleID), detail=\(detail)")
+        return nil
     }
 
     // MARK: Primary — MobileInstallation / LSApplicationWorkspace
