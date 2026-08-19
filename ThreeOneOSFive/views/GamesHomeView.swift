@@ -12,6 +12,7 @@ struct GamesHomeView: View {
     @State private var showLanguagePicker = false
     @State private var announcement: Announcement?
     @State private var shownAnnouncementIDs: Set<String> = []
+    @State private var selectedTab = 0
     @AppStorage("language.hasPicked") private var hasPickedLanguage = false
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
 
@@ -39,46 +40,50 @@ struct GamesHomeView: View {
             ZStack {
                 TechBackground()
 
-                ScrollView {
-                    VStack(spacing: 0) {
-                        cyberHeader
-                            .padding(.horizontal, 20)
-                            .padding(.top, 8)
-                            .padding(.bottom, 16)
+                if selectedTab == 0 {
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            cyberHeader
+                                .padding(.horizontal, 20)
+                                .padding(.top, 8)
+                                .padding(.bottom, 16)
 
-                        deviceInfoCard
-                            .padding(.horizontal, 16)
+                            deviceInfoCard
+                                .padding(.horizontal, 16)
 
-                        gameSectionHeader
-                            .padding(.top, 22)
-                            .padding(.bottom, 4)
+                            gameSectionHeader
+                                .padding(.top, 22)
+                                .padding(.bottom, 4)
 
-                        LazyVGrid(columns: columns, spacing: 14) {
-                            ForEach(games) { game in
-                                NavigationLink {
-                                    GamePatchesView(game: game, store: store)
-                                } label: {
-                                    GameCardView(
-                                        title: game.name,
-                                        subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
-                                        bannerColor: AppTheme.resolvedBannerColor(game.bannerColor),
-                                        iconURL: game.iconURL,
-                                        systemIconName: "app.fill"
-                                    )
+                            LazyVGrid(columns: columns, spacing: 14) {
+                                ForEach(games) { game in
+                                    NavigationLink {
+                                        GamePatchesView(game: game, store: store)
+                                    } label: {
+                                        GameCardView(
+                                            title: game.name,
+                                            subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
+                                            bannerColor: AppTheme.resolvedBannerColor(game.bannerColor),
+                                            iconURL: game.iconURL,
+                                            systemIconName: "app.fill"
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
                                 }
-                                .buttonStyle(.plain)
                             }
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 6)
+                            .padding(.horizontal, 16)
+                            .padding(.top, 6)
 
-                        if games.isEmpty && !isLoadingGames {
-                            emptyGamesView
-                                .padding(.top, 24)
-                        }
+                            if games.isEmpty && !isLoadingGames {
+                                emptyGamesView
+                                    .padding(.top, 24)
+                            }
 
-                        Spacer(minLength: 32)
+                            Spacer(minLength: 32)
+                        }
                     }
+                } else {
+                    appsTabContent
                 }
             }
             .navigationTitle("")
@@ -90,7 +95,11 @@ struct GamesHomeView: View {
             .task { await loadGames() }
             .task { await checkAnnouncement() }
             .safeAreaInset(edge: .bottom) {
-                LicenseStatusBar()
+                VStack(spacing: 10) {
+                    LicenseStatusBar()
+                    bottomTabBar
+                }
+                .padding(.bottom, 6)
             }
             .toast($licenseGate.activationToast)
             .sheet(item: $announcement) { item in
@@ -318,6 +327,130 @@ struct GamesHomeView: View {
                 .frame(height: 1)
         }
         .padding(.horizontal, 16)
+    }
+
+    // MARK: - Bottom Tab Bar
+
+    private var bottomTabBar: some View {
+        HStack(spacing: 0) {
+            tabItem(icon: "gamecontroller.fill", label: "Game", index: 0)
+            tabItem(icon: "square.grid.2x2.fill", label: "Ứng dụng", index: 1)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color(red: 0.028, green: 0.046, blue: 0.108).opacity(0.96))
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [AppTheme.techGlow.opacity(0.40), AppTheme.neonPurple.opacity(0.30)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: AppTheme.neonPurple.opacity(0.14), radius: 16, y: -3)
+        .padding(.horizontal, 16)
+    }
+
+    private func tabItem(icon: String, label: String, index: Int) -> some View {
+        let active = selectedTab == index
+        return Button {
+            withAnimation(.spring(response: 0.30, dampingFraction: 0.72)) {
+                selectedTab = index
+            }
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: active ? .bold : .medium))
+                    .foregroundStyle(active ? AppTheme.neonPurple : Color(red: 0.42, green: 0.50, blue: 0.68))
+                    .shadow(color: active ? AppTheme.neonPurple.opacity(0.65) : .clear, radius: 8)
+                Text(label)
+                    .font(.system(size: 11, weight: active ? .bold : .medium))
+                    .foregroundStyle(active ? AppTheme.neonPurple : Color(red: 0.42, green: 0.50, blue: 0.68))
+                // Active dot indicator
+                Circle()
+                    .fill(active ? AppTheme.neonPurple : Color.clear)
+                    .frame(width: 4, height: 4)
+                    .shadow(color: active ? AppTheme.neonPurple.opacity(0.85) : .clear, radius: 4)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 9)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Apps tab placeholder
+
+    private var appsTabContent: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                cyberHeader
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 24)
+
+                VStack(spacing: 20) {
+                    ZStack {
+                        // Outer glow
+                        RoundedRectangle(cornerRadius: 32, style: .continuous)
+                            .fill(AppTheme.neonPurple.opacity(0.08))
+                            .frame(width: 110, height: 110)
+                            .blur(radius: 20)
+
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .fill(Color(red: 0.030, green: 0.050, blue: 0.115).opacity(0.82))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                                    .strokeBorder(
+                                        LinearGradient(
+                                            colors: [AppTheme.neonPurple.opacity(0.55), AppTheme.techGlow.opacity(0.35)],
+                                            startPoint: .topLeading, endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1
+                                    )
+                            )
+                            .frame(width: 90, height: 90)
+
+                        Image(systemName: "square.grid.2x2.fill")
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [AppTheme.neonPurple, AppTheme.techGlow],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                )
+                            )
+                            .shadow(color: AppTheme.neonPurple.opacity(0.60), radius: 12)
+                    }
+
+                    VStack(spacing: 8) {
+                        Text("Ứng dụng")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundStyle(.white)
+
+                        HStack(spacing: 8) {
+                            // Animated dots
+                            ForEach(0..<3) { i in
+                                Circle()
+                                    .fill(AppTheme.neonPurple.opacity(0.60))
+                                    .frame(width: 6, height: 6)
+                            }
+                        }
+
+                        Text("Đang phát triển")
+                            .font(.system(size: 15))
+                            .foregroundStyle(Color(red: 0.46, green: 0.56, blue: 0.76))
+                            .padding(.top, 2)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 60)
+
+                Spacer(minLength: 32)
+            }
+        }
     }
 
     private var emptyGamesView: some View {
