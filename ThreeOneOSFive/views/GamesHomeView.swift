@@ -112,7 +112,7 @@ struct GamesHomeView: View {
                     LicenseStatusBar()
                     bottomTabBar
                 }
-                .padding(.bottom, 6)
+                .padding(.bottom, 12)
             }
             .toast($licenseGate.activationToast)
             .sheet(item: $announcement) { item in
@@ -356,23 +356,27 @@ struct GamesHomeView: View {
             tabItem(icon: "gamecontroller.fill", label: "Game", index: 0)
             tabItem(icon: "square.grid.2x2.fill", label: "Ứng dụng", index: 1)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Color(red: 0.028, green: 0.046, blue: 0.108).opacity(0.96))
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(Color(red: 0.07, green: 0.08, blue: 0.18).opacity(0.95))
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [AppTheme.techGlow.opacity(0.40), AppTheme.neonPurple.opacity(0.30)],
+                        colors: [AppTheme.neonPurple.opacity(0.65), AppTheme.techGlow.opacity(0.45)],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     ),
-                    lineWidth: 1
+                    lineWidth: 1.5
                 )
         )
-        .shadow(color: AppTheme.neonPurple.opacity(0.14), radius: 16, y: -3)
-        .padding(.horizontal, 16)
+        .shadow(color: AppTheme.neonPurple.opacity(0.30), radius: 20, y: 4)
+        .shadow(color: Color.black.opacity(0.50), radius: 10, y: 5)
+        .padding(.horizontal, 24)
     }
 
     private func tabItem(icon: String, label: String, index: Int) -> some View {
