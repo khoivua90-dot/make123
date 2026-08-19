@@ -35,6 +35,14 @@ enum PatchProjectLibrary {
         return root
     }
 
+    static func migrateRemoveLegacyFiles(fileManager: FileManager = .default) {
+        guard let root = try? packageRootURL(fileManager: fileManager),
+              let urls = try? fileManager.contentsOfDirectory(at: root, includingPropertiesForKeys: nil, options: [.skipsSubdirectoryDescendants]) else { return }
+        for url in urls where url.pathExtension.lowercased() == "cheatiosvip" {
+            try? fileManager.removeItem(at: url)
+        }
+    }
+
     static func load(fileManager: FileManager = .default) -> [PatchLibraryItem] {
         guard let root = try? packageRootURL(fileManager: fileManager),
               let urls = try? fileManager.contentsOfDirectory(
@@ -44,7 +52,7 @@ enum PatchProjectLibrary {
               ) else { return [] }
 
         var byID: [UUID: PatchLibraryItem] = [:]
-        for url in urls where url.pathExtension.lowercased() == "cheatiosvip" {
+        for url in urls where url.pathExtension.lowercased() == "dat" {
             do {
                 let data = try readPackage(at: url)
                 let summary = try PatchPackageCodec.inspect(data)
@@ -97,14 +105,7 @@ enum PatchProjectLibrary {
             destination = existingURL
         } else {
             let root = try packageRootURL(fileManager: fileManager)
-            let baseName = sanitizedFilename(projectName)
-            var candidate = root.appendingPathComponent(baseName).appendingPathExtension("cheatiosvip")
-            var suffix = 2
-            while fileManager.fileExists(atPath: candidate.path) {
-                candidate = root.appendingPathComponent("\(baseName)-\(suffix)").appendingPathExtension("cheatiosvip")
-                suffix += 1
-            }
-            destination = candidate
+            destination = root.appendingPathComponent(UUID().uuidString).appendingPathExtension("dat")
         }
         try data.write(to: destination, options: [.atomic, .completeFileProtection])
         return destination
@@ -117,12 +118,4 @@ enum PatchProjectLibrary {
         try? PatchKeyStore.delete(for: item.summary)
     }
 
-    private static func sanitizedFilename(_ rawName: String) -> String {
-        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_ "))
-        let scalars = rawName.unicodeScalars.map { allowed.contains($0) ? Character(String($0)) : "-" }
-        let result = String(scalars)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .prefix(80)
-        return result.isEmpty ? "Patch" : String(result)
-    }
 }

@@ -19,6 +19,7 @@ struct ThreeOneOSFiveApp: App {
                 .environment(\.locale, language.locale)
                 .onAppear {
                     appState.detectSupport()
+                    PatchProjectLibrary.migrateRemoveLegacyFiles()
                 }
         }
     }

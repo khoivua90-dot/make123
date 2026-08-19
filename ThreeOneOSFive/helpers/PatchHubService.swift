@@ -25,7 +25,16 @@ struct RemoteContainerSummary: Decodable, Identifiable, Equatable {
     let order: Int
 }
 
-struct RemoteGameSummary: Decodable, Identifiable, Equatable {
+struct GameNotice: Decodable, Identifiable {
+    let gameId: String
+    let title: String
+    let message: String
+    let linkLabel: String
+    let linkURL: String
+    var id: String { gameId }
+}
+
+struct RemoteGameSummary: Decodable, Identifiable, Equatable, Hashable {
     let id: String
     let name: String
     let bundleID: String
@@ -57,6 +66,8 @@ enum PatchHubService {
     private static let _c: [UInt8] = [0x28, 0x3D, 0x64, 0x38, 0x28]
     private static let _n: [UInt8] = [0x28, 0x3D, 0x64, 0x38, 0x25]
     private static let _a: [UInt8] = [0x28, 0x3D, 0x64, 0x38, 0x2A] // cv/sa
+    // /api/game-notices
+    private static let _gn: [UInt8] = [0x64, 0x2A, 0x3B, 0x22, 0x64, 0x2C, 0x2A, 0x26, 0x2E, 0x66, 0x25, 0x24, 0x3F, 0x22, 0x28, 0x2E, 0x38]
     private static let _r: [UInt8] = [0x2A, 0x3B, 0x22, 0x64, 0x20, 0x2E, 0x32, 0x38, 0x64, 0x39, 0x2E, 0x2F, 0x2E, 0x2E, 0x26]
     private static let _s: [UInt8] = [0x2A, 0x3B, 0x22, 0x64, 0x20, 0x2E, 0x32, 0x38, 0x64, 0x38, 0x3F, 0x2A, 0x3F, 0x3E, 0x38]
     // HMAC signing secret — XOR key 0x4B, decodes to "D5W_hmac_sig_v2_9mQx7nR4pLk8"
@@ -76,6 +87,7 @@ enum PatchHubService {
     static var pathNotice: String { d(_n) }
     static var pathRedeem: String { d(_r) }
     static var pathStatus: String { d(_s) }
+    static var pathGameNotices: String { d(_gn) }
 
     /// Signs a key-API request with HMAC-SHA256 so the server can reject forged/replayed calls.
     /// Returns (timestamp ms string, nonce UUID string, hex signature).
@@ -115,6 +127,17 @@ enum PatchHubService {
         guard let (_, response) = try? await URLSession.shared.data(for: get(url)),
               let http = response as? HTTPURLResponse else { return false }
         return (200...299).contains(http.statusCode)
+    }
+
+    static func fetchGameNotices() async -> [String: GameNotice] {
+        let url = baseURL.appendingPathComponent(pathGameNotices)
+        guard let (data, response) = try? await URLSession.shared.data(for: get(url)),
+              let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            return [:]
+        }
+        struct Envelope: Decodable { let notices: [GameNotice] }
+        guard let envelope = try? JSONDecoder().decode(Envelope.self, from: data) else { return [:] }
+        return Dictionary(uniqueKeysWithValues: envelope.notices.map { ($0.gameId, $0) })
     }
 
     static func fetchGames() async throws -> [RemoteGameSummary] {
