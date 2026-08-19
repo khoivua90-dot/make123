@@ -27,6 +27,12 @@ enum PatchTransaction {
         let replacementDigest: Data
     }
 
+    private struct DirectoryRecord: Codable {
+        let bundleID: String
+        let relativePath: String
+        let containerFingerprint: Data
+    }
+
     private struct Journal: Codable {
         let schemaVersion: Int
         let transactionID: UUID
@@ -34,10 +40,18 @@ enum PatchTransaction {
         let createdAt: Date
         var status: Status
         let records: [Record]
+        let createdDirectories: [DirectoryRecord]?
     }
 
     private struct ResolvedRule {
         let rule: PatchRule
+        let containerRoot: URL
+        let target: URL
+    }
+
+    private struct ResolvedDirectory {
+        let bundleID: String
+        let relativePath: String
         let containerRoot: URL
         let target: URL
     }
@@ -52,25 +66,67 @@ enum PatchTransaction {
         beforeWrite: ((Int) throws -> Void)? = nil,
         fileManager: FileManager = .default
     ) throws -> PatchTransactionReceipt {
-        guard !project.rules.isEmpty,
-              project.rules.count <= PatchPackageLimits.maximumRuleCount else {
+        guard !project.rules.isEmpty || !project.directories.isEmpty else {
             throw PatchPackageError.invalidProject
         }
 
         var roots: [String: URL] = [:]
         var resolvedRules: [ResolvedRule] = []
+        var resolvedDirectories: [ResolvedDirectory] = []
         var targetKeys = Set<String>()
+
+        func resolvedRoot(for bundleID: String) throws -> URL {
+            if let cached = roots[bundleID] { return cached }
+            let root = PatchPathValidator.canonicalFileURL(try containerResolver(bundleID))
+            roots[bundleID] = root
+            return root
+        }
+
+        var requestedDirectories = Set<String>()
+        for directory in project.directories {
+            let bundleID = try PatchPathValidator.canonicalBundleIdentifier(directory.bundleID)
+            guard bundleID == directory.bundleID else { throw PatchPackageError.invalidProject }
+            requestedDirectories.insert(bundleID + "\0" + directory.relativePath)
+        }
+        for rule in project.rules {
+            let components = try PatchPathValidator.canonicalRelativePath(rule.relativePath)
+                .split(separator: "/").map(String.init)
+            guard components.count > 1 else { continue }
+            for count in 1..<components.count {
+                requestedDirectories.insert(
+                    rule.bundleID + "\0" + components.prefix(count).joined(separator: "/")
+                )
+            }
+        }
+
+        for key in requestedDirectories.sorted(by: directoryKeySort) {
+            let parts = key.split(separator: "\0", maxSplits: 1, omittingEmptySubsequences: false)
+            guard parts.count == 2 else { throw PatchPackageError.invalidProject }
+            let bundleID = try PatchPathValidator.canonicalBundleIdentifier(String(parts[0]))
+            let relativePath = try PatchPathValidator.canonicalRelativePath(String(parts[1]))
+            let root = try resolvedRoot(for: bundleID)
+            let target = try PatchPathValidator.resolveContainedTargetURL(
+                relativePath: relativePath,
+                containerRoot: root
+            )
+            try validateDirectoryTarget(
+                target,
+                relativePath: relativePath,
+                containerRoot: root,
+                fileManager: fileManager
+            )
+            resolvedDirectories.append(ResolvedDirectory(
+                bundleID: bundleID,
+                relativePath: relativePath,
+                containerRoot: root,
+                target: target
+            ))
+        }
 
         for rule in project.rules {
             let bundleID = try PatchPathValidator.canonicalBundleIdentifier(rule.bundleID)
             guard bundleID == rule.bundleID else { throw PatchPackageError.invalidProject }
-            let root: URL
-            if let cached = roots[bundleID] {
-                root = cached
-            } else {
-                root = PatchPathValidator.canonicalFileURL(try containerResolver(bundleID))
-                roots[bundleID] = root
-            }
+            let root = try resolvedRoot(for: bundleID)
             let target = try PatchPathValidator.resolveContainedTargetURL(
                 relativePath: rule.relativePath,
                 containerRoot: root
@@ -79,7 +135,13 @@ enum PatchTransaction {
             guard targetKeys.insert(targetKey).inserted else {
                 throw PatchPackageError.duplicateTarget
             }
-            try validateTarget(target, relativePath: rule.relativePath, containerRoot: root, fileManager: fileManager)
+            try validateFileTarget(
+                target,
+                relativePath: rule.relativePath,
+                containerRoot: root,
+                allowMissingParents: true,
+                fileManager: fileManager
+            )
             resolvedRules.append(ResolvedRule(rule: rule, containerRoot: root, target: target))
         }
 
@@ -93,11 +155,15 @@ enum PatchTransaction {
             throw PatchPackageError.applyFailed
         }
 
-        for resolved in resolvedRules {
-            takeOwnershipIfNeeded(resolved.target)
-        }
-
         var records: [Record] = []
+        let createdDirectories = resolvedDirectories.compactMap { resolved -> DirectoryRecord? in
+            guard !fileManager.fileExists(atPath: resolved.target.path) else { return nil }
+            return DirectoryRecord(
+                bundleID: resolved.bundleID,
+                relativePath: resolved.relativePath,
+                containerFingerprint: containerFingerprint(resolved.containerRoot)
+            )
+        }
         do {
             for resolved in resolvedRules {
                 let existed = fileManager.fileExists(atPath: resolved.target.path)
@@ -132,7 +198,8 @@ enum PatchTransaction {
             projectID: project.id,
             createdAt: Date(),
             status: .prepared,
-            records: records
+            records: records,
+            createdDirectories: createdDirectories
         )
         do {
             try writeJournal(journal, to: journalURL)
@@ -141,6 +208,12 @@ enum PatchTransaction {
         }
 
         do {
+            for resolved in resolvedDirectories where !fileManager.fileExists(atPath: resolved.target.path) {
+                try fileManager.createDirectory(
+                    at: resolved.target,
+                    withIntermediateDirectories: false
+                )
+            }
             for (index, resolved) in resolvedRules.enumerated() {
                 try beforeWrite?(index)
                 try atomicWrite(
@@ -167,6 +240,7 @@ enum PatchTransaction {
                     transactionDirectory: transactionDirectory,
                     roots: roots,
                     requirePatchedDigest: false,
+                    createdDirectories: createdDirectories,
                     fileManager: fileManager
                 )
                 journal.status = .rolledBack
@@ -211,6 +285,7 @@ enum PatchTransaction {
                 transactionDirectory: receipt.journalURL.deletingLastPathComponent(),
                 roots: roots,
                 requirePatchedDigest: journal.status == .applied,
+                createdDirectories: journal.createdDirectories ?? [],
                 fileManager: fileManager
             )
             journal.status = .restored
@@ -257,53 +332,10 @@ enum PatchTransaction {
             throw PatchPackageError.restoreFailed
         }
         var seen = Set<String>()
-        return journal.records.compactMap { record in
-            seen.insert(record.bundleID).inserted ? record.bundleID : nil
-        }
-    }
-
-    /// Instantly writes one rule's bundled replacement or original file to the device —
-    /// no transaction, no backup, since both possible contents are already known and bundled
-    /// in the package. This is what a per-rule toggle switch calls on every flip.
-    static func setRuleState(
-        _ isOn: Bool,
-        rule: PatchRule,
-        containerRoot: URL,
-        fileManager: FileManager = .default
-    ) throws {
-        let data: Data
-        if isOn {
-            data = rule.replacementData
-        } else {
-            guard let originalData = rule.originalData else {
-                throw PatchPackageError.invalidProject
+        return (journal.records.map(\.bundleID)
+            + (journal.createdDirectories ?? []).map(\.bundleID)).compactMap { bundleID in
+                seen.insert(bundleID).inserted ? bundleID : nil
             }
-            data = originalData
-        }
-        let root = PatchPathValidator.canonicalFileURL(containerRoot)
-        let target = try PatchPathValidator.resolveContainedTargetURL(relativePath: rule.relativePath, containerRoot: root)
-        try validateTarget(target, relativePath: rule.relativePath, containerRoot: root, fileManager: fileManager)
-        try atomicWrite(data, to: target, preservingExistingAttributes: true, fileManager: fileManager)
-    }
-
-    /// Reads back whatever is currently on disk for this rule and reports whether it matches
-    /// the replacement, the original, or neither — used to initialize a toggle's displayed
-    /// state without trusting any locally cached assumption.
-    static func currentRuleState(rule: PatchRule, containerRoot: URL, fileManager: FileManager = .default) -> Bool? {
-        let root = PatchPathValidator.canonicalFileURL(containerRoot)
-        guard let target = try? PatchPathValidator.resolveContainedTargetURL(relativePath: rule.relativePath, containerRoot: root),
-              let current = try? Data(contentsOf: target)
-        else {
-            return nil
-        }
-        let currentDigest = Data(SHA256.hash(data: current))
-        if currentDigest == Data(SHA256.hash(data: rule.replacementData)) {
-            return true
-        }
-        if let originalData = rule.originalData, currentDigest == Data(SHA256.hash(data: originalData)) {
-            return false
-        }
-        return nil
     }
 
     private static func restoreRecords(
@@ -311,6 +343,7 @@ enum PatchTransaction {
         transactionDirectory: URL,
         roots: [String: URL],
         requirePatchedDigest: Bool,
+        createdDirectories: [DirectoryRecord],
         fileManager: FileManager
     ) throws {
         var resolvedTargets: [(Record, URL)] = []
@@ -323,7 +356,13 @@ enum PatchTransaction {
                 relativePath: record.relativePath,
                 containerRoot: root
             )
-            try validateTarget(target, relativePath: record.relativePath, containerRoot: root, fileManager: fileManager)
+            try validateFileTarget(
+                target,
+                relativePath: record.relativePath,
+                containerRoot: root,
+                allowMissingParents: !requirePatchedDigest,
+                fileManager: fileManager
+            )
 
             if requirePatchedDigest {
                 guard fileManager.fileExists(atPath: target.path),
@@ -353,12 +392,33 @@ enum PatchTransaction {
                 try fileManager.removeItem(at: target)
             }
         }
+
+        for directory in createdDirectories.reversed() {
+            guard let root = roots[directory.bundleID],
+                  containerFingerprint(root) == directory.containerFingerprint else {
+                throw PatchPackageError.restoreFailed
+            }
+            let target = try PatchPathValidator.resolveContainedTargetURL(
+                relativePath: directory.relativePath,
+                containerRoot: root
+            )
+            guard fileManager.fileExists(atPath: target.path) else { continue }
+            let values = try target.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+            guard values.isSymbolicLink != true, values.isDirectory == true else {
+                throw PatchPackageError.restoreFailed
+            }
+            let contents = try fileManager.contentsOfDirectory(atPath: target.path)
+            if contents.isEmpty {
+                try fileManager.removeItem(at: target)
+            }
+        }
     }
 
-    private static func validateTarget(
+    private static func validateFileTarget(
         _ target: URL,
         relativePath: String,
         containerRoot: URL,
+        allowMissingParents: Bool,
         fileManager: FileManager
     ) throws {
         let components = try PatchPathValidator.canonicalRelativePath(relativePath)
@@ -368,6 +428,7 @@ enum PatchTransaction {
         for component in components.dropLast() {
             cursor.appendPathComponent(component, isDirectory: true)
             guard fileManager.fileExists(atPath: cursor.path) else {
+                if allowMissingParents { break }
                 throw PatchPackageError.applyFailed
             }
             let values = try cursor.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
@@ -389,6 +450,40 @@ enum PatchTransaction {
         }
     }
 
+    private static func validateDirectoryTarget(
+        _ target: URL,
+        relativePath: String,
+        containerRoot: URL,
+        fileManager: FileManager
+    ) throws {
+        let components = try PatchPathValidator.canonicalRelativePath(relativePath)
+            .split(separator: "/").map(String.init)
+        var cursor = PatchPathValidator.canonicalFileURL(containerRoot)
+        for component in components {
+            cursor.appendPathComponent(component, isDirectory: true)
+            guard fileManager.fileExists(atPath: cursor.path) else { break }
+            let values = try cursor.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+            guard values.isSymbolicLink != true else {
+                throw PatchPackageError.symbolicLinkUnsupported
+            }
+            guard values.isDirectory == true else {
+                throw PatchPackageError.applyFailed
+            }
+        }
+        if fileManager.fileExists(atPath: target.path) {
+            let values = try target.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+            guard values.isSymbolicLink != true, values.isDirectory == true else {
+                throw PatchPackageError.applyFailed
+            }
+        }
+    }
+
+    private static func directoryKeySort(_ lhs: String, _ rhs: String) -> Bool {
+        let leftDepth = lhs.filter { $0 == "/" }.count
+        let rightDepth = rhs.filter { $0 == "/" }.count
+        return leftDepth == rightDepth ? lhs < rhs : leftDepth < rightDepth
+    }
+
     private static func atomicWrite(
         _ data: Data,
         to target: URL,
@@ -396,7 +491,7 @@ enum PatchTransaction {
         fileManager: FileManager
     ) throws {
         let staging = target.deletingLastPathComponent()
-            .appendingPathComponent(".dsw-patch-\(UUID().uuidString)")
+            .appendingPathComponent(".3105-patch-\(UUID().uuidString)")
         var attributes: [FileAttributeKey: Any] = [:]
         if preservingExistingAttributes,
            let current = try? fileManager.attributesOfItem(atPath: target.path) {
@@ -421,7 +516,7 @@ enum PatchTransaction {
         fileManager: FileManager
     ) throws {
         let staging = target.deletingLastPathComponent()
-            .appendingPathComponent(".dsw-restore-\(UUID().uuidString)")
+            .appendingPathComponent(".3105-restore-\(UUID().uuidString)")
         defer { try? fileManager.removeItem(at: staging) }
         try fileManager.copyItem(at: source, to: staging)
         let handle = try FileHandle(forWritingTo: staging)
@@ -458,21 +553,5 @@ enum PatchTransaction {
 
     private static func containerFingerprint(_ url: URL) -> Data {
         digest(Data(PatchPathValidator.canonicalFileURL(url).path.utf8))
-    }
-
-    // If a target file exists and is root-owned, take ownership (uid/gid 501 = mobile)
-    // via kernel memory write so backup copy and atomic rename can both succeed.
-    // Non-fatal: if apfs_own fails we still attempt the patch normally.
-    private static func takeOwnershipIfNeeded(_ url: URL) {
-        guard let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
-              let ownerID = (attrs[.ownerAccountID] as? NSNumber)?.intValue,
-              ownerID != 501 else { return }
-        url.path.withCString { cpath in
-            _ = apfs_own(cpath, 501, 501)
-            if let perm = (attrs[.posixPermissions] as? NSNumber)?.intValue,
-               perm & 0o444 != 0o444 {
-                _ = apfs_mod(cpath, mode_t((perm & 0o7000) | 0o644))
-            }
-        }
     }
 }

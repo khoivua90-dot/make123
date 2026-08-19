@@ -11,155 +11,74 @@ enum AppTheme {
     static let pageBackground = Color(uiColor: .systemBackground)
     static let consoleBackground = Color(uiColor: .secondarySystemBackground)
     static let pageInset: CGFloat = 16
-
-    // MARK: - Tech theme (Home / per-game menu screens)
-    static let techBackgroundTop = Color(red: 0.05, green: 0.07, blue: 0.12)
-    static let techBackgroundBottom = Color(red: 0.01, green: 0.02, blue: 0.05)
-    static let techGlow = Color(red: 0.32, green: 0.86, blue: 0.95)
-    static let techCardFill = Color.white.opacity(0.045)
-    static let techCardStroke = Color(red: 0.32, green: 0.86, blue: 0.95).opacity(0.30)
-
-    /// Cycled per-row accent so a menu card's items read as distinct switches at a glance,
-    /// matching the reference "PROXY MOD MENU" style where each toggle has its own icon color.
-    static let rowPalette: [Color] = [
-        Color(red: 1.00, green: 0.56, blue: 0.24),
-        Color(red: 0.96, green: 0.28, blue: 0.42),
-        Color(red: 0.30, green: 0.78, blue: 0.96),
-        Color(red: 0.66, green: 0.46, blue: 0.98),
-        Color(red: 0.36, green: 0.85, blue: 0.56),
-    ]
-
-    static func rowColor(_ index: Int) -> Color {
-        rowPalette[index % rowPalette.count]
-    }
-
-    /// The web admin can set a game's banner to "transparent" (no background at all) instead of
-    /// a hex color, so this resolves that sentinel to `.clear` before falling back to parsing
-    /// hex, rather than treating an unparsable value as "use the default accent".
-    static func resolvedBannerColor(_ raw: String) -> Color {
-        raw == "transparent" ? .clear : (Color(hex: raw) ?? accent)
-    }
+    static let rowIconSize: CGFloat = 17
+    static let rowIconFrame: CGFloat = 28
+    static let fileRowIconSize: CGFloat = 17
+    static let fileRowIconFrame: CGFloat = 30
+    static let fileRowHeight: CGFloat = 60
+    static let appIconSize: CGFloat = 32
+    static let emptyIconSize: CGFloat = 30
+    static let selectionIconSize: CGFloat = 18
 }
 
-/// A dark, faintly gridded backdrop used behind the Home and per-game menu screens to give the
-/// app a "tech tool" look consistent with the reference designs, instead of the plain system
-/// background.
-struct TechBackground: View {
+struct AppRowIcon: View {
+    let systemName: String
+    var tint: Color = AppTheme.accent
+    var symbolSize: CGFloat = AppTheme.rowIconSize
+    var frameSize: CGFloat = AppTheme.rowIconFrame
+
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [AppTheme.techBackgroundTop, AppTheme.techBackgroundBottom],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            TechGridPattern()
-                .stroke(Color.white.opacity(0.035), lineWidth: 1)
-            RadialGradient(
-                colors: [AppTheme.techGlow.opacity(0.10), .clear],
-                center: .top,
-                startRadius: 0,
-                endRadius: 420
-            )
+            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .fill(tint.opacity(0.12))
+            Image(systemName: systemName)
+                .font(.system(size: symbolSize, weight: .medium))
+                .foregroundStyle(tint)
         }
-        .ignoresSafeArea()
+        .frame(width: frameSize, height: frameSize)
+        .accessibilityHidden(true)
     }
 }
 
-private struct TechGridPattern: Shape {
-    var spacing: CGFloat = 26
+struct AppSearchField: View {
+    @Binding var text: String
+    let prompt: String
+    let clearLabel: String
 
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        var x: CGFloat = 0
-        while x <= rect.width {
-            path.move(to: CGPoint(x: x, y: 0))
-            path.addLine(to: CGPoint(x: x, y: rect.height))
-            x += spacing
-        }
-        var y: CGFloat = 0
-        while y <= rect.height {
-            path.move(to: CGPoint(x: 0, y: y))
-            path.addLine(to: CGPoint(x: rect.width, y: y))
-            y += spacing
-        }
-        return path
-    }
-}
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
 
-private struct TechCardStyle: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .background(AppTheme.techCardFill, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
-            )
-            .shadow(color: AppTheme.techGlow.opacity(0.12), radius: 16, y: 0)
-    }
-}
+            TextField(prompt, text: $text)
+                .font(.body)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .submitLabel(.search)
 
-extension View {
-    func techCard() -> some View {
-        modifier(TechCardStyle())
-    }
-}
-
-// MARK: - Toast
-
-struct ToastMessage: Identifiable, Equatable {
-    let id = UUID()
-    var text: String
-}
-
-/// A brief, self-dismissing confirmation pill (e.g. "Đã bật Auto Aim Fix") shown after a
-/// successful toggle, so a patch flip has clear positive feedback without the interruption of
-/// a blocking alert (alerts stay reserved for failures).
-private struct ToastOverlay: ViewModifier {
-    @Binding var toast: ToastMessage?
-
-    func body(content: Content) -> some View {
-        content
-            .overlay(alignment: .top) {
-                if let toast {
-                    HStack(alignment: .top, spacing: 10) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.subheadline)
-                            .foregroundStyle(AppTheme.rowColor(4))
-                            .padding(.top, 1)
-                        Text(toast.text)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.primary)
-                            .multilineTextAlignment(.leading)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 13)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .strokeBorder(AppTheme.techGlow.opacity(0.4), lineWidth: 1)
-                    )
-                    .shadow(color: AppTheme.techGlow.opacity(0.25), radius: 18, y: 6)
-                    .padding(.horizontal, 24)
-                    .padding(.top, 8)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .id(toast.id)
-                    .task(id: toast.id) {
-                        try? await Task.sleep(nanoseconds: 2_800_000_000)
-                        if self.toast?.id == toast.id {
-                            self.toast = nil
-                        }
-                    }
+            if !text.isEmpty {
+                Button {
+                    text = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.tertiary)
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(clearLabel)
             }
-            .animation(.spring(response: 0.4, dampingFraction: 0.78), value: toast)
-    }
-}
-
-extension View {
-    func toast(_ message: Binding<ToastMessage?>) -> some View {
-        modifier(ToastOverlay(toast: message))
+        }
+        .padding(.horizontal, 11)
+        .frame(minHeight: 36)
+        .background(
+            Color(uiColor: .secondarySystemFill),
+            in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+        )
+        .padding(.horizontal, AppTheme.pageInset)
+        .padding(.vertical, 8)
+        .background(.bar)
     }
 }
 
