@@ -107,12 +107,16 @@ struct GamesHomeView: View {
             .navigationDestination(item: $selectedGame) { game in
                 GamePatchesView(game: game, store: store)
             }
-            .safeAreaInset(edge: .bottom) {
+            .safeAreaInset(edge: .bottom, spacing: 0) {
                 VStack(spacing: 10) {
                     LicenseStatusBar()
                     bottomTabBar
                 }
                 .padding(.bottom, 0)
+                .background(
+                    Color(red: 0.028, green: 0.046, blue: 0.108)
+                        .ignoresSafeArea(edges: .bottom)
+                )
             }
             .toast($licenseGate.activationToast)
             .sheet(item: $announcement) { item in
@@ -368,13 +372,27 @@ struct GamesHomeView: View {
         .background(.ultraThinMaterial)
         .clipShape(shape)
         .overlay(
-            shape.strokeBorder(
-                LinearGradient(
-                    colors: [AppTheme.techGlow.opacity(0.40), AppTheme.neonPurple.opacity(0.30)],
-                    startPoint: .topLeading, endPoint: .bottomTrailing
-                ),
-                lineWidth: 1
-            )
+            // Chỉ vẽ viền top + 2 cạnh bên, không vẽ cạnh đáy
+            GeometryReader { geo in
+                let r: CGFloat = 22
+                Path { p in
+                    p.move(to: CGPoint(x: 0, y: geo.size.height))
+                    p.addLine(to: CGPoint(x: 0, y: r))
+                    p.addArc(center: CGPoint(x: r, y: r), radius: r,
+                             startAngle: .degrees(180), endAngle: .degrees(270), clockwise: false)
+                    p.addLine(to: CGPoint(x: geo.size.width - r, y: 0))
+                    p.addArc(center: CGPoint(x: geo.size.width - r, y: r), radius: r,
+                             startAngle: .degrees(270), endAngle: .degrees(0), clockwise: false)
+                    p.addLine(to: CGPoint(x: geo.size.width, y: geo.size.height))
+                }
+                .stroke(
+                    LinearGradient(
+                        colors: [AppTheme.techGlow.opacity(0.40), AppTheme.neonPurple.opacity(0.30)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+            }
         )
         .shadow(color: AppTheme.neonPurple.opacity(0.14), radius: 16, y: -3)
     }
