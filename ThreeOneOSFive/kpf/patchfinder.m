@@ -80,8 +80,6 @@ int grab_kernelcache(void)
 }
 
 int init_xpf(void) {
-    if(grab_kernelcache() != 0)  return -1;
-    
     NSString *kernelcache_path = [NSString stringWithFormat:@"%@%@", NSHomeDirectory(), @"/Documents/kc"];
     
     if (xpf_start_with_kernel_path(kernelcache_path.fileSystemRepresentation) == 0) {

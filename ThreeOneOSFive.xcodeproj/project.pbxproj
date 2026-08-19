@@ -135,6 +135,7 @@
 		3105A095 /* sandbox_escape.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sandbox_escape.h; sourceTree = "<group>"; };
 		3105A096 /* machine_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = machine_info.h; sourceTree = "<group>"; };
 		3105A097 /* xpaci.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xpaci.h; sourceTree = "<group>"; };
+		3105F001 /* kexploit_fail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit_fail.h; sourceTree = "<group>"; };
 		3105A098 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		3105A099 /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		3105A104 /* ContainerStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerStore.swift; sourceTree = "<group>"; };
@@ -368,6 +369,7 @@
 				3105K002 /* apfs_own.h */,
 				3105A096 /* machine_info.h */,
 				3105A097 /* xpaci.h */,
+				3105F001 /* kexploit_fail.h */,
 			);
 			path = kexploit;
 			sourceTree = "<group>";
