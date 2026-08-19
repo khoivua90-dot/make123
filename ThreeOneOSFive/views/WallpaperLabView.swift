@@ -110,7 +110,7 @@ struct WallpaperLabView: View {
             if packages.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "photo.badge.plus")
-                        .font(.system(size: AppTheme.emptyIconSize, weight: .light))
+                        .font(.system(size: 34, weight: .light))
                         .foregroundStyle(AppTheme.accent)
                     Text(language.text("wallpaper.empty_packages"))
                         .font(.headline)
@@ -141,16 +141,19 @@ struct WallpaperLabView: View {
                 }
                 installAction
             }
-        } header: {
-            Text(language.text("wallpaper.packages"))
-        } footer: {
-            Text(language.text("wallpaper.after_apply_guide"))
-        }
+        } header: { Text(language.text("wallpaper.packages")) }
     }
 
     private func packageRow(_ package: WallpaperStagedPackage) -> some View {
         HStack(spacing: 12) {
-            AppRowIcon(systemName: "photo.on.rectangle.angled")
+            Image(systemName: "photo.on.rectangle.angled")
+                .font(.title3)
+                .foregroundStyle(AppTheme.accent)
+                .frame(width: 36, height: 36)
+                .background(
+                    AppTheme.accent.opacity(0.12),
+                    in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                )
             VStack(alignment: .leading, spacing: 3) {
                 Text(package.displayName)
                     .font(.body.weight(.semibold))
@@ -171,7 +174,7 @@ struct WallpaperLabView: View {
                 systemName: selectedPackageID == package.id
                     ? "checkmark.circle.fill" : "circle"
             )
-            .font(.system(size: AppTheme.selectionIconSize, weight: .medium))
+            .font(.title3)
             .foregroundStyle(
                 selectedPackageID == package.id ? AppTheme.accent : Color.secondary
             )
@@ -182,7 +185,7 @@ struct WallpaperLabView: View {
 
     private var resetSection: some View {
         Section {
-            LabeledContent(language.text("wallpaper.installed_by_3105")) {
+            LabeledContent(language.text("wallpaper.installed_by_app")) {
                 Text("\(activeReceipts.reduce(0) { $0 + $1.installedDescriptors.count })")
                     .monospacedDigit()
             }
@@ -219,7 +222,7 @@ struct WallpaperLabView: View {
                 alert = WallpaperLabAlert(kind: .install(selectedPackage))
             }
         } label: {
-            Text(language.text("wallpaper.install"))
+            Label(language.text("wallpaper.install"), systemImage: "square.and.arrow.down")
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity, minHeight: 44)
         }
@@ -487,7 +490,7 @@ struct WallpaperLabView: View {
 #if targetEnvironment(simulator)
         if ProcessInfo.processInfo.arguments.contains("--simulate-wallpaper-data") {
             let root = FileManager.default.temporaryDirectory.appendingPathComponent(
-                "3105-Simulated-PosterBoard",
+                "DSW-Simulated-PosterBoard",
                 isDirectory: true
             )
             let descriptors = root.appendingPathComponent(

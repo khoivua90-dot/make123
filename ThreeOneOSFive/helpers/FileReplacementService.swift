@@ -71,6 +71,7 @@ struct FileReplacementResult: Equatable {
 }
 
 enum FileReplacementService {
+    static let maximumByteCount: Int64 = 512 * 1_024 * 1_024
     private static let chunkSize = 1_024 * 1_024
 
     static func replace(
@@ -102,9 +103,13 @@ enum FileReplacementService {
                 != sourceURL.standardizedFileURL.resolvingSymlinksInPath() else {
             throw FileReplacementError.sameFile
         }
+        if let size = sourceValues.fileSize, Int64(size) > maximumByteCount {
+            throw FileReplacementError.sourceTooLarge
+        }
+
         let targetAttributes = try fileManager.attributesOfItem(atPath: targetURL.path)
         let stagingURL = targetURL.deletingLastPathComponent()
-            .appendingPathComponent(".3105-replacement-\(UUID().uuidString)")
+            .appendingPathComponent(".dsw-replacement-\(UUID().uuidString)")
         let stagingAttributes = retainedAttributes(from: targetAttributes)
         guard fileManager.createFile(
             atPath: stagingURL.path,
@@ -124,11 +129,10 @@ enum FileReplacementService {
                 try? staging.close()
             }
             while let data = try source.read(upToCount: chunkSize), !data.isEmpty {
-                let (nextCount, overflow) = copied.addingReportingOverflow(Int64(data.count))
-                guard !overflow else {
+                copied += Int64(data.count)
+                guard copied <= maximumByteCount else {
                     throw FileReplacementError.sourceTooLarge
                 }
-                copied = nextCount
                 try staging.write(contentsOf: data)
             }
             try staging.synchronize()

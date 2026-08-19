@@ -2,8 +2,6 @@ import Foundation
 
 struct PatchProjectDraft: Equatable {
     let name: String
-    let bundleIdentifiers: [String]
-    let directories: [PatchDirectory]
     let rules: [PatchRule]
 }
 
@@ -112,12 +110,14 @@ enum PatchDraftService {
         containerRoot: URL,
         candidates: [PatchDraftCandidate],
         suggestedName: String,
-        directories: [String] = [],
         fileManager: FileManager = .default
     ) throws -> PatchProjectDraft {
         let canonicalBundleID = try PatchPathValidator.canonicalBundleIdentifier(bundleID)
-        guard !candidates.isEmpty || !directories.isEmpty else {
-            throw PatchPackageError.invalidProject
+        guard !candidates.isEmpty,
+              candidates.count <= PatchPackageLimits.maximumRuleCount else {
+            throw candidates.count > PatchPackageLimits.maximumRuleCount
+                ? PatchPackageError.sizeLimitExceeded
+                : PatchPackageError.invalidProject
         }
 
         var rules: [PatchRule] = []
@@ -131,115 +131,18 @@ enum PatchDraftService {
             guard seenPaths.insert(verifiedCandidate.relativePath).inserted else {
                 throw PatchPackageError.duplicateTarget
             }
-            let replacementData = try Data(contentsOf: verifiedCandidate.url, options: .mappedIfSafe)
             rules.append(PatchRule(
                 bundleID: canonicalBundleID,
                 relativePath: verifiedCandidate.relativePath,
-                replacementFilename: verifiedCandidate.url.lastPathComponent,
-                replacementData: replacementData
+                replacementFilename: "",
+                replacementData: Data()
             ))
-        }
-
-        var seenDirectories = Set<String>()
-        let patchDirectories = try directories.map { suppliedPath -> PatchDirectory in
-            let relativePath = try PatchPathValidator.canonicalRelativePath(suppliedPath)
-            guard seenDirectories.insert(relativePath).inserted else {
-                throw PatchPackageError.duplicateTarget
-            }
-            return PatchDirectory(bundleID: canonicalBundleID, relativePath: relativePath)
         }
 
         return PatchProjectDraft(
             name: suggestedName.trimmingCharacters(in: .whitespacesAndNewlines),
-            bundleIdentifiers: [canonicalBundleID],
-            directories: patchDirectories,
             rules: rules
         )
-    }
-
-    static func makeDraft(
-        bundleID: String,
-        containerRoot: URL,
-        itemURL: URL,
-        suggestedName: String,
-        fileManager: FileManager = .default
-    ) throws -> PatchProjectDraft {
-        let values = try itemURL.resourceValues(
-            forKeys: [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey]
-        )
-        guard values.isSymbolicLink != true else {
-            throw PatchPackageError.symbolicLinkUnsupported
-        }
-        if values.isDirectory == true {
-            let folderCandidates = try candidates(
-                in: itemURL,
-                containerRoot: containerRoot,
-                fileManager: fileManager
-            )
-            let directoryPaths = try directoryRelativePaths(
-                in: itemURL,
-                containerRoot: containerRoot,
-                fileManager: fileManager
-            )
-            return try makeDraft(
-                bundleID: bundleID,
-                containerRoot: containerRoot,
-                candidates: folderCandidates,
-                suggestedName: suggestedName,
-                directories: directoryPaths,
-                fileManager: fileManager
-            )
-        }
-        guard values.isRegularFile == true else {
-            throw PatchPackageError.invalidProject
-        }
-        return try makeDraft(
-            bundleID: bundleID,
-            containerRoot: containerRoot,
-            candidates: [try candidate(
-                for: itemURL,
-                containerRoot: containerRoot,
-                fileManager: fileManager
-            )],
-            suggestedName: suggestedName,
-            fileManager: fileManager
-        )
-    }
-
-    private static func directoryRelativePaths(
-        in folderURL: URL,
-        containerRoot: URL,
-        fileManager: FileManager
-    ) throws -> [String] {
-        let root = PatchPathValidator.canonicalFileURL(containerRoot)
-        let folder = PatchPathValidator.canonicalFileURL(folderURL)
-        var result = [try containedRelativePath(for: folder, containerRoot: root)]
-        var enumerationFailed = false
-        guard let enumerator = fileManager.enumerator(
-            at: folder,
-            includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey],
-            options: [],
-            errorHandler: { _, _ in
-                enumerationFailed = true
-                return false
-            }
-        ) else {
-            throw PatchPackageError.invalidProject
-        }
-        while let item = enumerator.nextObject() as? URL {
-            let values = try item.resourceValues(
-                forKeys: [.isDirectoryKey, .isSymbolicLinkKey]
-            )
-            if values.isSymbolicLink == true {
-                if values.isDirectory == true { enumerator.skipDescendants() }
-                throw PatchPackageError.symbolicLinkUnsupported
-            }
-            if values.isDirectory == true {
-                result.append(try containedRelativePath(for: item, containerRoot: root))
-            }
-        }
-        guard !enumerationFailed else { throw PatchPackageError.invalidProject }
-        return result.sorted()
     }
 
     private static func containedRelativePath(for item: URL, containerRoot: URL) throws -> String {

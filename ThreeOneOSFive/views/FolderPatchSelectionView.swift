@@ -24,7 +24,7 @@ struct FolderPatchSelectionView: View {
                 } else if candidates.isEmpty {
                     VStack(spacing: 10) {
                         Image(systemName: "folder")
-                            .font(.system(size: AppTheme.emptyIconSize, weight: .light))
+                            .font(.system(size: 36, weight: .light))
                             .foregroundStyle(.secondary)
                         Text(language.text("patch.folder_empty"))
                             .font(.headline)
@@ -116,7 +116,10 @@ struct FolderPatchSelectionView: View {
                 Text(language.text("patch.selected_count", Int64(selectedIDs.count)))
                     .textCase(nil)
             } footer: {
-                Text(language.text("patch.folder_selection_footer"))
+                Text(language.text(
+                    "patch.folder_selection_footer",
+                    Int64(PatchPackageLimits.maximumRuleCount)
+                ))
             }
         }
         .listStyle(.plain)
@@ -144,7 +147,9 @@ struct FolderPatchSelectionView: View {
                 switch result {
                 case .success(let loaded):
                     candidates = loaded
-                    selectedIDs = Set(loaded.map(\.id))
+                    if loaded.count <= PatchPackageLimits.maximumRuleCount {
+                        selectedIDs = Set(loaded.map(\.id))
+                    }
                 case .failure(let error as PatchPackageError):
                     validationMessageKey = error.localizationKey
                 case .failure:
@@ -157,6 +162,10 @@ struct FolderPatchSelectionView: View {
     private func toggle(_ candidate: PatchDraftCandidate) {
         validationMessageKey = nil
         if selectedIDs.remove(candidate.id) != nil { return }
+        guard selectedIDs.count < PatchPackageLimits.maximumRuleCount else {
+            validationMessageKey = "patch.error.size_limit"
+            return
+        }
         selectedIDs.insert(candidate.id)
     }
 
@@ -164,6 +173,10 @@ struct FolderPatchSelectionView: View {
         validationMessageKey = nil
         if selectedIDs.count == candidates.count {
             selectedIDs.removeAll()
+            return
+        }
+        guard candidates.count <= PatchPackageLimits.maximumRuleCount else {
+            validationMessageKey = "patch.error.size_limit"
             return
         }
         selectedIDs = Set(candidates.map(\.id))

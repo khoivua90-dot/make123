@@ -1,19 +1,15 @@
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
-import QuickLook
 
 struct FileBrowserView: View {
     @Environment(\.appLanguage) private var language
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @EnvironmentObject private var patchDraftCoordinator: PatchDraftCoordinator
-    @EnvironmentObject private var fileOperationCoordinator: FileOperationCoordinator
     let containerPath: String
     let title: String
     let bundleID: String?
     let isRoot: Bool
-    private let filesTabSession: Binding<FilesTabSession>?
     @State private var currentPath: String
     @State private var entries: [FileEntry] = []
     @State private var fileSearchText = ""
@@ -26,24 +22,17 @@ struct FileBrowserView: View {
     @State private var operationNotice: FileReplacementNotice?
     @State private var namePrompt: FileNamePrompt?
     @State private var nameInput = ""
+    @State private var deleteTarget: FileEntry?
     @State private var pendingImportPickerID: UUID?
     @State private var isShowingImportPicker = false
     @State private var importSession: FileImportSession?
     @State private var importConflict: FileImportConflict?
-    @State private var isSelecting = false
-    @State private var selectedEntryIDs = Set<String>()
-    @State private var transferSession: FileTransferSession?
-    @State private var transferConflict: FileTransferConflict?
-    @State private var deleteTargets: [FileEntry] = []
+    @State private var folderPatchEntry: FileEntry?
 
     private var filteredEntries: [FileEntry] {
         let query = fileSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return entries }
         return entries.filter { $0.name.localizedCaseInsensitiveContains(query) }
-    }
-
-    private var selectedEntries: [FileEntry] {
-        entries.filter { selectedEntryIDs.contains($0.id) }
     }
 
     private var overlayState: FileBrowserOverlayState {
@@ -57,164 +46,83 @@ struct FileBrowserView: View {
         reduceMotion ? nil : .easeOut(duration: 0.20)
     }
 
-    init(
-        containerPath: String,
-        title: String,
-        bundleID: String? = nil,
-        filesTabSession: Binding<FilesTabSession>? = nil
-    ) {
+    init(containerPath: String, title: String, bundleID: String? = nil) {
         self.containerPath = containerPath
         self.title = title
         self.bundleID = bundleID
         self.isRoot = true
-        self.filesTabSession = filesTabSession
         _currentPath = State(initialValue: containerPath)
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            AppSearchField(
-                text: $fileSearchText,
-                prompt: language.text("browser.search_files"),
-                clearLabel: language.text("common.clear")
-            )
-            Divider()
-            List {
-                Section {
-                    ForEach(filteredEntries) { entry in
-                        fileRow(entry)
-                    }
-                } header: {
-                    Text(language.text("browser.items_count", Int64(filteredEntries.count)))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .textCase(nil)
+        List {
+            Section {
+                ForEach(filteredEntries) { entry in
+                    fileRow(entry)
+                }
+            } header: {
+                Text(language.text("browser.items_count", Int64(filteredEntries.count)))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .textCase(nil)
+            }
+        }
+        .listStyle(.plain)
+        .environment(\.defaultMinListRowHeight, 44)
+        .scrollDismissesKeyboard(.interactively)
+        .overlay {
+            Group {
+                switch overlayState {
+                case .loading:
+                    ProgressView(language.text("browser.loading"))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .empty:
+                    fileEmptyView
+                case .noResults:
+                    searchEmptyView
+                case .none:
+                    EmptyView()
                 }
             }
-            .listStyle(.insetGrouped)
-            .environment(\.defaultMinListRowHeight, AppTheme.fileRowHeight)
-            .scrollDismissesKeyboard(.interactively)
-            .overlay {
-                Group {
-                    switch overlayState {
-                    case .loading:
-                        ProgressView(language.text("browser.loading"))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    case .empty:
-                        fileEmptyView
-                    case .noResults:
-                        searchEmptyView
-                    case .none:
-                        EmptyView()
-                    }
-                }
-                .transition(.opacity)
-                .animation(interfaceAnimation, value: overlayState)
-            }
+            .transition(.opacity)
+            .animation(interfaceAnimation, value: overlayState)
         }
         .navigationTitle(currentPath == containerPath ? title : (currentPath as NSString).lastPathComponent)
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(for: FileBrowserDestination.self) { destination in
-            FileBrowserView(
-                containerPath: destination.containerPath,
-                startPath: destination.startPath,
-                title: destination.title,
-                bundleID: destination.bundleID,
-                filesTabSession: filesTabSession
-            )
-        }
+        .searchable(
+            text: $fileSearchText,
+            placement: .navigationBarDrawer(displayMode: .always),
+            prompt: language.text("browser.search_files")
+        )
         .toolbar {
-            if let filesTabSession {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    FilesTabToolbarButton(session: filesTabSession)
-                }
-            }
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(isSelecting
-                       ? language.text("common.cancel")
-                       : language.text("browser.select")) {
-                    toggleSelectionMode()
+                Menu {
+                    Button {
+                        requestImportPicker()
+                    } label: {
+                        Label(
+                            language.text("browser.import_files"),
+                            systemImage: "square.and.arrow.down"
+                        )
+                    }
+                    Divider()
+                    Button {
+                        presentNamePrompt(.createFile)
+                    } label: {
+                        Label(language.text("browser.new_file"), systemImage: "doc.badge.plus")
+                    }
+                    Button {
+                        presentNamePrompt(.createFolder)
+                    } label: {
+                        Label(language.text("browser.new_folder"), systemImage: "folder.badge.plus")
+                    }
+                } label: {
+                    Image(systemName: "plus")
                 }
                 .disabled(activityText != nil || importSession != nil)
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                if isSelecting {
-                    Button(selectionActionTitle, action: toggleAllSelection)
-                        .disabled(entries.isEmpty)
-                } else {
-                    Menu {
-                        if let payload = fileOperationCoordinator.payload {
-                            Button {
-                                beginPaste(payload)
-                            } label: {
-                                Label(
-                                    language.text("browser.paste_count", Int64(payload.itemCount)),
-                                    systemImage: "doc.on.clipboard"
-                                )
-                            }
-                            Button(role: .destructive) {
-                                fileOperationCoordinator.clear()
-                            } label: {
-                                Label(language.text("browser.clear_clipboard"), systemImage: "xmark")
-                            }
-                            Divider()
-                        }
-                        Button {
-                            requestImportPicker()
-                        } label: {
-                            Label(
-                                language.text("browser.import_files"),
-                                systemImage: "square.and.arrow.down"
-                            )
-                        }
-                        Divider()
-                        Button {
-                            presentNamePrompt(.createFile)
-                        } label: {
-                            Label(language.text("browser.new_file"), systemImage: "doc.badge.plus")
-                        }
-                        Button {
-                            presentNamePrompt(.createFolder)
-                        } label: {
-                            Label(language.text("browser.new_folder"), systemImage: "folder.badge.plus")
-                        }
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .disabled(activityText != nil || importSession != nil || transferSession != nil)
-                    .accessibilityLabel(language.text("browser.add"))
-                }
+                .accessibilityLabel(language.text("browser.add"))
             }
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if isSelecting {
-                FileSelectionActionBar(
-                    selectedCount: selectedEntryIDs.count,
-                    language: language,
-                    onCopy: { prepareTransfer(.copy) },
-                    onMove: { prepareTransfer(.move) },
-                    onArchive: prepareArchive,
-                    onDelete: prepareBulkDelete
-                )
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            } else if let payload = fileOperationCoordinator.payload {
-                FilePasteBar(
-                    itemCount: payload.itemCount,
-                    mode: payload.mode,
-                    language: language,
-                    onPaste: { beginPaste(payload) },
-                    onCancel: fileOperationCoordinator.clear
-                )
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-        }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            if horizontalSizeClass == .regular, let filesTabSession {
-                FilesTabStrip(session: filesTabSession)
-            }
-        }
-        .animation(interfaceAnimation, value: isSelecting)
-        .animation(interfaceAnimation, value: fileOperationCoordinator.payload)
         .onAppear { load() }
         .sheet(item: $replacementRequest) { request in
             FileDocumentPicker(
@@ -245,6 +153,14 @@ struct FileBrowserView: View {
                 }
             )
             .ignoresSafeArea()
+        }
+        .sheet(item: $folderPatchEntry) { entry in
+            FolderPatchSelectionView(
+                containerRoot: URL(fileURLWithPath: containerPath, isDirectory: true),
+                folder: URL(fileURLWithPath: entry.path, isDirectory: true)
+            ) { candidates in
+                preparePatchDraft(candidates, suggestedName: entry.name)
+            }
         }
         .overlay {
             ZStack {
@@ -291,10 +207,10 @@ struct FileBrowserView: View {
                 confirmDelete()
             }
             Button(language.text("common.cancel"), role: .cancel) {
-                deleteTargets = []
+                deleteTarget = nil
             }
         } message: {
-            Text(deleteConfirmationMessage)
+            Text(language.text("browser.delete_message", deleteTarget?.name ?? ""))
         }
         .confirmationDialog(
             language.text("browser.import_conflict_title"),
@@ -318,32 +234,6 @@ struct FileBrowserView: View {
                 )
             )
         }
-        .confirmationDialog(
-            language.text("browser.transfer_conflict_title"),
-            isPresented: isTransferConflictPresented,
-            titleVisibility: .visible
-        ) {
-            Button(language.text("browser.replace"), role: .destructive) {
-                resolveTransferConflict(policy: .replace, applyToAll: false)
-            }
-            Button(language.text("browser.keep_both")) {
-                resolveTransferConflict(policy: .keepBoth, applyToAll: false)
-            }
-            Button(language.text("browser.replace_all"), role: .destructive) {
-                resolveTransferConflict(policy: .replace, applyToAll: true)
-            }
-            Button(language.text("browser.keep_both_all")) {
-                resolveTransferConflict(policy: .keepBoth, applyToAll: true)
-            }
-            Button(language.text("common.cancel"), role: .cancel) {
-                cancelTransferSession()
-            }
-        } message: {
-            Text(language.text(
-                "browser.transfer_conflict_message",
-                transferConflict?.destinationURL.lastPathComponent ?? ""
-            ))
-        }
         .alert(item: $operationNotice) { notice in
             Alert(
                 title: Text(notice.title),
@@ -355,89 +245,40 @@ struct FileBrowserView: View {
 
     @ViewBuilder
     private func fileRow(_ entry: FileEntry) -> some View {
-        if isSelecting {
-            Button {
-                toggleSelection(entry)
-            } label: {
-                FileEntryRow(
-                    entry: entry,
-                    language: language,
-                    selectionState: selectedEntryIDs.contains(entry.id)
-                )
-            }
-            .buttonStyle(.plain)
-            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 12))
-        } else if entry.isDirectory {
-            NavigationLink(
-                value: FileBrowserDestination(
+        if entry.isDirectory {
+            NavigationLink {
+                FileBrowserView(
                     containerPath: containerPath,
                     startPath: entry.path,
                     title: entry.name,
                     bundleID: bundleID
                 )
-            ) {
-                FileEntryRow(entry: entry, language: language, selectionState: nil)
+            } label: {
+                FileEntryRow(entry: entry, language: language)
             }
             .contextMenu { fileActions(for: entry) }
-            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 12))
+            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 12))
         } else {
             NavigationLink {
-                FileQuickLookView(file: entry)
+                FileReaderView(file: entry)
             } label: {
-                FileEntryRow(entry: entry, language: language, selectionState: nil)
+                FileEntryRow(entry: entry, language: language)
             }
             .contextMenu { fileActions(for: entry) }
             .accessibilityHint(language.text("browser.file_actions_hint"))
-            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 12))
+            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 12))
         }
     }
 
     @ViewBuilder
     private func fileActions(for entry: FileEntry) -> some View {
-        if entry.isDirectory, filesTabSession != nil {
-            Button {
-                openDirectoryInNewTab(entry)
-            } label: {
-                Label(language.text("browser.open_new_tab"), systemImage: "square.on.square")
-            }
-            Divider()
-        }
         Button {
-            selectedEntryIDs = [entry.id]
-            isSelecting = true
+            requestPatchCreation(for: entry)
         } label: {
-            Label(language.text("browser.select"), systemImage: "checkmark.circle")
-        }
-        Button {
-            prepareTransfer([entry], mode: .copy)
-        } label: {
-            Label(language.text("browser.copy"), systemImage: "doc.on.doc")
-        }
-        Button {
-            prepareTransfer([entry], mode: .move)
-        } label: {
-            Label(language.text("browser.move"), systemImage: "folder")
-        }
-        ShareLink(item: URL(fileURLWithPath: entry.path)) {
-            Label(language.text("browser.share"), systemImage: "square.and.arrow.up")
-        }
-        Divider()
-        if bundleID != nil {
-            Button {
-                requestPatchCreation(for: entry)
-            } label: {
-                Label(
-                    language.text("browser.create_patch"),
-                    systemImage: entry.isDirectory ? "folder.badge.plus" : "shippingbox"
-                )
-            }
-        }
-        if !entry.isDirectory, entry.name.lowercased().hasSuffix(".zip") {
-            Button {
-                extractArchive(entry)
-            } label: {
-                Label(language.text("browser.extract_zip"), systemImage: "archivebox")
-            }
+            Label(
+                language.text("browser.create_patch"),
+                systemImage: entry.isDirectory ? "folder.badge.plus" : "shippingbox"
+            )
         }
         Divider()
         if !entry.isDirectory {
@@ -457,32 +298,16 @@ struct FileBrowserView: View {
         }
         Divider()
         Button(role: .destructive) {
-            deleteTargets = [entry]
+            deleteTarget = entry
         } label: {
             Label(language.text("browser.delete"), systemImage: "trash")
         }
     }
 
-    private func openDirectoryInNewTab(_ entry: FileEntry) {
-        guard let filesTabSession else { return }
-        var updatedSession = filesTabSession.wrappedValue
-        updatedSession.openTab(
-            navigationPath: [
-                FileBrowserDestination(
-                    containerPath: containerPath,
-                    startPath: entry.path,
-                    title: entry.name,
-                    bundleID: bundleID
-                )
-            ]
-        )
-        filesTabSession.wrappedValue = updatedSession
-    }
-
     private var fileEmptyView: some View {
         VStack(spacing: 10) {
             Image(systemName: "folder")
-                .font(.system(size: AppTheme.emptyIconSize, weight: .light))
+                .font(.system(size: 34, weight: .light))
                 .foregroundStyle(.secondary)
             Text(language.text("browser.empty_folder"))
                 .font(.subheadline)
@@ -495,7 +320,7 @@ struct FileBrowserView: View {
     private var searchEmptyView: some View {
         VStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: AppTheme.emptyIconSize, weight: .light))
+                .font(.system(size: 32, weight: .light))
                 .foregroundStyle(.secondary)
             Text(language.text("browser.search_empty"))
                 .font(.subheadline.weight(.medium))
@@ -519,9 +344,9 @@ struct FileBrowserView: View {
 
     private var isDeleteConfirmationPresented: Binding<Bool> {
         Binding(
-            get: { !deleteTargets.isEmpty },
+            get: { deleteTarget != nil },
             set: { isPresented in
-                if !isPresented { deleteTargets = [] }
+                if !isPresented { deleteTarget = nil }
             }
         )
     }
@@ -537,37 +362,11 @@ struct FileBrowserView: View {
         )
     }
 
-    private var isTransferConflictPresented: Binding<Bool> {
-        Binding(
-            get: { transferConflict != nil },
-            set: { isPresented in
-                if !isPresented, transferConflict != nil {
-                    cancelTransferSession()
-                }
-            }
-        )
-    }
-
-    private var deleteConfirmationMessage: String {
-        if deleteTargets.count == 1 {
-            return language.text("browser.delete_message", deleteTargets[0].name)
-        }
-        return language.text("browser.delete_multiple_message", Int64(deleteTargets.count))
-    }
-
-    private var selectionActionTitle: String {
-        let visibleIDs = Set(filteredEntries.map(\.id))
-        return !visibleIDs.isEmpty && visibleIDs.isSubset(of: selectedEntryIDs)
-            ? language.text("patch.deselect_all")
-            : language.text("patch.select_all")
-    }
-
     private var namePromptTitle: String {
         switch namePrompt?.action {
         case .createFile: return language.text("browser.new_file")
         case .createFolder: return language.text("browser.new_folder")
         case .rename: return language.text("browser.rename")
-        case .archive: return language.text("browser.create_zip")
         case nil: return ""
         }
     }
@@ -578,8 +377,6 @@ struct FileBrowserView: View {
             nameInput = ""
         case .rename(let entry):
             nameInput = entry.name
-        case .archive:
-            nameInput = language.text("browser.default_archive_name")
         }
         namePrompt = FileNamePrompt(action: action)
     }
@@ -621,254 +418,24 @@ struct FileBrowserView: View {
                     to: requestedName
                 ).path
             }
-        case .archive(let selectedEntries):
-            performFileOperation(
-                activity: language.text("browser.archiving"),
-                operationName: "create ZIP",
-                successNotice: { path in
-                    FileReplacementNotice(
-                        title: language.text("browser.archive_done_title"),
-                        message: language.text(
-                            "browser.archive_done_message",
-                            (path as NSString).lastPathComponent
-                        )
-                    )
-                }
-            ) {
-                try FileManagerService.createZIPArchive(
-                    containing: selectedEntries.map { URL(fileURLWithPath: $0.path) },
-                    named: requestedName,
-                    in: directoryURL
-                ).archiveURL.path
-            }
         }
     }
 
     private func confirmDelete() {
-        let targets = deleteTargets
-        guard !targets.isEmpty else { return }
-        deleteTargets = []
+        guard let entry = deleteTarget else { return }
+        deleteTarget = nil
         performFileOperation(
             activity: language.text("browser.deleting"),
             operationName: "delete"
         ) {
-            for entry in targets {
-                try FileManagerService.deleteItem(at: URL(fileURLWithPath: entry.path))
-            }
-            return targets.map(\.path).joined(separator: ",")
+            try FileManagerService.deleteItem(at: URL(fileURLWithPath: entry.path))
+            return entry.path
         }
-    }
-
-    private func toggleSelectionMode() {
-        isSelecting.toggle()
-        if !isSelecting { selectedEntryIDs.removeAll() }
-    }
-
-    private func toggleSelection(_ entry: FileEntry) {
-        if selectedEntryIDs.remove(entry.id) == nil {
-            selectedEntryIDs.insert(entry.id)
-        }
-    }
-
-    private func toggleAllSelection() {
-        let visibleIDs = Set(filteredEntries.map(\.id))
-        if !visibleIDs.isEmpty, visibleIDs.isSubset(of: selectedEntryIDs) {
-            selectedEntryIDs.subtract(visibleIDs)
-        } else {
-            selectedEntryIDs.formUnion(visibleIDs)
-        }
-    }
-
-    private func prepareTransfer(_ mode: FileTransferMode) {
-        prepareTransfer(selectedEntries, mode: mode)
-    }
-
-    private func prepareTransfer(_ entries: [FileEntry], mode: FileTransferMode) {
-        guard !entries.isEmpty else { return }
-        fileOperationCoordinator.prepare(
-            entries.map { URL(fileURLWithPath: $0.path, isDirectory: $0.isDirectory) },
-            mode: mode
-        )
-        isSelecting = false
-        selectedEntryIDs.removeAll()
-    }
-
-    private func prepareArchive() {
-        let items = selectedEntries
-        guard !items.isEmpty else { return }
-        isSelecting = false
-        selectedEntryIDs.removeAll()
-        presentNamePrompt(.archive(items))
-    }
-
-    private func prepareBulkDelete() {
-        let items = selectedEntries
-        guard !items.isEmpty else { return }
-        isSelecting = false
-        selectedEntryIDs.removeAll()
-        deleteTargets = items
-    }
-
-    private func beginPaste(_ payload: FileOperationPayload) {
-        guard transferSession == nil, activityText == nil else { return }
-        transferSession = FileTransferSession(
-            payload: payload,
-            destinationDirectory: URL(fileURLWithPath: currentPath, isDirectory: true)
-        )
-        fileOperationCoordinator.clear()
-        log(
-            "filebrowser: transfer started mode=\(payload.mode) " +
-                "items=\(payload.itemCount) destination=\(currentPath)"
-        )
-        DispatchQueue.main.async { processNextTransfer() }
-    }
-
-    private func processNextTransfer() {
-        guard activityText == nil,
-              transferConflict == nil,
-              var session = transferSession else { return }
-        guard let sourceURL = session.takeNext() else {
-            transferSession = session
-            finishTransferSession()
-            return
-        }
-        transferSession = session
-
-        if session.mode == .move,
-           sourceURL.deletingLastPathComponent().standardizedFileURL
-            == session.destinationDirectory.standardizedFileURL {
-            session.record(.moved)
-            transferSession = session
-            DispatchQueue.main.async { processNextTransfer() }
-            return
-        }
-
-        let destinationURL = session.destinationDirectory.appendingPathComponent(
-            sourceURL.lastPathComponent
-        )
-        let destinationExists = FileManager.default.fileExists(atPath: destinationURL.path)
-        if destinationExists, !session.replaceAll, !session.keepBothAll {
-            transferConflict = FileTransferConflict(
-                sourceURL: sourceURL,
-                destinationURL: destinationURL
-            )
-            return
-        }
-        let policy: FileConflictPolicy = destinationExists
-            ? (session.keepBothAll ? .keepBoth : .replace)
-            : .fail
-        performTransfer(sourceURL: sourceURL, policy: policy)
-    }
-
-    private func resolveTransferConflict(
-        policy: FileConflictPolicy,
-        applyToAll: Bool
-    ) {
-        guard let conflict = transferConflict else { return }
-        transferConflict = nil
-        if applyToAll, var session = transferSession {
-            if policy == .replace { session.useReplaceAll() }
-            if policy == .keepBoth { session.useKeepBothAll() }
-            transferSession = session
-        }
-        performTransfer(sourceURL: conflict.sourceURL, policy: policy)
-    }
-
-    private func performTransfer(
-        sourceURL: URL,
-        policy: FileConflictPolicy
-    ) {
-        guard let session = transferSession else { return }
-        let mode = session.mode
-        let destinationDirectory = session.destinationDirectory
-        activityText = language.text(mode == .copy ? "browser.copying" : "browser.moving")
-        DispatchQueue.global(qos: .userInitiated).async {
-            do {
-                let result = try FileManagerService.transferItem(
-                    at: sourceURL,
-                    into: destinationDirectory,
-                    mode: mode,
-                    conflictPolicy: policy
-                )
-                log(
-                    "filebrowser: transfer succeeded mode=\(mode) " +
-                        "source=\(sourceURL.path) destination=\(result.destinationURL.path)"
-                )
-                DispatchQueue.main.async {
-                    if var session = transferSession {
-                        session.record(result.disposition)
-                        transferSession = session
-                    }
-                    activityText = nil
-                    load()
-                    DispatchQueue.main.async { processNextTransfer() }
-                }
-            } catch {
-                log(
-                    "filebrowser: transfer failed mode=\(mode) source=\(sourceURL.path) " +
-                        "error=\(error.localizedDescription)"
-                )
-                DispatchQueue.main.async {
-                    activityText = nil
-                    if error as? FileManagerOperationError == .itemAlreadyExists {
-                        transferConflict = FileTransferConflict(
-                            sourceURL: sourceURL,
-                            destinationURL: destinationDirectory.appendingPathComponent(
-                                sourceURL.lastPathComponent
-                            )
-                        )
-                    } else {
-                        recordTransferFailure()
-                    }
-                }
-            }
-        }
-    }
-
-    private func recordTransferFailure() {
-        if var session = transferSession {
-            session.recordFailure()
-            transferSession = session
-        }
-        DispatchQueue.main.async { processNextTransfer() }
-    }
-
-    private func cancelTransferSession() {
-        guard var session = transferSession else {
-            transferConflict = nil
-            return
-        }
-        session.cancel()
-        transferSession = session
-        transferConflict = nil
-        finishTransferSession()
-    }
-
-    private func finishTransferSession() {
-        guard let session = transferSession else { return }
-        transferSession = nil
-        transferConflict = nil
-        activityText = nil
-        load()
-        operationNotice = FileReplacementNotice(
-            title: language.text(session.isCancelled
-                ? "browser.transfer_cancelled_title"
-                : "browser.transfer_done_title"),
-            message: language.text(
-                "browser.transfer_summary",
-                Int64(session.copiedCount),
-                Int64(session.movedCount),
-                Int64(session.replacedCount),
-                Int64(session.renamedCount),
-                Int64(session.failedCount)
-            )
-        )
     }
 
     private func performFileOperation(
         activity: String,
         operationName: String,
-        successNotice: ((String) -> FileReplacementNotice)? = nil,
         work: @escaping () throws -> String
     ) {
         activityText = activity
@@ -880,7 +447,6 @@ struct FileBrowserView: View {
                 DispatchQueue.main.async {
                     activityText = nil
                     load()
-                    operationNotice = successNotice?(resultPath)
                 }
             } catch {
                 log(
@@ -1118,18 +684,11 @@ struct FileBrowserView: View {
         case .destinationIsDirectory: key = "browser.error_destination_directory"
         case .destinationNotDirectory: key = "browser.error_destination_not_directory"
         case .symbolicLinkUnsupported: key = "browser.error_symlink"
-        case .recursiveDestination: key = "browser.error_recursive_destination"
         case .sourceTooLarge: key = "browser.error_too_large"
         case .cannotCreate: key = "browser.error_create"
         case .cannotRename: key = "browser.error_rename"
         case .cannotDelete: key = "browser.error_delete"
         case .cannotImport: key = "browser.error_import"
-        case .cannotCopy: key = "browser.error_copy"
-        case .cannotMove: key = "browser.error_move"
-        case .cannotArchive: key = "browser.error_archive"
-        case .cannotExtract: key = "browser.error_extract"
-        case .unsafeArchive: key = "browser.error_unsafe_archive"
-        case .insufficientSpace: key = "browser.error_insufficient_space"
         }
         return language.text(key)
     }
@@ -1159,32 +718,55 @@ struct FileBrowserView: View {
             DispatchQueue.main.async {
                 guard currentPath == path else { return }
                 entries = loadedEntries
-                selectedEntryIDs.formIntersection(Set(loadedEntries.map(\.id)))
                 isLoadingEntries = false
             }
         }
     }
 
     private func requestPatchCreation(for entry: FileEntry) {
-        guard let bundleID else {
+        guard bundleID != nil else {
             operationNotice = FileReplacementNotice(
                 title: language.text("patch.create_from_browser_failed"),
                 message: language.text("patch.error.invalid_bundle")
             )
             return
         }
-        let itemURL = URL(fileURLWithPath: entry.path, isDirectory: entry.isDirectory)
+        if entry.isDirectory {
+            folderPatchEntry = entry
+            return
+        }
+        let fileURL = URL(fileURLWithPath: entry.path, isDirectory: false)
         let containerURL = URL(fileURLWithPath: containerPath, isDirectory: true)
+        do {
+            let candidate = try PatchDraftService.candidate(
+                for: fileURL,
+                containerRoot: containerURL
+            )
+            let suggestedName = fileURL.deletingPathExtension().lastPathComponent
+            preparePatchDraft([candidate], suggestedName: suggestedName)
+        } catch let error as PatchPackageError {
+            presentPatchDraftError(error)
+        } catch {
+            presentPatchDraftError(.invalidProject)
+        }
+    }
+
+    private func preparePatchDraft(
+        _ candidates: [PatchDraftCandidate],
+        suggestedName: String
+    ) {
+        guard let bundleID else {
+            presentPatchDraftError(.invalidBundleIdentifier)
+            return
+        }
         activityText = language.text("patch.preparing_from_browser")
-        let suggestedName = entry.isDirectory
-            ? entry.name
-            : itemURL.deletingPathExtension().lastPathComponent
+        let containerURL = URL(fileURLWithPath: containerPath, isDirectory: true)
         DispatchQueue.global(qos: .userInitiated).async {
             do {
                 let draft = try PatchDraftService.makeDraft(
                     bundleID: bundleID,
                     containerRoot: containerURL,
-                    itemURL: itemURL,
+                    candidates: candidates,
                     suggestedName: suggestedName
                 )
                 DispatchQueue.main.async {
@@ -1202,29 +784,6 @@ struct FileBrowserView: View {
                     presentPatchDraftError(.invalidProject)
                 }
             }
-        }
-    }
-
-    private func extractArchive(_ entry: FileEntry) {
-        let archiveURL = URL(fileURLWithPath: entry.path, isDirectory: false)
-        let directoryURL = URL(fileURLWithPath: currentPath, isDirectory: true)
-        performFileOperation(
-            activity: language.text("browser.extracting"),
-            operationName: "extract ZIP",
-            successNotice: { path in
-                FileReplacementNotice(
-                    title: language.text("browser.extract_done_title"),
-                    message: language.text(
-                        "browser.extract_done_message",
-                        (path as NSString).lastPathComponent
-                    )
-                )
-            }
-        ) {
-            try FileManagerService.extractZIPArchive(
-                archiveURL,
-                into: directoryURL
-            ).destinationURL.path
         }
     }
 
@@ -1429,7 +988,6 @@ private struct FileEntryRow: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let entry: FileEntry
     let language: AppLanguage
-    let selectionState: Bool?
 
     private var fileExtension: String {
         (entry.name as NSString).pathExtension.lowercased()
@@ -1458,32 +1016,28 @@ private struct FileEntryRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 11) {
-            AppRowIcon(
-                systemName: symbol,
-                tint: tint,
-                symbolSize: AppTheme.fileRowIconSize,
-                frameSize: AppTheme.fileRowIconFrame
-            )
+        HStack(spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(tint.opacity(0.12))
+                Image(systemName: symbol)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(tint)
+            }
+            .frame(width: 30, height: 30)
+            .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text(entry.name)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.subheadline.weight(.medium))
                     .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                     .truncationMode(.middle)
                 Text(entry.isDirectory ? language.text("browser.folder") : entry.sizeText)
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 4)
-
-            if let selectionState {
-                Image(systemName: selectionState ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: AppTheme.selectionIconSize, weight: .medium))
-                    .foregroundStyle(selectionState ? AppTheme.accent : Color.secondary)
-                    .accessibilityHidden(true)
-            }
         }
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
@@ -1500,7 +1054,6 @@ private enum FileNamePromptAction {
     case createFile
     case createFolder
     case rename(FileEntry)
-    case archive([FileEntry])
 }
 
 private struct FileNamePrompt: Identifiable {
@@ -1514,246 +1067,45 @@ private struct FileImportConflict: Identifiable {
     let destinationURL: URL
 }
 
-private struct FileTransferConflict: Identifiable {
-    let id = UUID()
-    let sourceURL: URL
-    let destinationURL: URL
-}
-
-private struct FileSelectionActionBar: View {
-    let selectedCount: Int
-    let language: AppLanguage
-    let onCopy: () -> Void
-    let onMove: () -> Void
-    let onArchive: () -> Void
-    let onDelete: () -> Void
-
-    var body: some View {
-        HStack(spacing: 0) {
-            action("browser.copy", systemImage: "doc.on.doc", action: onCopy)
-            action("browser.move", systemImage: "folder", action: onMove)
-            action("browser.create_zip", systemImage: "archivebox", action: onArchive)
-            action("browser.delete", systemImage: "trash", role: .destructive, action: onDelete)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 7)
-        .background(.bar)
-        .overlay(alignment: .top) { Divider() }
-        .disabled(selectedCount == 0)
-    }
-
-    private func action(
-        _ key: String,
-        systemImage: String,
-        role: ButtonRole? = nil,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(role: role, action: action) {
-            VStack(spacing: 3) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 16, weight: .semibold))
-                Text(language.text(key))
-                    .font(.caption2)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, minHeight: 34)
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(role == .destructive ? Color.red : AppTheme.accent)
-        .accessibilityLabel(language.text(key))
-        .accessibilityValue(language.text("browser.selected_count", Int64(selectedCount)))
-    }
-}
-
-private struct FilePasteBar: View {
-    let itemCount: Int
-    let mode: FileTransferMode
-    let language: AppLanguage
-    let onPaste: () -> Void
-    let onCancel: () -> Void
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: mode == .copy ? "doc.on.doc" : "folder")
-                .foregroundStyle(AppTheme.accent)
-                .frame(width: 28)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(language.text(mode == .copy
-                    ? "browser.copy_ready"
-                    : "browser.move_ready"))
-                    .font(.subheadline.weight(.semibold))
-                Text(language.text("browser.selected_count", Int64(itemCount)))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer(minLength: 8)
-            Button(language.text("common.cancel"), action: onCancel)
-                .buttonStyle(.borderless)
-            Button(language.text("browser.paste"), action: onPaste)
-                .buttonStyle(.borderedProminent)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
-        .background(.bar)
-        .overlay(alignment: .top) { Divider() }
-    }
-}
-
 extension FileBrowserView {
-    init(
-        containerPath: String,
-        startPath: String,
-        title: String,
-        bundleID: String?,
-        filesTabSession: Binding<FilesTabSession>? = nil
-    ) {
+    init(containerPath: String, startPath: String, title: String, bundleID: String?) {
         self.containerPath = containerPath
         self.title = title
         self.bundleID = bundleID
         self.isRoot = false
-        self.filesTabSession = filesTabSession
         _currentPath = State(initialValue: startPath)
     }
 }
 
-struct FileQuickLookView: View {
-    @Environment(\.appLanguage) private var language
+struct FileReaderView: View {
     let file: FileEntry
-    @State private var previewURL: URL?
-    @State private var previewDirectory: URL?
-    @State private var previewFailed = false
+    @State private var content = ""
+    @State private var isLoading = true
 
     var body: some View {
         Group {
-            if let previewURL {
-                FileQuickLookController(url: previewURL)
-                    .ignoresSafeArea(edges: .bottom)
-            } else if previewFailed {
-                VStack(spacing: 12) {
-                    Image(systemName: "doc.questionmark")
-                        .font(.system(size: AppTheme.emptyIconSize, weight: .light))
-                        .foregroundStyle(.secondary)
-                    Text(language.text("browser.preview_error"))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding()
+            if isLoading {
+                ProgressView()
             } else {
-                ProgressView(language.text("browser.loading"))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ScrollView {
+                    Text(content)
+                        .font(.system(.caption, design: .monospaced))
+                        .textSelection(.enabled)
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
         }
         .navigationTitle(file.name)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                if let previewURL {
-                    ShareLink(item: previewURL) {
-                        Image(systemName: "square.and.arrow.up")
-                    }
+        .onAppear {
+            DispatchQueue.global(qos: .userInitiated).async {
+                let c = ContainerStore.readTextFile(at: file.path)
+                DispatchQueue.main.async {
+                    content = c
+                    isLoading = false
                 }
             }
-        }
-        .task(id: file.id) {
-            let sourceURL = URL(fileURLWithPath: file.path)
-            let result = await Task.detached(priority: .userInitiated) {
-                Result { try FilePreviewService.makePreviewCopy(of: sourceURL) }
-            }.value
-            guard !Task.isCancelled else {
-                if case .success(let prepared) = result {
-                    try? FileManager.default.removeItem(at: prepared.directoryURL)
-                }
-                return
-            }
-            switch result {
-            case .success(let prepared):
-                previewURL = prepared.fileURL
-                previewDirectory = prepared.directoryURL
-            case .failure:
-                previewFailed = true
-            }
-        }
-        .onDisappear {
-            if let previewDirectory {
-                try? FileManager.default.removeItem(at: previewDirectory)
-            }
-            previewURL = nil
-            previewDirectory = nil
-            previewFailed = false
-        }
-    }
-}
-
-private struct PreparedFilePreview {
-    let fileURL: URL
-    let directoryURL: URL
-}
-
-private enum FilePreviewService {
-    static func makePreviewCopy(of sourceURL: URL) throws -> PreparedFilePreview {
-        let values = try sourceURL.resourceValues(
-            forKeys: [.isRegularFileKey, .isDirectoryKey, .isSymbolicLinkKey]
-        )
-        guard values.isRegularFile == true,
-              values.isDirectory != true,
-              values.isSymbolicLink != true else {
-            throw FileManagerOperationError.sourceMissing
-        }
-
-        let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("3105-Preview", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let destination = directory.appendingPathComponent(sourceURL.lastPathComponent)
-        do {
-            try FileManager.default.createDirectory(
-                at: directory,
-                withIntermediateDirectories: true
-            )
-            try FileManager.default.copyItem(at: sourceURL, to: destination)
-            return PreparedFilePreview(fileURL: destination, directoryURL: directory)
-        } catch {
-            try? FileManager.default.removeItem(at: directory)
-            throw error
-        }
-    }
-}
-
-private struct FileQuickLookController: UIViewControllerRepresentable {
-    let url: URL
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(url: url)
-    }
-
-    func makeUIViewController(context: Context) -> QLPreviewController {
-        let controller = QLPreviewController()
-        controller.dataSource = context.coordinator
-        return controller
-    }
-
-    func updateUIViewController(_ controller: QLPreviewController, context: Context) {
-        if context.coordinator.url != url {
-            context.coordinator.url = url
-            controller.reloadData()
-        }
-    }
-
-    final class Coordinator: NSObject, QLPreviewControllerDataSource {
-        var url: URL
-
-        init(url: URL) {
-            self.url = url
-        }
-
-        func numberOfPreviewItems(in controller: QLPreviewController) -> Int { 1 }
-
-        func previewController(
-            _ controller: QLPreviewController,
-            previewItemAt index: Int
-        ) -> any QLPreviewItem {
-            url as NSURL
         }
     }
 }

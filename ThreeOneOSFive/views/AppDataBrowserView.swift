@@ -5,19 +5,12 @@ struct AppDataBrowserView: View {
     @Environment(\.appLanguage) private var language
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var apps: [InstalledApp] = []
     @State private var isLoading = false
     @State private var isResolving = false
     @State private var searchText = ""
     @State private var errorMessage: String?
     @State private var hasLoaded = false
-    @State private var workspaceURL: URL?
-    @Binding private var tabSession: FilesTabSession
-
-    init(tabSession: Binding<FilesTabSession>) {
-        _tabSession = tabSession
-    }
 
     private var filteredApps: [InstalledApp] {
         guard !searchText.isEmpty else { return apps }
@@ -39,14 +32,16 @@ struct AppDataBrowserView: View {
     }
 
     var body: some View {
-        NavigationStack(path: activeNavigationPath) {
+        NavigationStack {
             appList
             .navigationTitle(language.text("browser.title"))
             .navigationBarTitleDisplayMode(.inline)
+            .searchable(
+                text: $searchText,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: language.text("browser.search")
+            )
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    FilesTabToolbarButton(session: $tabSession)
-                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button { reload() } label: {
                         if isResolving {
@@ -60,102 +55,29 @@ struct AppDataBrowserView: View {
                 }
             }
             .onAppear {
-                if workspaceURL == nil {
-                    workspaceURL = try? PatchWorkspaceService.documentsRootURL()
-                    _ = try? PatchWorkspaceService.patchesRootURL()
-                }
                 if !hasLoaded {
                     hasLoaded = true
                     reload()
                 }
             }
-            .navigationDestination(for: FileBrowserDestination.self) { destination in
-                if destination.startPath == destination.containerPath {
-                    FileBrowserView(
-                        containerPath: destination.containerPath,
-                        title: destination.title,
-                        bundleID: destination.bundleID,
-                        filesTabSession: $tabSession
-                    )
-                } else {
-                    FileBrowserView(
-                        containerPath: destination.containerPath,
-                        startPath: destination.startPath,
-                        title: destination.title,
-                        bundleID: destination.bundleID,
-                        filesTabSession: $tabSession
-                    )
-                }
-            }
         }
-    }
-
-    private var activeNavigationPath: Binding<[FileBrowserDestination]> {
-        Binding(
-            get: { tabSession.activeTab?.navigationPath ?? [] },
-            set: { tabSession.setActiveNavigationPath($0) }
-        )
     }
 
     private var appList: some View {
-        VStack(spacing: 0) {
-            if horizontalSizeClass == .regular {
-                FilesTabStrip(session: $tabSession)
-            }
-            AppSearchField(
-                text: $searchText,
-                prompt: language.text("browser.search"),
-                clearLabel: language.text("common.clear")
-            )
-            Divider()
-            appRows
-        }
-    }
-
-    private var appRows: some View {
         List {
-            if let workspaceURL {
-                Section(language.text("browser.workspace")) {
-                    let workspaceDestination = FileBrowserDestination(
-                        containerPath: workspaceURL.path,
-                        startPath: workspaceURL.path,
-                        title: "3105",
-                        bundleID: nil
-                    )
-                    NavigationLink(value: workspaceDestination) {
-                        HStack(spacing: 10) {
-                            AppRowIcon(systemName: "folder.fill")
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("3105")
-                                    .font(.subheadline.weight(.semibold))
-                                Text(language.text("browser.workspace_subtitle"))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .padding(.vertical, 2)
-                    }
-                    .contextMenu {
-                        openInNewTabButton(workspaceDestination)
-                    }
-                }
-            }
             Section {
                 ForEach(filteredApps) { app in
                     if app.containerPath.isEmpty {
                         appRow(app)
                     } else {
-                        let appDestination = FileBrowserDestination(
-                            containerPath: app.containerPath,
-                            startPath: app.containerPath,
-                            title: app.displayName,
-                            bundleID: app.bundleID
-                        )
-                        NavigationLink(value: appDestination) {
+                        NavigationLink {
+                            FileBrowserView(
+                                containerPath: app.containerPath,
+                                title: app.displayName,
+                                bundleID: app.bundleID
+                            )
+                        } label: {
                             appRow(app)
-                        }
-                        .contextMenu {
-                            openInNewTabButton(appDestination)
                         }
                     }
                 }
@@ -174,7 +96,7 @@ struct AppDataBrowserView: View {
                 .textCase(nil)
             }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.plain)
         .environment(\.defaultMinListRowHeight, 48)
         .scrollDismissesKeyboard(.interactively)
         .overlay {
@@ -223,18 +145,10 @@ struct AppDataBrowserView: View {
         .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 12))
     }
 
-    private func openInNewTabButton(_ destination: FileBrowserDestination) -> some View {
-        Button {
-            tabSession.openTab(navigationPath: [destination])
-        } label: {
-            Label(language.text("browser.open_new_tab"), systemImage: "square.on.square")
-        }
-    }
-
     private var emptyView: some View {
         VStack(spacing: 16) {
             Image(systemName: "folder.badge.questionmark")
-                .font(.system(size: AppTheme.emptyIconSize, weight: .light))
+                .font(.system(size: 48))
                 .foregroundStyle(.secondary)
             Text(errorMessage ?? language.text("browser.empty"))
                 .font(.subheadline)
@@ -250,7 +164,7 @@ struct AppDataBrowserView: View {
     private var searchEmptyView: some View {
         VStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: AppTheme.emptyIconSize, weight: .light))
+                .font(.system(size: 32, weight: .light))
                 .foregroundStyle(.secondary)
             Text(language.text("browser.search_empty"))
                 .font(.subheadline.weight(.medium))
@@ -400,12 +314,12 @@ struct BrowserAppIcon: View {
                     .scaledToFill()
             } else {
                 Image(systemName: "app")
-                    .font(.system(size: AppTheme.rowIconSize, weight: .medium))
+                    .font(.title3)
                     .foregroundStyle(.secondary)
             }
         }
-        .frame(width: AppTheme.appIconSize, height: AppTheme.appIconSize)
-        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .frame(width: 36, height: 36)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .accessibilityHidden(true)
         .onAppear {
             guard resolvedIcon == nil, !didRequestIcon else { return }

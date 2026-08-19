@@ -5,17 +5,6 @@ struct LogView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.appLanguage) private var language
-    @State private var copied = false
-
-    private var shareText: String {
-        var lines: [String] = []
-        lines.append("3105 Log")
-        lines.append("iOS \(AppInfo.osVersion) (\(AppInfo.osBuild)) — \(AppInfo.machineName)")
-        lines.append("Generated: \(Date())")
-        lines.append("")
-        lines.append(contentsOf: appLog.entries)
-        return lines.joined(separator: "\n")
-    }
 
     var body: some View {
         NavigationStack {
@@ -23,7 +12,7 @@ struct LogView: View {
                 if appLog.entries.isEmpty {
                     VStack(spacing: 14) {
                         Image(systemName: "apple.terminal")
-                            .font(.system(size: AppTheme.emptyIconSize, weight: .medium))
+                            .font(.system(size: 38, weight: .medium))
                             .foregroundStyle(.secondary)
                         Text(language.text("logs.empty_title"))
                             .font(.title3.bold())
@@ -80,23 +69,7 @@ struct LogView: View {
                     Button(language.text("logs.clear"), role: .destructive) { appLog.entries.removeAll() }
                         .disabled(appLog.entries.isEmpty)
                 }
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button {
-                        UIPasteboard.general.string = shareText
-                        copied = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { copied = false }
-                    } label: {
-                        Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                    }
-                    .disabled(appLog.entries.isEmpty)
-                    .accessibilityLabel(language.text("logs.copy"))
-
-                    ShareLink(item: shareText) {
-                        Image(systemName: "square.and.arrow.up")
-                    }
-                    .disabled(appLog.entries.isEmpty)
-                    .accessibilityLabel(language.text("logs.share"))
-
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Button(language.text("common.done")) { dismiss() }
                         .fontWeight(.semibold)
                 }
