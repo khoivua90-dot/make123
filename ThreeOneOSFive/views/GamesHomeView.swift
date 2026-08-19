@@ -563,17 +563,3 @@ struct CachedAsyncImage<Placeholder: View>: View {
     }
 }
 
-// MARK: - Color(hex:)
-
-extension Color {
-    init?(hex: String) {
-        var value = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        if value.hasPrefix("#") { value.removeFirst() }
-        guard value.count == 6, let rgb = UInt32(value, radix: 16) else { return nil }
-        self.init(
-            red:   Double((rgb >> 16) & 0xFF) / 255,
-            green: Double((rgb >>  8) & 0xFF) / 255,
-            blue:  Double( rgb        & 0xFF) / 255
-        )
-    }
-}
