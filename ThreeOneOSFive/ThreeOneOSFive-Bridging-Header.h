@@ -4,6 +4,5 @@
 #import "kexploit/sandbox_escape.h"
 #import "kexploit/kutils.h"
 #import "kexploit/apfs_own.h"
-#import "kpf/patchfinder.h"
 #import "helpers/AppIconHelper.h"
 #import "helpers/AppLauncher.h"

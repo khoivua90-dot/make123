@@ -128,7 +128,6 @@
 "patch.error.replacement_required" = "Hãy chọn tệp thay thế cho mọi đường dẫn đích trước khi lưu.";
 "patch.error.keychain" = "Không thể lưu hoặc đọc khóa mở gói một cách an toàn.";
 "patch.error.app_unavailable" = "Bundle app %@ chưa được cài hoặc không thể mở. Patch chưa thay đổi file nào.";
-"patch.error.sandbox_denied" = "Không thể truy cập container của %@. Thiết bị A15 trở xuống (iPhone 13/14) cần TrollStore. A18+ (iPhone 16 trở lên): kexploit tự cấp quyền.";
 "patch.error.symlink" = "Đường dẫn patch không được đi qua liên kết tượng trưng.";
 "patch.error.apply" = "Không thể áp dụng patch. Mọi file đã ghi trước đó đã được rollback.";
 "patch.error.restore" = "Không thể khôi phục file gốc an toàn. App không ghi đè đích chưa được xác minh.";
@@ -147,9 +146,6 @@
 "accessibility.log_entry" = "Mục nhật ký %lld: %@";
 
 "status.not_attempted" = "Chưa thử";
-"status.running" = "Đang chạy exploit...";
-"status.failed_mha_cert" = "Cần ký lại với bundle ID com.apple.mobile.MobileHouseArrest";
-"status.failed_mha_os" = "MCM bị iOS 18 chặn — thiết bị này cần TrollStore hoặc A18+ (iPhone 16+)";
 "status.ok_via" = "OK qua %@";
 "status.failed_via" = "THẤT BẠI %@ (%lld)";
 "status.unsupported_reason" = "Không hỗ trợ: %@";

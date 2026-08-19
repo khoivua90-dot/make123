@@ -90,7 +90,6 @@ enum PatchPackageError: Error, Equatable {
     case invalidProject
     case keychainFailed
     case targetAppUnavailable(String)
-    case sandboxAccessDenied(String)
     case symbolicLinkUnsupported
     case applyFailed
     case restoreFailed
@@ -109,7 +108,6 @@ extension PatchPackageError: LocalizedError {
         case .invalidProject: return "patch.error.invalid_project"
         case .keychainFailed: return "patch.error.keychain"
         case .targetAppUnavailable: return "patch.error.app_unavailable"
-        case .sandboxAccessDenied: return "patch.error.sandbox_denied"
         case .symbolicLinkUnsupported: return "patch.error.symlink"
         case .applyFailed: return "patch.error.apply"
         case .restoreFailed: return "patch.error.restore"
@@ -125,11 +123,10 @@ extension PatchPackageError: LocalizedError {
     }
 
     var localizationArgument: String? {
-        switch self {
-        case .targetAppUnavailable(let bundleID): return bundleID
-        case .sandboxAccessDenied(let bundleID): return bundleID
-        default: return nil
+        if case .targetAppUnavailable(let bundleID) = self {
+            return bundleID
         }
+        return nil
     }
 }
 

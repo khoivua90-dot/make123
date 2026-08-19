@@ -63,30 +63,14 @@ enum ContainerStore {
             return nil
         }
         var lookupError: NSString?
-        if let path = MCMActivateContainerPath(2, bundleID, false, &lookupError),
-           isApplicationContainerPath(path) {
-            log("patch: MHA-C2 resolved \(bundleID)")
-            return path
+        guard let path = MCMActivateContainerPath(2, bundleID, false, &lookupError),
+              isApplicationContainerPath(path) else {
+            let detail = lookupError.map(String.init) ?? "unavailable"
+            log("patch: MHA-C2 could not resolve \(bundleID), detail=\(detail)")
+            return nil
         }
-        let detail = lookupError.map(String.init) ?? "unavailable"
-        log("patch: MHA-C2 failed \(bundleID) detail=\(detail), trying filesystem scan")
-        return resolveByFilesystemScan(bundleID: bundleID)
-    }
-
-    private static func resolveByFilesystemScan(bundleID: String) -> String? {
-        let fm = FileManager.default
-        guard let uuids = try? fm.contentsOfDirectory(atPath: appDataRoot) else { return nil }
-        for uuid in uuids {
-            guard UUID(uuidString: uuid) != nil else { continue }
-            let containerPath = (appDataRoot as NSString).appendingPathComponent(uuid)
-            let meta = readContainerMetadata(containerPath: containerPath)
-            if meta?.bundleID == bundleID {
-                log("patch: filesystem scan resolved \(bundleID) -> \(uuid)")
-                return containerPath
-            }
-        }
-        log("patch: filesystem scan could not find \(bundleID)")
-        return nil
+        log("patch: MHA-C2 resolved \(bundleID)")
+        return path
     }
 
     // MARK: Primary — MobileInstallation / LSApplicationWorkspace

@@ -128,7 +128,6 @@
 "patch.error.replacement_required" = "Choose a replacement file for every target path before saving.";
 "patch.error.keychain" = "The remembered unlock key could not be saved or read securely.";
 "patch.error.app_unavailable" = "The app bundle %@ is not installed or cannot be opened. No patch files were changed.";
-"patch.error.sandbox_denied" = "Cannot access %@'s container. A15 and below (iPhone 13/14) require TrollStore. A18+ (iPhone 16+): kexploit grants access automatically.";
 "patch.error.symlink" = "Patch targets cannot pass through symbolic links.";
 "patch.error.apply" = "The patch could not be applied. Any earlier writes were rolled back.";
 "patch.error.restore" = "The originals could not be restored safely. No unverified target was overwritten.";
@@ -147,9 +146,6 @@
 "accessibility.log_entry" = "Log entry %lld: %@";
 
 "status.not_attempted" = "Not attempted";
-"status.running" = "Running exploit...";
-"status.failed_mha_cert" = "Re-sign with bundle ID com.apple.mobile.MobileHouseArrest";
-"status.failed_mha_os" = "MCM blocked by iOS 18 — this device needs TrollStore or A18+ (iPhone 16+)";
 "status.ok_via" = "OK via %@";
 "status.failed_via" = "FAILED %@ (%lld)";
 "status.unsupported_reason" = "Unsupported: %@";
