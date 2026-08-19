@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GamePatchesView: View {
     @Environment(\.appLanguage) private var language
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var appState: AppState
     let game: RemoteGameSummary
     @ObservedObject var store: PatchProjectStore
@@ -27,16 +28,10 @@ struct GamePatchesView: View {
         (try? JSONDecoder().decode([String: String].self, from: Data(gameAssignmentsRaw.utf8))) ?? [:]
     }
 
-    /// Server patch id -> local packageID, so a patch removed on the server can be traced back
-    /// to the local file it downloaded into and deleted, instead of only ever growing the library.
     private var remoteToLocalMap: [String: String] {
         (try? JSONDecoder().decode([String: String].self, from: Data(remoteToLocalMapRaw.utf8))) ?? [:]
     }
 
-    /// Local packageID -> the name currently set on the web admin. Renaming a patch's metadata
-    /// on the web doesn't touch the encrypted package bytes (so the name baked into the decoded
-    /// PatchProject never changes), so the displayed title has to come from this instead of
-    /// `item.project?.name` whenever the patch was synced from the hub.
     private var remoteDisplayNames: [String: String] {
         (try? JSONDecoder().decode([String: String].self, from: Data(remoteDisplayNamesRaw.utf8))) ?? [:]
     }
@@ -45,9 +40,6 @@ struct GamePatchesView: View {
         remoteDisplayNames[item.id.uuidString] ?? item.project?.name ?? language.text("patch.locked_project")
     }
 
-    /// Local packageID -> the mục chứa (container/tab) id it's assigned to on the web admin, if
-    /// any. Absent means uncategorized — it only shows once a container tab is selected if this
-    /// game has no containers at all, in which case every item shows in the one flat list.
     private var containerAssignments: [String: String] {
         (try? JSONDecoder().decode([String: String].self, from: Data(containerAssignmentsRaw.utf8))) ?? [:]
     }
@@ -57,54 +49,46 @@ struct GamePatchesView: View {
         return store.items.filter { assignments[$0.id.uuidString] == game.id }
     }
 
-    /// The items shown for the currently selected tab. When this game has no containers
-    /// configured, every item shows in one flat list exactly like before the tabs feature.
     private var displayedItems: [PatchLibraryItem] {
         guard let selectedContainerID else { return items }
         let assignments = containerAssignments
         return items.filter { assignments[$0.id.uuidString] == selectedContainerID }
     }
 
+    // MARK: - Body
+
     var body: some View {
         ZStack {
             TechBackground()
 
-            ScrollView {
-                VStack(spacing: 20) {
-                    header
-                    containerTabBar
-                        .transition(.opacity)
-                    menuCard
-                    if !game.bundleID.isEmpty {
-                        openGameButton
+            VStack(spacing: 0) {
+                customNavBar
+
+                ScrollView {
+                    VStack(spacing: 16) {
+                        header
+                        containerTabBar
+                            .transition(.opacity)
+                        menuCard
+                        if !game.bundleID.isEmpty {
+                            openGameButton
+                        }
                     }
+                    .padding(.horizontal, 22)
+                    .padding(.bottom, 32)
+                    .animation(.easeInOut(duration: 0.22), value: containers.isEmpty)
+                    .animation(.easeInOut(duration: 0.2), value: selectedContainerID)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 24)
-                .animation(.easeInOut(duration: 0.22), value: containers.isEmpty)
-                .animation(.easeInOut(duration: 0.2), value: selectedContainerID)
-            }
-            .refreshable {
-                async let syncTask: () = sync()
-                async let containersTask: () = loadContainers()
-                _ = await (syncTask, containersTask)
-                await loadProjectStates()
-            }
-        }
-        .navigationTitle(game.name)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                if isSyncing {
-                    ProgressView()
+                .refreshable {
+                    async let syncTask: () = sync()
+                    async let containersTask: () = loadContainers()
+                    _ = await (syncTask, containersTask)
+                    await loadProjectStates()
                 }
             }
         }
+        .toolbar(.hidden, for: .navigationBar)
         .task {
-            // Run together instead of sequentially — sync() can take a while when it has new
-            // patches to download, and waiting for it before even knowing whether this game has
-            // containers is what caused the list to flash from "everything" to "just this tab"
-            // right after opening the screen.
             async let syncTask: () = sync()
             async let containersTask: () = loadContainers()
             _ = await (syncTask, containersTask)
@@ -123,102 +107,130 @@ struct GamePatchesView: View {
         .toast($toast)
     }
 
-    /// The single bordered box holding every patch for the selected tab (or every patch for this
-    /// game, if it has no containers configured) as a switch row, matching the reference "PROXY
-    /// MOD MENU" card instead of a plain grouped list.
-    private var menuCard: some View {
-        VStack(spacing: 0) {
-            menuHeader
+    // MARK: - Custom Nav Bar
 
-            Group {
-                if !containersLoaded {
-                    // Holds this card empty (instead of briefly showing every patch unfiltered,
-                    // then snapping to just the selected tab) until we actually know whether this
-                    // game has mục chứa tabs at all.
-                    loadingPlaceholder
-                } else if displayedItems.isEmpty {
-                    emptyState
-                } else if displayedItems.count > Self.maxVisibleRows {
-                    // More projects than fit in the fixed ~5-row frame: keep the card's height
-                    // pinned and let the extra ones scroll inside it instead of stretching the
-                    // whole screen taller.
-                    ScrollView(showsIndicators: false) {
-                        rowsList
-                    }
-                    .frame(height: Self.rowHeight * CGFloat(Self.maxVisibleRows))
-                } else {
-                    rowsList
+    private var customNavBar: some View {
+        HStack(spacing: 0) {
+            // Circular back button
+            Button { dismiss() } label: {
+                ZStack {
+                    Circle()
+                        .fill(Color(red: 0.04, green: 0.07, blue: 0.17).opacity(0.88))
+                        .overlay(
+                            Circle().strokeBorder(
+                                LinearGradient(
+                                    colors: [AppTheme.techGlow.opacity(0.70), AppTheme.neonPurple.opacity(0.50)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.2
+                            )
+                        )
+                        .shadow(color: AppTheme.techGlow.opacity(0.28), radius: 10)
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                .frame(width: 44, height: 44)
+            }
+            .buttonStyle(PressScaleButtonStyle(scale: 0.92))
+
+            Spacer()
+
+            Text(game.name)
+                .font(.system(size: 20, weight: .bold))
+                .foregroundStyle(.white)
+
+            Spacer()
+
+            // Balance — same width as back button; shows spinner while syncing
+            ZStack {
+                if isSyncing {
+                    ProgressView()
+                        .tint(AppTheme.techGlow)
+                        .scaleEffect(0.85)
                 }
             }
-            .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
+            .frame(width: 44, height: 44)
         }
-        .techCard()
-        .animation(.easeInOut(duration: 0.22), value: containersLoaded)
-    }
-
-    /// Jumps straight into the game via the private LSApplicationWorkspace API, using the same
-    /// bundle ID already entered for this game on the web admin — no separate URL scheme needed.
-    private var openGameButton: some View {
-        Button {
-            AppLauncherOpenBundleID(game.bundleID)
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "play.fill")
-                Text(language.text("patch.open_game_now"))
-                    .font(.body.weight(.semibold))
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-        }
-        .background(AppTheme.techGlow, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .foregroundStyle(Color.black)
-    }
-
-    /// Roughly how tall one toggle row + its divider ends up on screen, used to pin the card's
-    /// height to about 5 rows worth of space regardless of how many projects are actually in it.
-    private static let rowHeight: CGFloat = 64
-    private static let maxVisibleRows = 5
-
-    private var rowsList: some View {
-        VStack(spacing: 0) {
-            ForEach(Array(displayedItems.enumerated()), id: \.element.id) { index, item in
-                itemRow(item, colorIndex: index)
-                    .transition(
-                        .opacity.combined(with: .move(edge: .top)).combined(with: .scale(scale: 0.94, anchor: .top))
-                    )
-                    // Overrides the ambient tab-switch animation for just this row so each one
-                    // settles in a beat after the previous one, instead of the whole list popping
-                    // in as a single flat block.
-                    .animation(
-                        .spring(response: 0.4, dampingFraction: 0.78).delay(Double(index) * 0.045),
-                        value: selectedContainerID
-                    )
-                if item.id != displayedItems.last?.id {
-                    Divider()
-                        .overlay(Color.white.opacity(0.06))
-                }
-            }
-        }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 22)
+        .padding(.top, 8)
         .padding(.bottom, 10)
     }
 
-    private var loadingPlaceholder: some View {
-        VStack {
-            ProgressView()
+    // MARK: - Header (icon + name + bundle ID)
+
+    private var header: some View {
+        VStack(spacing: 14) {
+            // Game icon with premium layered glow
+            ZStack {
+                // Blue outer glow
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .fill(AppTheme.techGlow.opacity(0.14))
+                    .frame(width: 140, height: 140)
+                    .blur(radius: 22)
+
+                // Purple accent glow (lower-right)
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .fill(AppTheme.neonPurple.opacity(0.10))
+                    .frame(width: 138, height: 138)
+                    .blur(radius: 14)
+                    .offset(x: 8, y: 8)
+
+                // Icon clipped in rounded square
+                gameIconView
+                    .frame(width: 118, height: 118)
+                    .clipShape(RoundedRectangle(cornerRadius: 27, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 27, style: .continuous)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [AppTheme.techGlow.opacity(0.75), AppTheme.neonPurple.opacity(0.55)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
+            }
+
+            VStack(spacing: 7) {
+                Text(game.name)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+
+                if !game.bundleID.isEmpty {
+                    Text(game.bundleID)
+                        .font(.system(size: 13).monospaced())
+                        .foregroundStyle(Color(red: 0.46, green: 0.56, blue: 0.72))
+                }
+            }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 64)
+        .padding(.top, 4)
+        .padding(.bottom, 8)
     }
 
-    /// A segmented control letting the user switch between mục chứa, matching the reference
-    /// app's Proxy / Định Vị / Mod NV tab bar. Hidden entirely when this game has no containers
-    /// configured, so existing games keep the old single flat-list layout unchanged.
-    ///
-    /// A plain HStack of pills (the earlier design) left the row only as wide as its content, so
-    /// it sat flush against the leading edge instead of lining up with the card below it — one
-    /// shared rounded track spanning the full width, with each tab taking an even share, keeps
-    /// it aligned and reads as a single cohesive control instead of loose floating buttons.
+    @ViewBuilder
+    private var gameIconView: some View {
+        if let url = game.iconURL {
+            CachedAsyncImage(url: url) { gameIconPlaceholder }
+        } else {
+            gameIconPlaceholder
+        }
+    }
+
+    private var gameIconPlaceholder: some View {
+        ZStack {
+            AppTheme.resolvedBannerColor(game.bannerColor)
+            Image(systemName: "app.fill")
+                .resizable().scaledToFit()
+                .padding(22)
+                .foregroundStyle(.white)
+        }
+    }
+
+    // MARK: - Container Tab Bar
+
     @ViewBuilder
     private var containerTabBar: some View {
         if !containers.isEmpty {
@@ -227,12 +239,22 @@ struct GamePatchesView: View {
                     containerTabButton(container)
                 }
             }
-            .padding(4)
-            .background(AppTheme.techCardFill, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
+            .padding(5)
+            .background(
+                Color(red: 0.04, green: 0.07, blue: 0.16).opacity(0.88),
+                in: RoundedRectangle(cornerRadius: 20, style: .continuous)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [AppTheme.techGlow.opacity(0.40), AppTheme.neonPurple.opacity(0.30)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: AppTheme.neonPurple.opacity(0.12), radius: 16, y: 4)
         }
     }
 
@@ -245,107 +267,174 @@ struct GamePatchesView: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: container.icon)
-                    .font(.caption.weight(.semibold))
+                    .font(.system(size: 13, weight: .semibold))
                 Text(container.name)
-                    .font(.caption.weight(.bold))
+                    .font(.system(size: 13, weight: .bold))
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 9)
-            .background(
-                Group {
-                    if isSelected {
-                        Capsule()
-                            .fill(AppTheme.techGlow.opacity(0.18))
-                            .overlay(Capsule().strokeBorder(AppTheme.techGlow, lineWidth: 1))
-                    }
+            .padding(.vertical, 10)
+            .background {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 15, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [AppTheme.techGlow.opacity(0.26), AppTheme.neonPurple.opacity(0.22)],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [AppTheme.techGlow, AppTheme.neonPurple],
+                                        startPoint: .leading, endPoint: .trailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                        )
+                        .shadow(color: AppTheme.neonPurple.opacity(0.35), radius: 10, y: 2)
                 }
+            }
+            .foregroundStyle(
+                isSelected
+                    ? AnyShapeStyle(Color.white)
+                    : AnyShapeStyle(Color(red: 0.45, green: 0.55, blue: 0.72))
             )
-            .foregroundStyle(isSelected ? AppTheme.techGlow : Color.secondary)
         }
         .buttonStyle(.plain)
     }
 
+    // MARK: - Menu Card
+
+    private var menuCard: some View {
+        VStack(spacing: 0) {
+            menuHeader
+
+            Group {
+                if !containersLoaded {
+                    loadingPlaceholder
+                } else if displayedItems.isEmpty {
+                    emptyState
+                } else if displayedItems.count > Self.maxVisibleRows {
+                    ScrollView(showsIndicators: false) {
+                        rowsList
+                    }
+                    .frame(height: Self.rowHeight * CGFloat(Self.maxVisibleRows))
+                } else {
+                    rowsList
+                }
+            }
+            .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
+        }
+        .background(Color(red: 0.030, green: 0.050, blue: 0.115).opacity(0.82))
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            AppTheme.techGlow.opacity(0.55),
+                            AppTheme.neonPurple.opacity(0.38),
+                            AppTheme.techGlow.opacity(0.18)
+                        ],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: AppTheme.techGlow.opacity(0.10), radius: 24, y: 6)
+        .shadow(color: AppTheme.neonPurple.opacity(0.08), radius: 16, y: 4)
+        .animation(.easeInOut(duration: 0.22), value: containersLoaded)
+    }
+
     private var menuHeader: some View {
-        HStack(spacing: 8) {
-            Rectangle()
-                .fill(AppTheme.techGlow)
-                .frame(width: 3, height: 16)
-                .clipShape(RoundedRectangle(cornerRadius: 1.5))
+        HStack(spacing: 10) {
+            // Cyan neon vertical bar
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [AppTheme.neonCyan, AppTheme.techGlow],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
+                .frame(width: 3, height: 20)
+                .shadow(color: AppTheme.neonCyan.opacity(0.80), radius: 6)
+
+            // Purple bolt
             Image(systemName: "bolt.fill")
-                .font(.footnote)
-                .foregroundStyle(AppTheme.techGlow)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(AppTheme.neonPurple)
+
             Text(language.text("patch.menu_title"))
-                .font(.subheadline.weight(.heavy))
-                .foregroundStyle(.primary)
+                .font(.system(size: 16, weight: .heavy))
+                .foregroundStyle(.white)
                 .textCase(.uppercase)
-                .tracking(0.5)
+                .tracking(0.6)
+
             Spacer()
+
             if isSyncing {
                 ProgressView()
                     .scaleEffect(0.8)
+                    .tint(AppTheme.techGlow)
             } else {
+                // AUTO pill
                 Text(language.text("patch.menu_auto_badge"))
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(AppTheme.techGlow)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 4)
-                    .background(AppTheme.techGlow.opacity(0.14), in: Capsule())
-                    .overlay(
-                        Capsule().strokeBorder(AppTheme.techGlow.opacity(0.4), lineWidth: 1)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(AppTheme.neonCyan)
+                    .tracking(0.5)
+                    .padding(.horizontal, 11)
+                    .padding(.vertical, 5)
+                    .background(
+                        Color(red: 0.04, green: 0.16, blue: 0.26).opacity(0.90),
+                        in: Capsule()
                     )
+                    .overlay(
+                        Capsule().strokeBorder(AppTheme.neonCyan.opacity(0.65), lineWidth: 1)
+                    )
+                    .shadow(color: AppTheme.neonCyan.opacity(0.30), radius: 6)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-    }
-
-    private var header: some View {
-        VStack(spacing: 8) {
-            gameIconView
-                .frame(width: 84, height: 84)
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .strokeBorder(AppTheme.techCardStroke, lineWidth: 1)
-                )
-                .shadow(color: AppTheme.techGlow.opacity(0.18), radius: 14, y: 6)
-
-            Text(game.name)
-                .font(.title3.weight(.bold))
-                .multilineTextAlignment(.center)
-
-            if !game.bundleID.isEmpty {
-                Text(game.bundleID)
-                    .font(.caption.monospaced())
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 12)
-        .padding(.bottom, 18)
-    }
-
-    @ViewBuilder
-    private var gameIconView: some View {
-        if let url = game.iconURL {
-            CachedAsyncImage(url: url) {
-                gameIconPlaceholder
-            }
-        } else {
-            gameIconPlaceholder
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
+        .overlay(alignment: .bottom) {
+            // Subtle neon separator line under header
+            LinearGradient(
+                colors: [AppTheme.techGlow.opacity(0.22), AppTheme.neonPurple.opacity(0.14)],
+                startPoint: .leading, endPoint: .trailing
+            )
+            .frame(height: 1)
         }
     }
 
-    private var gameIconPlaceholder: some View {
-        ZStack {
-            AppTheme.resolvedBannerColor(game.bannerColor)
-            Image(systemName: "app.fill")
-                .resizable()
-                .scaledToFit()
-                .padding(20)
-                .foregroundStyle(.white)
+    // MARK: - Rows
+
+    private static let rowHeight: CGFloat = 70
+    private static let maxVisibleRows = 5
+
+    private var rowsList: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(displayedItems.enumerated()), id: \.element.id) { index, item in
+                itemRow(item, colorIndex: index)
+                    .transition(
+                        .opacity.combined(with: .move(edge: .top)).combined(with: .scale(scale: 0.94, anchor: .top))
+                    )
+                    .animation(
+                        .spring(response: 0.4, dampingFraction: 0.78).delay(Double(index) * 0.045),
+                        value: selectedContainerID
+                    )
+                if item.id != displayedItems.last?.id {
+                    // Subtle blue-gray 1px separator
+                    Rectangle()
+                        .fill(Color(red: 0.18, green: 0.26, blue: 0.44).opacity(0.30))
+                        .frame(height: 1)
+                        .padding(.horizontal, 18)
+                }
+            }
         }
+        .padding(.bottom, 10)
     }
 
     @ViewBuilder
@@ -356,8 +445,6 @@ struct GamePatchesView: View {
             }
             .buttonStyle(.plain)
         } else {
-            // No drill-in to the rule-level detail screen — the toggle here is the only control
-            // this row exposes, so tapping the name/row itself does nothing.
             toggleRow(item, colorIndex: colorIndex)
         }
     }
@@ -367,32 +454,107 @@ struct GamePatchesView: View {
         let toggleableCount = rules.filter(\.hasReplacement).count
         let rowColor = AppTheme.rowColor(colorIndex)
 
-        return HStack(spacing: 12) {
-            Image(systemName: "bolt.fill")
-                .font(.title3)
-                .foregroundStyle(rowColor)
-                .frame(width: 38, height: 38)
-                .background(rowColor.opacity(0.16), in: RoundedRectangle(cornerRadius: 10))
-            VStack(alignment: .leading, spacing: 3) {
-                Text(displayName(for: item))
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(.primary)
-                Text(language.text("patch.rules_count", Int64(rules.count)))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        return HStack(spacing: 14) {
+            // Glass icon container with colored border + glow
+            ZStack {
+                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                    .fill(rowColor.opacity(0.12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 13, style: .continuous)
+                            .strokeBorder(rowColor.opacity(0.48), lineWidth: 1)
+                    )
+                    .shadow(color: rowColor.opacity(0.28), radius: 8)
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: 19, weight: .bold))
+                    .foregroundStyle(rowColor)
             }
+            .frame(width: 48, height: 48)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(displayName(for: item))
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                Text(language.text("patch.rules_count", Int64(rules.count)))
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color(red: 0.46, green: 0.56, blue: 0.72))
+            }
+
             Spacer()
+
             if togglingProjectID == item.id {
                 ProgressView()
+                    .tint(AppTheme.techGlow)
             } else {
                 Toggle("", isOn: projectToggleBinding(for: item))
                     .labelsHidden()
-                    .tint(AppTheme.techGlow)
+                    .tint(AppTheme.neonPurple)
                     .disabled(toggleableCount == 0)
             }
         }
-        .padding(.vertical, 10)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 11)
     }
+
+    // MARK: - Open Game Button
+
+    private var openGameButton: some View {
+        Button {
+            AppLauncherOpenBundleID(game.bundleID)
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "play.fill")
+                    .font(.system(size: 16, weight: .bold))
+                Text(language.text("patch.open_game_now"))
+                    .font(.system(size: 18, weight: .bold))
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 19)
+            .background(
+                LinearGradient(
+                    colors: [AppTheme.techGlow, AppTheme.neonPurple],
+                    startPoint: .leading, endPoint: .trailing
+                ),
+                in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+            )
+            .shadow(color: AppTheme.techGlow.opacity(0.50), radius: 16, x: -4, y: 8)
+            .shadow(color: AppTheme.neonPurple.opacity(0.40), radius: 16, x: 4, y: 8)
+        }
+        .buttonStyle(PressScaleButtonStyle())
+    }
+
+    // MARK: - Helper Views
+
+    private var loadingPlaceholder: some View {
+        VStack {
+            ProgressView().tint(AppTheme.techGlow)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 64)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 12) {
+            if isSyncing {
+                ProgressView().tint(AppTheme.techGlow)
+            } else {
+                Image(systemName: "shippingbox")
+                    .font(.system(size: 38, weight: .light))
+                    .foregroundStyle(AppTheme.neonPurple)
+                Text(language.text("patch.empty_title"))
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                Text(language.text("patch.game_empty_message"))
+                    .font(.subheadline)
+                    .foregroundStyle(Color(red: 0.46, green: 0.56, blue: 0.72))
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 64)
+    }
+
+    // MARK: - Bindings & Logic (unchanged)
 
     private func projectToggleBinding(for item: PatchLibraryItem) -> Binding<Bool> {
         Binding(
@@ -401,32 +563,6 @@ struct GamePatchesView: View {
         )
     }
 
-    private var emptyState: some View {
-        VStack(spacing: 12) {
-            if isSyncing {
-                ProgressView()
-            } else {
-                Image(systemName: "shippingbox")
-                    .font(.system(size: 38, weight: .light))
-                    .foregroundStyle(AppTheme.accent)
-                Text(language.text("patch.empty_title"))
-                    .font(.headline)
-                Text(language.text("patch.game_empty_message"))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 64)
-    }
-
-    /// Downloads only this game's patches from the hub straight into the local library, so
-    /// they show up here without any manual tap. Also removes local copies whose server entry
-    /// disappeared (deleted on the web, or reassigned to a different game) — a pull-to-refresh
-    /// should mirror the server exactly, not just ever grow. The gameId <-> local packageID and
-    /// serverID <-> local packageID mappings are recorded locally since the encrypted package
-    /// format itself carries no game association.
     private func sync() async {
         guard !isSyncing else { return }
         isSyncing = true
@@ -456,8 +592,6 @@ struct GamePatchesView: View {
             didChange = true
         }
 
-        // If a patch is marked imported but its local file is missing (e.g. after a storage path
-        // change from PatchProjects/ to .DSWLib/), reset the import flag so it re-downloads.
         for item in remoteForGame {
             guard let localID = remoteMap[item.id],
                   let localUUID = UUID(uuidString: localID),
@@ -507,9 +641,6 @@ struct GamePatchesView: View {
             }
         }
 
-        // Refresh display names and mục chứa assignment for patches that were already
-        // downloaded, so a rename or re-categorize on the web admin shows up here on the next
-        // pull-to-refresh without re-downloading anything.
         for item in remoteForGame {
             guard let localID = remoteMap[item.id] else { continue }
             if names[localID] != item.name {
@@ -520,7 +651,6 @@ struct GamePatchesView: View {
             } else {
                 containerAssign.removeValue(forKey: localID)
             }
-            // Auto-unlock already-downloaded patches whose remote password we now know.
             if let password = item.password, !password.isEmpty,
                let localUUID = UUID(uuidString: localID),
                let localItem = store.items.first(where: { $0.id == localUUID }),
@@ -553,10 +683,6 @@ struct GamePatchesView: View {
         }
     }
 
-    /// Loads the mục chứa (tabs) configured for this game and keeps the current tab selected
-    /// across a refresh when it's still valid, defaulting to the first tab otherwise. Always
-    /// marks `containersLoaded` true at the end (even on a failed fetch, falling back to the
-    /// flat list) so the menu card's loading gate never hangs forever.
     private func loadContainers() async {
         defer { containersLoaded = true }
         guard let fetched = try? await PatchHubService.fetchContainers() else {
@@ -578,9 +704,6 @@ struct GamePatchesView: View {
         let states: [UUID: Bool] = await Task.detached(priority: .userInitiated) {
             var result: [UUID: Bool] = [:]
             for item in currentItems {
-                // Use hasReplacement so patches without bundled originalData are included.
-                // currentRuleState returns true when the replacement is active on disk even
-                // without originalData, so "all rules ON" detection works for both cases.
                 let applicable = (item.project?.rules ?? []).filter(\.hasReplacement)
                 guard !applicable.isEmpty else { continue }
                 let allOn = applicable.allSatisfy { DevicePatchService.currentRuleState(for: $0) == true }
@@ -596,14 +719,10 @@ struct GamePatchesView: View {
         let applicable = project.rules.filter(\.hasReplacement)
         guard !applicable.isEmpty, togglingProjectID == nil else { return }
 
-        // Patches that have originalData embedded can be toggled with a direct single-file
-        // write (fast, no journal). Patches without originalData use the apply/restore system
-        // which takes a live backup from the device before writing (then restores from it).
         let useSetRuleState = applicable.allSatisfy(\.canToggle)
 
         togglingProjectID = item.id
         Task.detached(priority: .userInitiated) {
-            // Verify key with server before every toggle-ON so a bypassed/fake key can't activate patches.
             if isOn {
                 guard await PatchHubService.verifyAccess() else {
                     await MainActor.run {
