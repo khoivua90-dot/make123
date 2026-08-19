@@ -85,6 +85,7 @@
 		3105K215 /* DeviceIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K115; };
 		3105K216 /* SmartModeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K116; };
 		3105K217 /* NetworkSecurityMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K117; };
+		3105K220 /* AppLauncher.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105K120; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -181,6 +182,8 @@
 		3105K115 /* DeviceIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceIdentity.swift; sourceTree = "<group>"; };
 		3105K116 /* SmartModeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeStore.swift; sourceTree = "<group>"; };
 		3105K117 /* NetworkSecurityMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSecurityMonitor.swift; sourceTree = "<group>"; };
+		3105K119 /* AppLauncher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppLauncher.h; sourceTree = "<group>"; };
+		3105K120 /* AppLauncher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppLauncher.m; sourceTree = "<group>"; };
 		3105A121 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3105A122 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3105B123 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -320,6 +323,8 @@
 				3105K115 /* DeviceIdentity.swift */,
 				3105K116 /* SmartModeStore.swift */,
 				3105K117 /* NetworkSecurityMonitor.swift */,
+				3105K119 /* AppLauncher.h */,
+				3105K120 /* AppLauncher.m */,
 			);
 			path = helpers;
 			sourceTree = "<group>";
@@ -477,6 +482,7 @@
 				3105K215,
 				3105K216,
 				3105K217,
+				3105K220,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

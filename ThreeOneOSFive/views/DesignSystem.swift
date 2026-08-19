@@ -41,6 +41,15 @@ enum AppTheme {
         )
     }
 
+    static let rowPalette: [Color] = [
+        Color(red: 1.00, green: 0.56, blue: 0.24),
+        Color(red: 0.96, green: 0.28, blue: 0.42),
+        Color(red: 0.30, green: 0.78, blue: 0.96),
+        Color(red: 0.66, green: 0.46, blue: 0.98),
+        Color(red: 0.36, green: 0.85, blue: 0.56),
+    ]
+    static func rowColor(_ index: Int) -> Color { rowPalette[index % rowPalette.count] }
+
     static func resolvedBannerColor(_ hex: String?) -> Color {
         guard let hex, let color = Color(hex: hex) else {
             return Color(red: 0.12, green: 0.09, blue: 0.28)
@@ -177,6 +186,60 @@ struct TechCardModifier: ViewModifier {
 extension View {
     func techCard(_ cornerRadius: CGFloat = 20) -> some View {
         modifier(TechCardModifier(cornerRadius: cornerRadius))
+    }
+}
+
+// MARK: - Toast
+
+struct ToastMessage: Identifiable, Equatable {
+    let id = UUID()
+    var text: String
+}
+
+private struct ToastOverlay: ViewModifier {
+    @Binding var toast: ToastMessage?
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(alignment: .top) {
+                if let toast {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.rowColor(4))
+                            .padding(.top, 1)
+                        Text(toast.text)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 13)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(AppTheme.techGlow.opacity(0.4), lineWidth: 1)
+                    )
+                    .shadow(color: AppTheme.techGlow.opacity(0.25), radius: 18, y: 6)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .id(toast.id)
+                    .task(id: toast.id) {
+                        try? await Task.sleep(nanoseconds: 2_800_000_000)
+                        if self.toast?.id == toast.id { self.toast = nil }
+                    }
+                }
+            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.78), value: toast)
+    }
+}
+
+extension View {
+    func toast(_ message: Binding<ToastMessage?>) -> some View {
+        modifier(ToastOverlay(toast: message))
     }
 }
 

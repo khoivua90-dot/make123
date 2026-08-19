@@ -37,8 +37,25 @@ enum DevicePatchService {
         return PatchTransaction.latestReceipt(projectID: projectID, backupRoot: backupRoot)
     }
 
+    static func setRuleState(_ isOn: Bool, rule: PatchRule) throws {
+        try withResolvedContainers(bundleIDs: [rule.bundleID]) { roots in
+            guard let root = roots[rule.bundleID] else {
+                throw PatchPackageError.targetAppUnavailable(rule.bundleID)
+            }
+            try PatchTransaction.setRuleState(isOn, rule: rule, containerRoot: root)
+        }
+    }
+
+    static func currentRuleState(for rule: PatchRule) -> Bool? {
+        try? withResolvedContainers(bundleIDs: [rule.bundleID]) { roots in
+            guard let root = roots[rule.bundleID] else { return nil }
+            return PatchTransaction.currentRuleState(rule: rule, containerRoot: root)
+        }
+    }
+
     private static func orderedBundleIdentifiers(in project: PatchProject) -> [String] {
-        project.allBundleIdentifiers
+        var seen = Set<String>()
+        return project.rules.compactMap { seen.insert($0.bundleID).inserted ? $0.bundleID : nil }
     }
 
     private static func withResolvedContainers<T>(
@@ -46,12 +63,20 @@ enum DevicePatchService {
         operation: ([String: URL]) throws -> T
     ) throws -> T {
         var roots: [String: URL] = [:]
+        var handles: [Int64] = []
+        defer { handles.forEach(bad_query_release) }
 
         for bundleID in bundleIDs {
             guard let path = ContainerStore.resolveAppContainerPath(bundleID: bundleID),
                   ContainerStore.isApplicationContainerPath(path) else {
                 throw PatchPackageError.targetAppUnavailable(bundleID)
             }
+            let handle = ContainerStore.grantContainerAccess(path)
+            guard handle >= 0 else {
+                log("patch: traversal grant failed for \(bundleID), result=\(handle)")
+                throw PatchPackageError.targetAppUnavailable(bundleID)
+            }
+            handles.append(handle)
             roots[bundleID] = PatchPathValidator.canonicalFileURL(URL(fileURLWithPath: path, isDirectory: true))
         }
         return try operation(roots)
