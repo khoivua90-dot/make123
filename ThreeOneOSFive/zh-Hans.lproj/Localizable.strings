@@ -147,6 +147,7 @@
 "accessibility.log_entry" = "日志条目 %lld：%@";
 
 "status.not_attempted" = "尚未尝试";
+"status.running" = "正在运行漏洞利用...";
 "status.ok_via" = "通过 %@ 成功";
 "status.failed_via" = "%@ 失败（%lld）";
 "status.unsupported_reason" = "不支持：%@";

@@ -140,11 +140,13 @@ enum AppInfo {
 
 // MARK: - Exploit status
 enum ExploitStatus: Equatable {
-    case notStarted, success(method: String), failed(method: String, code: Int64), unsupported(String)
+    case notStarted, running, success(method: String), failed(method: String, code: Int64), unsupported(String)
     var isSuccess: Bool { if case .success = self { return true }; return false }
+    var isRunning: Bool { if case .running = self { return true }; return false }
     var displayText: String {
         switch self {
         case .notStarted: return "Not attempted"
+        case .running: return "Running exploit..."
         case .success(let m): return "OK via \(m)"
         case .failed(let m, let c): return "FAILED \(m) (\(c))"
         case .unsupported(let m): return "Unsupported: \(m)"

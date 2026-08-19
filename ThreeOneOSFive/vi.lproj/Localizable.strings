@@ -147,6 +147,7 @@
 "accessibility.log_entry" = "Mục nhật ký %lld: %@";
 
 "status.not_attempted" = "Chưa thử";
+"status.running" = "Đang chạy exploit...";
 "status.ok_via" = "OK qua %@";
 "status.failed_via" = "THẤT BẠI %@ (%lld)";
 "status.unsupported_reason" = "Không hỗ trợ: %@";

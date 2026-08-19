@@ -68,18 +68,31 @@ class AppState: ObservableObject {
             exploitStatus = .success(method: "native")
             return
         }
-        // iOS 18+: MCM cấp sandbox extension token khi CodeDirectory = MHA.
-        // iOS 17: MCM có thêm lớp kiểm tra, trick bundle ID không đủ.
-        if v.major >= 18 {
-            if hasMobileHouseArrestCodeDirectory() {
-                exploitStatus = .success(method: "mha")
-            } else {
-                // CodeDirectory sai — free eSign tool đổi App ID → MCM từ chối.
-                exploitStatus = .failed(method: "mha-cert", code: -1)
+
+        // Chạy kexploit_opa334 trên background thread để tránh block UI.
+        // Nếu thành công → sandbox_escape → full filesystem access.
+        // Nếu fail → fall back sang MCM MHA path.
+        exploitStatus = .running
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let result = kexploit_and_escape()
+            DispatchQueue.main.async {
+                guard let self else { return }
+                if result == 0 {
+                    self.exploitStatus = .success(method: "kexploit")
+                } else {
+                    NSLog("[3105] kexploit_and_escape failed code=\(result), trying MCM fallback")
+                    self.resolveMHAFallback()
+                }
             }
+        }
+    }
+
+    private func resolveMHAFallback() {
+        // iOS 17 và 18: MCM cấp token khi CodeDirectory = MHA.
+        if hasMobileHouseArrestCodeDirectory() {
+            exploitStatus = .success(method: "mha")
         } else {
-            // iOS 17 eSigned: MCM không hỗ trợ dù có đúng CodeDirectory.
-            exploitStatus = .failed(method: "mha", code: -1)
+            exploitStatus = .failed(method: "mha-cert", code: -1)
         }
     }
 }

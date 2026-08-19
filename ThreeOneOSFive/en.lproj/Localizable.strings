@@ -147,6 +147,7 @@
 "accessibility.log_entry" = "Log entry %lld: %@";
 
 "status.not_attempted" = "Not attempted";
+"status.running" = "Running exploit...";
 "status.ok_via" = "OK via %@";
 "status.failed_via" = "FAILED %@ (%lld)";
 "status.unsupported_reason" = "Unsupported: %@";

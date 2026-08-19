@@ -51,6 +51,8 @@ extension ExploitStatus {
         switch self {
         case .notStarted:
             return language.text("status.not_attempted")
+        case .running:
+            return language.text("status.running")
         case .success(let method):
             let localizedMethod = method == "Simulator preview"
                 ? language.text("method.simulator_preview")
