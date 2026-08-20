@@ -134,6 +134,11 @@ struct GamesHomeView: View {
                     LicenseStatusBar()
                     bottomTabBar
                 }
+                .background(alignment: .bottom) {
+                    Color(red: 0.028, green: 0.046, blue: 0.108)
+                        .frame(height: 80)
+                        .ignoresSafeArea(edges: .bottom)
+                }
             }
             .toast($licenseGate.activationToast)
             .sheet(item: $announcement) { item in
