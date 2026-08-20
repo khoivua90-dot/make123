@@ -18,6 +18,24 @@ private struct TabBarTopBorder: Shape {
     }
 }
 
+// Chỉ bo góc trên — thay thế UnevenRoundedRectangle (iOS 17+) để tương thích iOS 16
+private struct TopRoundedShape: Shape {
+    var radius: CGFloat
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.minY + radius))
+        p.addArc(center: CGPoint(x: rect.minX + radius, y: rect.minY + radius),
+                 radius: radius, startAngle: .degrees(180), endAngle: .degrees(270), clockwise: false)
+        p.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
+        p.addArc(center: CGPoint(x: rect.maxX - radius, y: rect.minY + radius),
+                 radius: radius, startAngle: .degrees(270), endAngle: .degrees(0), clockwise: false)
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        p.closeSubpath()
+        return p
+    }
+}
+
 struct GamesHomeView: View {
     @Environment(\.appLanguage) private var language
     @EnvironmentObject private var draftCoordinator: PatchDraftCoordinator
@@ -373,11 +391,7 @@ struct GamesHomeView: View {
     // MARK: - Bottom Tab Bar
 
     private var bottomTabBar: some View {
-        let shape = UnevenRoundedRectangle(
-            topLeadingRadius: 22, bottomLeadingRadius: 0,
-            bottomTrailingRadius: 0, topTrailingRadius: 22,
-            style: .continuous
-        )
+        let shape = TopRoundedShape(radius: 22)
         return HStack(spacing: 0) {
             tabItem(icon: "gamecontroller.fill", label: "Game", index: 0)
             tabItem(icon: "square.grid.2x2.fill", label: "Ứng dụng", index: 1)
