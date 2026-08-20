@@ -61,15 +61,6 @@ struct GamesHomeView: View {
             ZStack {
                 TechBackground()
 
-                // Phủ vùng home indicator bằng màu nền của tab bar
-                VStack(spacing: 0) {
-                    Spacer()
-                    Color(red: 0.028, green: 0.046, blue: 0.108)
-                        .frame(height: 0)
-                        .ignoresSafeArea(edges: .bottom)
-                }
-                .allowsHitTesting(false)
-
                 if selectedTab == 0 {
                     ScrollView {
                         VStack(spacing: 0) {
@@ -142,6 +133,10 @@ struct GamesHomeView: View {
                 VStack(spacing: 10) {
                     LicenseStatusBar()
                     bottomTabBar
+                }
+                .background {
+                    Color(red: 0.028, green: 0.046, blue: 0.108)
+                        .ignoresSafeArea(edges: .bottom)
                 }
             }
             .toast($licenseGate.activationToast)
