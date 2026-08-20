@@ -115,13 +115,14 @@ struct GamesHomeView: View {
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 VStack(spacing: 10) {
                     LicenseStatusBar()
-                    bottomTabBar
+                    // ZStack kéo cùng màu nền xuống qua home indicator
+                    ZStack(alignment: .bottom) {
+                        Color(red: 0.028, green: 0.046, blue: 0.108)
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, -300)
+                        bottomTabBar
+                    }
                 }
-                .padding(.bottom, 0)
-                .background(
-                    Color(red: 0.028, green: 0.046, blue: 0.108)
-                        .padding(.bottom, -300)
-                )
             }
             .toast($licenseGate.activationToast)
             .sheet(item: $announcement) { item in
@@ -373,8 +374,7 @@ struct GamesHomeView: View {
         .padding(.horizontal, 8)
         .padding(.top, 6)
         .padding(.bottom, 4)
-        .background(Color(red: 0.028, green: 0.046, blue: 0.108).opacity(0.96))
-        .background(.ultraThinMaterial)
+        .background(Color(red: 0.028, green: 0.046, blue: 0.108))
         .clipShape(shape)
         .overlay(
             // Chỉ vẽ viền top + 2 cạnh bên, không vẽ cạnh đáy
