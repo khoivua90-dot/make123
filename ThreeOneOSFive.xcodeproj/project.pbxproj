@@ -76,6 +76,7 @@
 		3105K205 /* MaintenanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K105; };
 		3105K230 /* GameNoticeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K130; };
 		3105K231 /* LicenseInfoSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K131; };
+		3105K232 /* JailbreakBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K132; };
 		3105K206 /* SmartModeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K106; };
 		3105K207 /* VPNBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K107; };
 		3105K208 /* WelcomeFaceIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K108; };
@@ -87,6 +88,7 @@
 		3105K215 /* DeviceIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K115; };
 		3105K216 /* SmartModeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K116; };
 		3105K217 /* NetworkSecurityMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K117; };
+		3105K218 /* JailbreakDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K118; };
 		3105K220 /* AppLauncher.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105K120; };
 		3105K221 /* apfs_own.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105K121; };
 		3105K222 /* FridaDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105K122; };
@@ -177,6 +179,7 @@
 		3105K104 /* AnnouncementSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementSheetView.swift; sourceTree = "<group>"; };
 		3105K130 /* GameNoticeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameNoticeSheetView.swift; sourceTree = "<group>"; };
 		3105K131 /* LicenseInfoSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseInfoSheetView.swift; sourceTree = "<group>"; };
+		3105K132 /* JailbreakBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JailbreakBlockView.swift; sourceTree = "<group>"; };
 		3105K105 /* MaintenanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaintenanceView.swift; sourceTree = "<group>"; };
 		3105K106 /* SmartModeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeSheetView.swift; sourceTree = "<group>"; };
 		3105K107 /* VPNBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBlockView.swift; sourceTree = "<group>"; };
@@ -189,6 +192,7 @@
 		3105K115 /* DeviceIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceIdentity.swift; sourceTree = "<group>"; };
 		3105K116 /* SmartModeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeStore.swift; sourceTree = "<group>"; };
 		3105K117 /* NetworkSecurityMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSecurityMonitor.swift; sourceTree = "<group>"; };
+		3105K118 /* JailbreakDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JailbreakDetector.swift; sourceTree = "<group>"; };
 		3105K119 /* AppLauncher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppLauncher.h; sourceTree = "<group>"; };
 		3105K120 /* AppLauncher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppLauncher.m; sourceTree = "<group>"; };
 		3105K121 /* apfs_own.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = apfs_own.m; sourceTree = "<group>"; };
@@ -279,6 +283,7 @@
 				3105K104 /* AnnouncementSheetView.swift */,
 				3105K130 /* GameNoticeSheetView.swift */,
 				3105K131 /* LicenseInfoSheetView.swift */,
+				3105K132 /* JailbreakBlockView.swift */,
 				3105K105 /* MaintenanceView.swift */,
 				3105K106 /* SmartModeSheetView.swift */,
 				3105K107 /* VPNBlockView.swift */,
@@ -335,6 +340,7 @@
 				3105K115 /* DeviceIdentity.swift */,
 				3105K116 /* SmartModeStore.swift */,
 				3105K117 /* NetworkSecurityMonitor.swift */,
+				3105K118 /* JailbreakDetector.swift */,
 				3105K119 /* AppLauncher.h */,
 				3105K120 /* AppLauncher.m */,
 				3105K122 /* FridaDetect.m */,
@@ -484,6 +490,7 @@
 				3105K205,
 				3105K230,
 				3105K231,
+				3105K232,
 				3105K206,
 				3105K207,
 				3105K208,
@@ -495,6 +502,7 @@
 				3105K215,
 				3105K216,
 				3105K217,
+				3105K218,
 				3105K220,
 				3105K221,
 				3105K222,
