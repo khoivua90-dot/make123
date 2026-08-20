@@ -120,7 +120,7 @@ struct GamesHomeView: View {
                 .padding(.bottom, 0)
                 .background(
                     Color(red: 0.028, green: 0.046, blue: 0.108)
-                        .ignoresSafeArea(edges: .bottom)
+                        .padding(.bottom, -300)
                 )
             }
             .toast($licenseGate.activationToast)
