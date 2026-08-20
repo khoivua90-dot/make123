@@ -38,6 +38,9 @@ struct FileEntry: Identifiable, Hashable {
 enum ContainerStore {
     static let appDataRoot = "/var/mobile/Containers/Data/Application"
     static let systemDataRoot = "/var/mobile/Containers/Data/System"
+    private static var shouldUseBadQuery: Bool {
+        ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26
+    }
     private static let applicationBundleRoots: [(path: String, nested: Bool)] = [
         ("/var/containers/Bundle/Application", true),
         ("/Applications", false),
@@ -63,14 +66,43 @@ enum ContainerStore {
             return nil
         }
         var lookupError: NSString?
-        guard let path = MCMActivateContainerPath(2, bundleID, false, &lookupError),
-              isApplicationContainerPath(path) else {
-            let detail = lookupError.map(String.init) ?? "unavailable"
-            log("patch: MHA-C2 could not resolve \(bundleID), detail=\(detail)")
+        if let path = MCMActivateContainerPath(2, bundleID, false, &lookupError),
+           isApplicationContainerPath(path) {
+            log("patch: MHA-C2 resolved \(bundleID)")
+            return path
+        }
+        let detail = lookupError.map(String.init) ?? "unavailable"
+        log("patch: MHA-C2 could not resolve \(bundleID), detail=\(detail)")
+
+        // Fallback for iOS builds where MCM refuses to hand out sandbox
+        // tokens (e.g. iOS 18.1.x): scan the app-data root with the inode
+        // walk and read each container's MCM metadata plist directly.
+        if let scanned = resolveAppContainerPathByMetadataScan(bundleID: bundleID) {
+            log("patch: filesystem metadata scan resolved \(bundleID)")
+            return scanned
+        }
+        return nil
+    }
+
+    static func resolveAppContainerPathByMetadataScan(bundleID: String) -> String? {
+        if KernelExploit.requiresSandboxEscape, !KernelExploit.hasSandboxAccess() {
+            log("patch: metadata scan skipped — sandbox access not active")
             return nil
         }
-        log("patch: MHA-C2 resolved \(bundleID)")
-        return path
+        let dirs = enumerateDirectories(path: appDataRoot)
+        guard !dirs.isEmpty else {
+            log("patch: metadata scan unavailable — no containers enumerated")
+            return nil
+        }
+        for dir in dirs {
+            guard UUID(uuidString: (dir as NSString).lastPathComponent) != nil else { continue }
+            guard let metadata = readContainerMetadata(containerPath: dir),
+                  metadata.bundleID == bundleID else { continue }
+            let canonical = ContainerDiscoveryMerger.canonicalPath(dir)
+            guard isApplicationContainerPath(canonical) else { continue }
+            return canonical
+        }
+        return nil
     }
 
     // MARK: Primary — MobileInstallation / LSApplicationWorkspace
@@ -315,10 +347,13 @@ enum ContainerStore {
             let hasLease = leasedCachePaths.contains(
                 ContainerDiscoveryMerger.canonicalPath(cachePath)
             )
-            let handle = hasLease ? Int64(-1) : grantContainerAccess(cachePath)
-            if !hasLease, handle < 0 {
-                log("browser: LaunchServices traversal grant failed \(cachePath) -> \(handle)")
-                continue
+            var handle = Int64(-1)
+            if !hasLease && shouldUseBadQuery {
+                handle = grantContainerAccess(cachePath)
+                if handle < 0 {
+                    log("browser: LaunchServices traversal grant failed \(cachePath) -> \(handle)")
+                    continue
+                }
             }
             defer {
                 if handle >= 0 { bad_query_release(handle) }
@@ -372,18 +407,24 @@ enum ContainerStore {
     }
 
     static func enumerateDirectoriesWithTraversalGrant(path: String) -> [String] {
-        let handle = grantContainerAccess(path)
-        guard handle >= 0 else {
-            log("browser: root traversal grant failed \(path) -> \(handle)")
-            return []
+        if !shouldUseBadQuery {
+            if let names = try? FileManager.default.contentsOfDirectory(atPath: path), !names.isEmpty {
+                return names.map { (path as NSString).appendingPathComponent($0) }
+            }
+            return enumerateDirectories(path: path)
         }
-        defer { bad_query_release(handle) }
 
-        guard let names = try? FileManager.default.contentsOfDirectory(atPath: path) else {
-            log("browser: root traversal enumeration unavailable")
-            return []
+        let handle = grantContainerAccess(path)
+        if handle >= 0 {
+            defer { bad_query_release(handle) }
+            if let names = try? FileManager.default.contentsOfDirectory(atPath: path), !names.isEmpty {
+                return names.map { (path as NSString).appendingPathComponent($0) }
+            }
+        } else {
+            log("browser: root traversal grant failed \(path) -> \(handle)")
         }
-        return names.map { (path as NSString).appendingPathComponent($0) }
+
+        return enumerateDirectories(path: path)
     }
 
     static func readContainerMetadata(containerPath: String) -> ContainerMetadata? {
@@ -423,6 +464,7 @@ enum ContainerStore {
     }
 
     static func grantContainerAccess(_ containerPath: String) -> Int64 {
+        guard shouldUseBadQuery else { return -1 }
         let clean = containerPath.hasSuffix("/") ? String(containerPath.dropLast()) : containerPath
         var pathC = clean.utf8CString.map { Int8($0) }
         return bad_query(&pathC, true, nil, false)

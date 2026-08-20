@@ -63,20 +63,12 @@ enum DevicePatchService {
         operation: ([String: URL]) throws -> T
     ) throws -> T {
         var roots: [String: URL] = [:]
-        var handles: [Int64] = []
-        defer { handles.forEach(bad_query_release) }
 
         for bundleID in bundleIDs {
             guard let path = ContainerStore.resolveAppContainerPath(bundleID: bundleID),
                   ContainerStore.isApplicationContainerPath(path) else {
                 throw PatchPackageError.targetAppUnavailable(bundleID)
             }
-            let handle = ContainerStore.grantContainerAccess(path)
-            guard handle >= 0 else {
-                log("patch: traversal grant failed for \(bundleID), result=\(handle)")
-                throw PatchPackageError.targetAppUnavailable(bundleID)
-            }
-            handles.append(handle)
             roots[bundleID] = PatchPathValidator.canonicalFileURL(URL(fileURLWithPath: path, isDirectory: true))
         }
         return try operation(roots)
