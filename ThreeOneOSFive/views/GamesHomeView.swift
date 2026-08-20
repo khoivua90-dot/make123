@@ -134,8 +134,6 @@ struct GamesHomeView: View {
                     LicenseStatusBar()
                     bottomTabBar
                 }
-                .background(Color(red: 0.028, green: 0.046, blue: 0.108))
-                .ignoresSafeArea(edges: .bottom)
             }
             .toast($licenseGate.activationToast)
             .sheet(item: $announcement) { item in
@@ -388,7 +386,6 @@ struct GamesHomeView: View {
         .padding(.horizontal, 8)
         .padding(.top, 6)
         .padding(.bottom, 4)
-        .background(Color(red: 0.028, green: 0.046, blue: 0.108).opacity(0.96))
         .background(.ultraThinMaterial)
         .clipShape(shape)
         .overlay(
