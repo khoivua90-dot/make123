@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 struct PatchLibraryItem: Identifiable {
@@ -15,7 +16,15 @@ struct PatchPasswordRequest: Identifiable {
     var id: UUID { summary.packageID }
 }
 
+private let localStorageMagic = Data("CHEATIOSPATCH\0".utf8)
+
 enum PatchProjectLibrary {
+    // Key derived from device UUID — files encrypted with this key cannot be used on other devices
+    private static func storageKey() -> SymmetricKey {
+        let keyMaterial = Data("3105LOCAL/v1/\(DeviceIdentity.current)".utf8)
+        return SymmetricKey(data: SHA256.hash(data: keyMaterial))
+    }
+
     static func packageRootURL(fileManager: FileManager = .default) throws -> URL {
         let base = try fileManager.url(
             for: .applicationSupportDirectory,
@@ -54,6 +63,8 @@ enum PatchProjectLibrary {
         var byID: [UUID: PatchLibraryItem] = [:]
         for url in urls where url.pathExtension.lowercased() == "dat" {
             do {
+                let raw = (try? Data(contentsOf: url, options: .mappedIfSafe)) ?? Data()
+                let isLegacy = raw.prefix(localStorageMagic.count) == localStorageMagic
                 let data = try readPackage(at: url)
                 let summary = try PatchPackageCodec.inspect(data)
                 let decoded: DecodedPatchPackage?
@@ -71,6 +82,8 @@ enum PatchProjectLibrary {
                     packageURL: url
                 )
                 byID[summary.packageID] = item
+                // Migrate legacy plain files to device-encrypted format
+                if isLegacy { try? save(data: data, projectName: "", existingURL: url) }
             } catch {
                 log("patch: skipped invalid local package \(url.lastPathComponent)")
             }
@@ -88,7 +101,17 @@ enum PatchProjectLibrary {
               fileSize <= PatchPackageLimits.maximumPackageBytes else {
             throw PatchPackageError.sizeLimitExceeded
         }
-        return try Data(contentsOf: url, options: .mappedIfSafe)
+        let raw = try Data(contentsOf: url, options: .mappedIfSafe)
+        // Try device-specific decryption first (new format)
+        if let box = try? AES.GCM.SealedBox(combined: raw),
+           let decrypted = try? AES.GCM.open(box, using: storageKey()) {
+            return decrypted
+        }
+        // Fall back to legacy plain format (pre-device-lock)
+        if raw.prefix(localStorageMagic.count) == localStorageMagic {
+            return raw
+        }
+        throw PatchPackageError.invalidPasswordOrCorruptedPackage
     }
 
     static func save(
@@ -107,7 +130,11 @@ enum PatchProjectLibrary {
             let root = try packageRootURL(fileManager: fileManager)
             destination = root.appendingPathComponent(UUID().uuidString).appendingPathExtension("dat")
         }
-        try data.write(to: destination, options: [.atomic, .completeFileProtection])
+        // Encrypt with device-specific key so file cannot be used on other devices
+        guard let encrypted = try? AES.GCM.seal(data, using: storageKey()).combined else {
+            throw PatchPackageError.invalidProject
+        }
+        try encrypted.write(to: destination, options: [.atomic, .completeFileProtection])
         return destination
     }
 
