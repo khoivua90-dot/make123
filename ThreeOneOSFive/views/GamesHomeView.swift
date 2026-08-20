@@ -1,6 +1,23 @@
 import SwiftUI
 import UIKit
 
+// Chỉ vẽ viền top + 2 cạnh bên (không có cạnh đáy)
+private struct TabBarTopBorder: Shape {
+    var radius: CGFloat
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.minY + radius))
+        p.addArc(center: CGPoint(x: rect.minX + radius, y: rect.minY + radius),
+                 radius: radius, startAngle: .degrees(180), endAngle: .degrees(270), clockwise: false)
+        p.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
+        p.addArc(center: CGPoint(x: rect.maxX - radius, y: rect.minY + radius),
+                 radius: radius, startAngle: .degrees(270), endAngle: .degrees(0), clockwise: false)
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        return p
+    }
+}
+
 struct GamesHomeView: View {
     @Environment(\.appLanguage) private var language
     @EnvironmentObject private var draftCoordinator: PatchDraftCoordinator
@@ -365,6 +382,7 @@ struct GamesHomeView: View {
             tabItem(icon: "gamecontroller.fill", label: "Game", index: 0)
             tabItem(icon: "square.grid.2x2.fill", label: "Ứng dụng", index: 1)
         }
+        .fixedSize(horizontal: false, vertical: true)
         .padding(.horizontal, 8)
         .padding(.top, 6)
         .padding(.bottom, 4)
@@ -372,19 +390,7 @@ struct GamesHomeView: View {
         .background(.ultraThinMaterial)
         .clipShape(shape)
         .overlay(
-            // Chỉ vẽ viền top + 2 cạnh bên, không vẽ cạnh đáy
-            GeometryReader { geo in
-                let r: CGFloat = 22
-                Path { p in
-                    p.move(to: CGPoint(x: 0, y: geo.size.height))
-                    p.addLine(to: CGPoint(x: 0, y: r))
-                    p.addArc(center: CGPoint(x: r, y: r), radius: r,
-                             startAngle: .degrees(180), endAngle: .degrees(270), clockwise: false)
-                    p.addLine(to: CGPoint(x: geo.size.width - r, y: 0))
-                    p.addArc(center: CGPoint(x: geo.size.width - r, y: r), radius: r,
-                             startAngle: .degrees(270), endAngle: .degrees(0), clockwise: false)
-                    p.addLine(to: CGPoint(x: geo.size.width, y: geo.size.height))
-                }
+            TabBarTopBorder(radius: 22)
                 .stroke(
                     LinearGradient(
                         colors: [AppTheme.techGlow.opacity(0.40), AppTheme.neonPurple.opacity(0.30)],
@@ -392,7 +398,6 @@ struct GamesHomeView: View {
                     ),
                     lineWidth: 1
                 )
-            }
         )
         .shadow(color: AppTheme.neonPurple.opacity(0.14), radius: 16, y: -3)
     }
