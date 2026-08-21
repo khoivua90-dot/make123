@@ -12,7 +12,7 @@ struct SettingsView: View {
                     AppLogo()
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("HELY FF").font(.headline)
+                        Text("External - iOS V3").font(.headline)
                         Text(language.text("common.version", appVersion))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)

@@ -21,14 +21,14 @@ enum AppTheme {
     static let emptyIconSize: CGFloat = 30
     static let selectionIconSize: CGFloat = 18
 
-    // MARK: - Ocean sunset palette
-    static let techBackgroundTop    = Color(red: 0.04, green: 0.12, blue: 0.28)
-    static let techBackgroundBottom = Color(red: 0.02, green: 0.06, blue: 0.16)
-    static let techGlow             = Color(red: 1.00, green: 0.60, blue: 0.15)   // sunset gold
-    static let neonPurple           = Color(red: 0.52, green: 0.36, blue: 0.92)   // twilight purple
-    static let neonCyan             = Color(red: 0.30, green: 0.78, blue: 0.96)   // sky blue
-    static let techCardFill         = Color(red: 0.20, green: 0.45, blue: 0.80).opacity(0.12)
-    static let techCardStroke       = Color(red: 1.00, green: 0.65, blue: 0.20).opacity(0.35)
+    // MARK: - Electronic interface palette
+    static let techBackgroundTop    = Color(red: 0.00, green: 0.02, blue: 0.08)
+    static let techBackgroundBottom = Color(red: 0.00, green: 0.01, blue: 0.05)
+    static let techGlow             = Color(red: 0.10, green: 0.85, blue: 1.00)   // electric cyan
+    static let neonPurple           = Color(red: 0.55, green: 0.15, blue: 0.95)   // neon purple
+    static let neonCyan             = Color(red: 0.10, green: 0.95, blue: 0.80)   // matrix green-cyan
+    static let techCardFill         = Color(red: 0.05, green: 0.10, blue: 0.20).opacity(0.75)
+    static let techCardStroke       = Color(red: 0.10, green: 0.85, blue: 1.00).opacity(0.35)
 
     static let rowPalette: [Color] = [
         Color(red: 1.00, green: 0.56, blue: 0.24),
@@ -47,16 +47,37 @@ enum AppTheme {
     }
 }
 
-// MARK: - App Background
+// MARK: - Animated Electronic Background
 
 struct TechBackground: View {
     var body: some View {
-        GeometryReader { geo in
-            Image("AppBackground")
-                .resizable()
-                .scaledToFill()
-                .frame(width: geo.size.width, height: geo.size.height)
-                .clipped()
+        ZStack {
+            // Deep dark base
+            LinearGradient(
+                colors: [
+                    Color(red: 0.00, green: 0.02, blue: 0.08),
+                    Color(red: 0.01, green: 0.04, blue: 0.12),
+                    Color(red: 0.00, green: 0.02, blue: 0.07)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            // Circuit grid
+            CircuitGridView().opacity(0.22)
+            // Matrix rain
+            MatrixRainView().opacity(0.60)
+            // Top cyan glow
+            RadialGradient(
+                colors: [Color(red: 0.10, green: 0.85, blue: 1.00).opacity(0.18), Color.clear],
+                center: UnitPoint(x: 0.5, y: 0.0), startRadius: 0, endRadius: 300
+            )
+            // Bottom purple glow
+            RadialGradient(
+                colors: [Color(red: 0.45, green: 0.10, blue: 0.90).opacity(0.14), Color.clear],
+                center: UnitPoint(x: 0.5, y: 1.0), startRadius: 0, endRadius: 260
+            )
+            // Scanlines overlay
+            ScanlinesView().opacity(0.06)
         }
         .ignoresSafeArea()
     }
@@ -86,6 +107,24 @@ private struct CircuitGridView: View {
                 }
             }
             ctx.stroke(path, with: color, lineWidth: 0.4)
+        }
+    }
+}
+
+// MARK: - Scanlines overlay
+
+private struct ScanlinesView: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let lineSpacing: CGFloat = 4
+            let rows = Int(size.height / lineSpacing)
+            var path = Path()
+            for r in 0..<rows {
+                let y = CGFloat(r) * lineSpacing
+                path.move(to: CGPoint(x: 0, y: y))
+                path.addLine(to: CGPoint(x: size.width, y: y))
+            }
+            ctx.stroke(path, with: .color(.white), lineWidth: 0.5)
         }
     }
 }
