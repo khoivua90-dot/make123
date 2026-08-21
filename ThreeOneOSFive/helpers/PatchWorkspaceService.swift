@@ -7,7 +7,7 @@ enum PatchWorkspaceService {
         var displayName: String
     }
 
-    private static let manifestFilename = ".3105-project.plist"
+    private static let manifestFilename = ".cheatiosvip-project.plist"
     private static let manifestSchemaVersion = 1
 
     static func documentsRootURL(fileManager: FileManager = .default) throws -> URL {
@@ -48,7 +48,7 @@ enum PatchWorkspaceService {
             fileManager: fileManager
         )
         let staging = root.appendingPathComponent(
-            ".3105-workspace-\(UUID().uuidString)",
+            ".cheatiosvip-workspace-\(UUID().uuidString)",
             isDirectory: true
         )
         defer { try? fileManager.removeItem(at: staging) }
@@ -133,7 +133,7 @@ enum PatchWorkspaceService {
             fileManager: fileManager
         )
         let displaced = root.appendingPathComponent(
-            ".3105-displaced-workspace-\(UUID().uuidString)",
+            ".cheatiosvip-displaced-workspace-\(UUID().uuidString)",
             isDirectory: true
         )
 

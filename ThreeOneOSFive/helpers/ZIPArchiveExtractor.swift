@@ -87,7 +87,7 @@ enum ZIPArchiveExtractor {
             fileManager: fileManager
         )
         let staging = destinationDirectory.appendingPathComponent(
-            ".3105-unzip-\(UUID().uuidString)",
+            ".cheatiosvip-unzip-\(UUID().uuidString)",
             isDirectory: true
         )
         defer { try? fileManager.removeItem(at: staging) }
