@@ -184,9 +184,9 @@ struct GamesHomeView: View {
     private var cyberHeader: some View {
         HStack(alignment: .top, spacing: 0) {
             VStack(alignment: .leading, spacing: 5) {
-                // Title row: "CheatiOSVip" + crown+DSW block
+                // Title row: "Stew Proxy" + crown+DSW block
                 HStack(alignment: .bottom, spacing: 8) {
-                    Text("CheatiOSVip")
+                    Text("Stew Proxy")
                         .font(.system(size: 30, weight: .black))
                         .foregroundStyle(
                             LinearGradient(
