@@ -1,4 +1,4 @@
-﻿// !UTF8*0
+// !UTF8*0
 {
 	archiveVersion = 1;
 	classes = {
@@ -22,10 +22,13 @@
 		3105A223 /* kutils.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105A083; };
 		3105A224 /* vnode.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105A084; };
 		3105A225 /* sandbox_escape.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105A085; };
-		3105K003 /* apfs_own.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105K001; };
 		3105A226 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A098; };
 		3105A227 /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A099; };
 		3105A235 /* AppIconHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105A106; };
+		3105A208 /* KernelExploit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A202; };
+		3105J200 /* AntiDetection.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105J201; };
+		3105J204 /* DisplayIdentity.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105J203; };
+		3105J206 /* DisplayIdentityAttribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105J205; };
 		3105A236 /* ContainerIdentityResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A108; };
 		3105A237 /* ContainerBrowserLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A109; };
 		3105A238 /* FileReplacementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A110; };
@@ -41,41 +44,55 @@
 		3105B220 /* PatchProjectStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105B120; };
 		3105B221 /* PatchProjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105B121; };
 		3105B222 /* PatchProjectEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105B122; };
-		3105G002 /* PatchHubService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G004; };
-		3105G005 /* GamesHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G006; };
-		3105G007 /* GamePatchesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G008; };
-		3105G009 /* RemoteImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G010; };
-		3105G011 /* DeviceIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G012; };
-		3105G013 /* LicenseKeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G014; };
-		3105G015 /* LicenseGateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G016; };
-		3105G017 /* KeyEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G018; };
-		3105G043 /* LicenseStatusBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G044; };
-		3105G045 /* LicenseInfoSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G046; };
-		3105G021 /* AnnouncementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G022; };
-		3105G023 /* AnnouncementSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G024; };
-		3105G025 /* WelcomeFaceIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G026; };
-		3105G027 /* MaintenanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G028; };
-		3105N001 /* NetworkSecurityMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105N002; };
-		3105N003 /* VPNBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105N004; };
-		3105N005 /* FridaDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105N006; };
-		3105N007 /* IntegrityGuard.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105N008; };
-		3105G030 /* SmartModeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G031; };
-		3105G032 /* SmartModeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G033; };
-		3105G040 /* AppLauncher.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105G041; };
 		3105C200 /* PatchDraftService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C100; };
 		3105C201 /* PatchDraftCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C101; };
 		3105C202 /* FolderPatchSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105C102; };
+		3105E200 /* LimitedCleanerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105E100; };
+		3105E201 /* CleanerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105E101; };
+		3105E202 /* CleanerCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105E102; };
 		3105F200 /* wallpaper_zip.c in Sources */ = {isa = PBXBuildFile; fileRef = 3105F100; };
 		3105F201 /* WallpaperLabModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105F102; };
 		3105F202 /* SecureZIPArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105F103; };
 		3105F203 /* WallpaperInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105F104; };
 		3105F204 /* WallpaperLabService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105F105; };
 		3105F205 /* WallpaperLabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105F106; };
+		3105F206 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105F108; };
+		3105G200 /* ZIPArchiveWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G100; };
+		3105G201 /* FileOperationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G101; };
+		3105G202 /* ZIPArchiveExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G102; };
+		3105G203 /* PatchWorkspaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G103; };
+		3105H200 /* AppTabNavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105H100; };
+		3105I200 /* FilesTabControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105I100; };
+		3105I201 /* FilesTabSwitcherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105I101; };
 		3105A233 /* ContainerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A104; };
 		3105A234 /* AppDataBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A105; };
 		3105A228 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3105A120; };
 		3105A211 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3105A031; };
-
+		3105K200 /* GamesHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K100; };
+		3105K201 /* GamePatchesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K101; };
+		3105K202 /* LicenseStatusBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K102; };
+		3105K203 /* KeyEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K103; };
+		3105K204 /* AnnouncementSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K104; };
+		3105K205 /* MaintenanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K105; };
+		3105K230 /* GameNoticeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K130; };
+		3105K231 /* LicenseInfoSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K131; };
+		3105K232 /* JailbreakBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K132; };
+		3105K206 /* SmartModeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K106; };
+		3105K207 /* VPNBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K107; };
+		3105K208 /* WelcomeFaceIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K108; };
+		3105K210 /* AnnouncementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K110; };
+		3105K211 /* PatchHubService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K111; };
+		3105K212 /* RemoteImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K112; };
+		3105K213 /* LicenseGateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K113; };
+		3105K214 /* LicenseKeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K114; };
+		3105K215 /* DeviceIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K115; };
+		3105K216 /* SmartModeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K116; };
+		3105K217 /* NetworkSecurityMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K117; };
+		3105K218 /* JailbreakDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K118; };
+		3105K220 /* AppLauncher.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105K120; };
+		3105K221 /* apfs_own.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105K121; };
+		3105K222 /* FridaDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105K122; };
+		3105K223 /* IntegrityGuard.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105K123; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -100,8 +117,6 @@
 		3105A083 /* kutils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = kutils.m; sourceTree = "<group>"; };
 		3105A084 /* vnode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = vnode.m; sourceTree = "<group>"; };
 		3105A085 /* sandbox_escape.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = sandbox_escape.m; sourceTree = "<group>"; };
-		3105K001 /* apfs_own.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = apfs_own.m; sourceTree = "<group>"; };
-		3105K002 /* apfs_own.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = apfs_own.h; sourceTree = "<group>"; };
 		3105A090 /* kexploit_opa334.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kexploit_opa334.h; sourceTree = "<group>"; };
 		3105A091 /* offsets.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = offsets.h; sourceTree = "<group>"; };
 		3105A092 /* krw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = krw.h; sourceTree = "<group>"; };
@@ -116,6 +131,11 @@
 		3105A105 /* AppDataBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataBrowserView.swift; sourceTree = "<group>"; };
 		3105A106 /* AppIconHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppIconHelper.m; sourceTree = "<group>"; };
 		3105A107 /* AppIconHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppIconHelper.h; sourceTree = "<group>"; };
+		3105A202 /* KernelExploit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KernelExploit.swift; sourceTree = "<group>"; };
+		3105J201 /* AntiDetection.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AntiDetection.m; sourceTree = "<group>"; };
+		3105J202 /* DisplayIdentity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DisplayIdentity.h; sourceTree = "<group>"; };
+		3105J203 /* DisplayIdentity.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DisplayIdentity.m; sourceTree = "<group>"; };
+		3105J205 /* DisplayIdentityAttribution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayIdentityAttribution.swift; sourceTree = "<group>"; };
 		3105A108 /* ContainerIdentityResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerIdentityResolver.swift; sourceTree = "<group>"; };
 		3105A109 /* ContainerBrowserLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerBrowserLogic.swift; sourceTree = "<group>"; };
 		3105A110 /* FileReplacementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileReplacementService.swift; sourceTree = "<group>"; };
@@ -131,32 +151,12 @@
 		3105B120 /* PatchProjectStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchProjectStore.swift; sourceTree = "<group>"; };
 		3105B121 /* PatchProjectsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchProjectsView.swift; sourceTree = "<group>"; };
 		3105B122 /* PatchProjectEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchProjectEditorView.swift; sourceTree = "<group>"; };
-		3105G004 /* PatchHubService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchHubService.swift; sourceTree = "<group>"; };
-		3105G006 /* GamesHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamesHomeView.swift; sourceTree = "<group>"; };
-		3105G008 /* GamePatchesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamePatchesView.swift; sourceTree = "<group>"; };
-		3105G010 /* RemoteImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteImageCache.swift; sourceTree = "<group>"; };
-		3105G012 /* DeviceIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceIdentity.swift; sourceTree = "<group>"; };
-		3105G014 /* LicenseKeyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseKeyService.swift; sourceTree = "<group>"; };
-		3105G016 /* LicenseGateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseGateStore.swift; sourceTree = "<group>"; };
-		3105G018 /* KeyEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEntryView.swift; sourceTree = "<group>"; };
-		3105G044 /* LicenseStatusBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseStatusBar.swift; sourceTree = "<group>"; };
-		3105G046 /* LicenseInfoSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseInfoSheetView.swift; sourceTree = "<group>"; };
-		3105G022 /* AnnouncementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementService.swift; sourceTree = "<group>"; };
-		3105G024 /* AnnouncementSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementSheetView.swift; sourceTree = "<group>"; };
-		3105G026 /* WelcomeFaceIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeFaceIcon.swift; sourceTree = "<group>"; };
-		3105G028 /* MaintenanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaintenanceView.swift; sourceTree = "<group>"; };
-		3105N002 /* NetworkSecurityMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSecurityMonitor.swift; sourceTree = "<group>"; };
-		3105N004 /* VPNBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBlockView.swift; sourceTree = "<group>"; };
-		3105N006 /* FridaDetect.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FridaDetect.m; sourceTree = "<group>"; };
-		3105N008 /* IntegrityGuard.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = IntegrityGuard.m; sourceTree = "<group>"; };
-		3105G031 /* SmartModeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeStore.swift; sourceTree = "<group>"; };
-		3105G033 /* SmartModeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeSheetView.swift; sourceTree = "<group>"; };
-		3105G041 /* AppLauncher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppLauncher.m; sourceTree = "<group>"; };
-		3105G042 /* AppLauncher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppLauncher.h; sourceTree = "<group>"; };
-
 		3105C100 /* PatchDraftService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDraftService.swift; sourceTree = "<group>"; };
 		3105C101 /* PatchDraftCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDraftCoordinator.swift; sourceTree = "<group>"; };
 		3105C102 /* FolderPatchSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderPatchSelectionView.swift; sourceTree = "<group>"; };
+		3105E100 /* LimitedCleanerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitedCleanerService.swift; sourceTree = "<group>"; };
+		3105E101 /* CleanerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanerView.swift; sourceTree = "<group>"; };
+		3105E102 /* CleanerCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanerCatalog.swift; sourceTree = "<group>"; };
 		3105F100 /* wallpaper_zip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = wallpaper_zip.c; sourceTree = "<group>"; };
 		3105F101 /* wallpaper_zip.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wallpaper_zip.h; sourceTree = "<group>"; };
 		3105F102 /* WallpaperLabModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperLabModels.swift; sourceTree = "<group>"; };
@@ -164,6 +164,40 @@
 		3105F104 /* WallpaperInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperInstaller.swift; sourceTree = "<group>"; };
 		3105F105 /* WallpaperLabService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperLabService.swift; sourceTree = "<group>"; };
 		3105F106 /* WallpaperLabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperLabView.swift; sourceTree = "<group>"; };
+		3105F108 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		3105G100 /* ZIPArchiveWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPArchiveWriter.swift; sourceTree = "<group>"; };
+		3105G101 /* FileOperationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileOperationCoordinator.swift; sourceTree = "<group>"; };
+		3105G102 /* ZIPArchiveExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPArchiveExtractor.swift; sourceTree = "<group>"; };
+		3105G103 /* PatchWorkspaceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchWorkspaceService.swift; sourceTree = "<group>"; };
+		3105H100 /* AppTabNavigationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTabNavigationState.swift; sourceTree = "<group>"; };
+		3105I100 /* FilesTabControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesTabControls.swift; sourceTree = "<group>"; };
+		3105I101 /* FilesTabSwitcherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesTabSwitcherView.swift; sourceTree = "<group>"; };
+		3105K100 /* GamesHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamesHomeView.swift; sourceTree = "<group>"; };
+		3105K101 /* GamePatchesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamePatchesView.swift; sourceTree = "<group>"; };
+		3105K102 /* LicenseStatusBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseStatusBar.swift; sourceTree = "<group>"; };
+		3105K103 /* KeyEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEntryView.swift; sourceTree = "<group>"; };
+		3105K104 /* AnnouncementSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementSheetView.swift; sourceTree = "<group>"; };
+		3105K130 /* GameNoticeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameNoticeSheetView.swift; sourceTree = "<group>"; };
+		3105K131 /* LicenseInfoSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseInfoSheetView.swift; sourceTree = "<group>"; };
+		3105K132 /* JailbreakBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JailbreakBlockView.swift; sourceTree = "<group>"; };
+		3105K105 /* MaintenanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaintenanceView.swift; sourceTree = "<group>"; };
+		3105K106 /* SmartModeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeSheetView.swift; sourceTree = "<group>"; };
+		3105K107 /* VPNBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBlockView.swift; sourceTree = "<group>"; };
+		3105K108 /* WelcomeFaceIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeFaceIcon.swift; sourceTree = "<group>"; };
+		3105K110 /* AnnouncementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementService.swift; sourceTree = "<group>"; };
+		3105K111 /* PatchHubService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchHubService.swift; sourceTree = "<group>"; };
+		3105K112 /* RemoteImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteImageCache.swift; sourceTree = "<group>"; };
+		3105K113 /* LicenseGateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseGateStore.swift; sourceTree = "<group>"; };
+		3105K114 /* LicenseKeyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseKeyService.swift; sourceTree = "<group>"; };
+		3105K115 /* DeviceIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceIdentity.swift; sourceTree = "<group>"; };
+		3105K116 /* SmartModeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeStore.swift; sourceTree = "<group>"; };
+		3105K117 /* NetworkSecurityMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSecurityMonitor.swift; sourceTree = "<group>"; };
+		3105K118 /* JailbreakDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JailbreakDetector.swift; sourceTree = "<group>"; };
+		3105K119 /* AppLauncher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppLauncher.h; sourceTree = "<group>"; };
+		3105K120 /* AppLauncher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppLauncher.m; sourceTree = "<group>"; };
+		3105K121 /* apfs_own.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = apfs_own.m; sourceTree = "<group>"; };
+		3105K122 /* FridaDetect.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FridaDetect.m; sourceTree = "<group>"; };
+		3105K123 /* IntegrityGuard.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = IntegrityGuard.m; sourceTree = "<group>"; };
 		3105A121 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3105A122 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3105B123 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -234,20 +268,26 @@
 				3105A024 /* LogView.swift */,
 				3105A105 /* AppDataBrowserView.swift */,
 				3105A112 /* FileBrowserView.swift */,
-				3105G006 /* GamesHomeView.swift */,
-				3105G008 /* GamePatchesView.swift */,
-				3105G018 /* KeyEntryView.swift */,
-					3105G024 /* AnnouncementSheetView.swift */,
-				3105G044 /* LicenseStatusBar.swift */,
-				3105G046 /* LicenseInfoSheetView.swift */,
-				3105G026 /* WelcomeFaceIcon.swift */,
-				3105G028 /* MaintenanceView.swift */,
-				3105N004 /* VPNBlockView.swift */,
-				3105G033 /* SmartModeSheetView.swift */,
+				3105I100 /* FilesTabControls.swift */,
+				3105I101 /* FilesTabSwitcherView.swift */,
 				3105B121 /* PatchProjectsView.swift */,
 				3105B122 /* PatchProjectEditorView.swift */,
 				3105C102 /* FolderPatchSelectionView.swift */,
+				3105E101 /* CleanerView.swift */,
 				3105F106 /* WallpaperLabView.swift */,
+				3105F108 /* OnboardingView.swift */,
+				3105K100 /* GamesHomeView.swift */,
+				3105K101 /* GamePatchesView.swift */,
+				3105K102 /* LicenseStatusBar.swift */,
+				3105K103 /* KeyEntryView.swift */,
+				3105K104 /* AnnouncementSheetView.swift */,
+				3105K130 /* GameNoticeSheetView.swift */,
+				3105K131 /* LicenseInfoSheetView.swift */,
+				3105K132 /* JailbreakBlockView.swift */,
+				3105K105 /* MaintenanceView.swift */,
+				3105K106 /* SmartModeSheetView.swift */,
+				3105K107 /* VPNBlockView.swift */,
+				3105K108 /* WelcomeFaceIcon.swift */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -261,6 +301,9 @@
 				3105A109 /* ContainerBrowserLogic.swift */,
 				3105A110 /* FileReplacementService.swift */,
 				3105A111 /* FileManagerService.swift */,
+				3105G100 /* ZIPArchiveWriter.swift */,
+				3105G102 /* ZIPArchiveExtractor.swift */,
+				3105G101 /* FileOperationCoordinator.swift */,
 				3105A113 /* SupportPolicy.swift */,
 				3105B114 /* PatchProjectModels.swift */,
 				3105B115 /* PatchPackageCodec.swift */,
@@ -269,29 +312,39 @@
 				3105B118 /* DevicePatchService.swift */,
 				3105B119 /* PatchProjectLibrary.swift */,
 				3105B120 /* PatchProjectStore.swift */,
-				3105G004 /* PatchHubService.swift */,
-				3105G010 /* RemoteImageCache.swift */,
-				3105G012 /* DeviceIdentity.swift */,
-				3105G014 /* LicenseKeyService.swift */,
-				3105G016 /* LicenseGateStore.swift */,
-				3105G022 /* AnnouncementService.swift */,
-				3105N002 /* NetworkSecurityMonitor.swift */,
-				3105N006 /* FridaDetect.m */,
-				3105N008 /* IntegrityGuard.m */,
-				3105G031 /* SmartModeStore.swift */,
+				3105G103 /* PatchWorkspaceService.swift */,
+				3105H100 /* AppTabNavigationState.swift */,
 				3105C100 /* PatchDraftService.swift */,
 				3105C101 /* PatchDraftCoordinator.swift */,
+				3105E100 /* LimitedCleanerService.swift */,
+				3105E102 /* CleanerCatalog.swift */,
 				3105F102 /* WallpaperLabModels.swift */,
 				3105F103 /* SecureZIPArchive.swift */,
 				3105F104 /* WallpaperInstaller.swift */,
 				3105F105 /* WallpaperLabService.swift */,
 				3105A106 /* AppIconHelper.m */,
 				3105A107 /* AppIconHelper.h */,
-				3105G041 /* AppLauncher.m */,
-				3105G042 /* AppLauncher.h */,
+				3105A202 /* KernelExploit.swift */,
+				3105J201 /* AntiDetection.m */,
+				3105J202 /* DisplayIdentity.h */,
+				3105J203 /* DisplayIdentity.m */,
+				3105J205 /* DisplayIdentityAttribution.swift */,
 				3105A025 /* Utils.swift */,
 				3105A026 /* SBX.swift */,
 				3105A027 /* MG.swift */,
+				3105K110 /* AnnouncementService.swift */,
+				3105K111 /* PatchHubService.swift */,
+				3105K112 /* RemoteImageCache.swift */,
+				3105K113 /* LicenseGateStore.swift */,
+				3105K114 /* LicenseKeyService.swift */,
+				3105K115 /* DeviceIdentity.swift */,
+				3105K116 /* SmartModeStore.swift */,
+				3105K117 /* NetworkSecurityMonitor.swift */,
+				3105K118 /* JailbreakDetector.swift */,
+				3105K119 /* AppLauncher.h */,
+				3105K120 /* AppLauncher.m */,
+				3105K122 /* FridaDetect.m */,
+				3105K123 /* IntegrityGuard.m */,
 			);
 			path = helpers;
 			sourceTree = "<group>";
@@ -311,8 +364,7 @@
 				3105A094 /* vnode.h */,
 				3105A085 /* sandbox_escape.m */,
 				3105A095 /* sandbox_escape.h */,
-				3105K001 /* apfs_own.m */,
-				3105K002 /* apfs_own.h */,
+				3105K121 /* apfs_own.m */,
 				3105A096 /* machine_info.h */,
 				3105A097 /* xpaci.h */,
 			);
@@ -334,8 +386,8 @@
 			);
 			dependencies = (
 			);
-			name = imguicheat;
-			productName = imguicheat;
+			name = 3105;
+			productName = 3105;
 			productReference = 3105A010;
 			productType = "com.apple.product-type.application";
 		};
@@ -389,7 +441,7 @@
 				3105A200, 3105A201, 3105A203, 3105A204,
 				3105A205, 3105A206, 3105A207, 3105A209,
 				3105A210, 3105A220, 3105A221, 3105A222, 3105A223,
-				3105A224, 3105A225, 3105K003,
+				3105A224, 3105A225,
 				3105A226,
 				3105A227,
 				3105A233,
@@ -399,6 +451,9 @@
 				3105A237,
 				3105A238,
 				3105A239,
+				3105A208,
+				3105J200,
+				3105J204,
 				3105A240,
 				3105A241,
 				3105B214,
@@ -410,36 +465,48 @@
 				3105B220,
 				3105B221,
 				3105B222,
-				3105G002,
-				3105G005,
-				3105G007,
-				3105G009,
-				3105G011,
-				3105G013,
-				3105G015,
-				3105G017,
-					3105G021,
-				3105G023,
-				3105G043,
-				3105G045,
-				3105G025,
-				3105G027,
-				3105N001,
-				3105N003,
-				3105N005,
-				3105N007,
-				3105G030,
-				3105G032,
-				3105G040,
 				3105C200,
 				3105C201,
 				3105C202,
+				3105E200,
+				3105E201,
+				3105E202,
 				3105F200,
 				3105F201,
 				3105F202,
 				3105F203,
 				3105F204,
 				3105F205,
+				3105G200,
+				3105G202,
+				3105H200,
+				3105I200,
+				3105I201,
+				3105K200,
+				3105K201,
+				3105K202,
+				3105K203,
+				3105K204,
+				3105K205,
+				3105K230,
+				3105K231,
+				3105K232,
+				3105K206,
+				3105K207,
+				3105K208,
+				3105K210,
+				3105K211,
+				3105K212,
+				3105K213,
+				3105K214,
+				3105K215,
+				3105K216,
+				3105K217,
+				3105K218,
+				3105K220,
+				3105K221,
+				3105K222,
+				3105K223,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -476,22 +543,20 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = (
-					"-lz",
-					"-lc++",
-				);
+				MARKETING_VERSION = 1.1.0;
+				OTHER_LDFLAGS = "-lz";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.apple.mobile.MobileHouseArrest";
-				PRODUCT_NAME = imguicheat;
+				PRODUCT_NAME = "Stew Proxy";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "ThreeOneOSFive/ThreeOneOSFive-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -512,22 +577,20 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = (
-					"-lz",
-					"-lc++",
-				);
+				MARKETING_VERSION = 1.1.0;
+				OTHER_LDFLAGS = "-lz";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.apple.mobile.MobileHouseArrest";
-				PRODUCT_NAME = imguicheat;
+				PRODUCT_NAME = "Stew Proxy";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "ThreeOneOSFive/ThreeOneOSFive-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
