@@ -34,7 +34,7 @@
 "dashboard.unsupported_message" = "iOS %@ chưa được hỗ trợ.\n\nCác phiên bản hiện được hỗ trợ:\n• iOS 18.0–18.7.1\n• iOS 26.x\n• iOS 27.0 beta 1–4";
 "dashboard.installation" = "Cài đặt ứng dụng";
 "dashboard.enterprise_signing" = "CheatiOSVip chỉ hoạt động khi được ký bằng chứng chỉ doanh nghiệp. Không hỗ trợ SideStore, AltStore, 3uTools hoặc LiveContainer.";
-"tab.home" = "Hely FF";
+"tab.home" = "HELY FF";
 "tab.files" = "Tệp";
 "tab.patches" = "Patch";
 "tab.settings" = "Cài đặt";
@@ -384,7 +384,7 @@
 
 // MARK: - License key gate
 "license.title" = "Nhập Key Kích Hoạt";
-"license.subtitle" = "Nhập key được cấp để mở khóa Hely FF trên thiết bị này.";
+"license.subtitle" = "Nhập key được cấp để mở khóa HELY FF trên thiết bị này.";
 "license.placeholder" = "Nhập mã key";
 "license.activate" = "Kích hoạt";
 "license.change_key" = "Đổi Key";

@@ -39,53 +39,14 @@ enum AppTheme {
     }
 }
 
-// MARK: - Modern Tech Background
+// MARK: - App Background
 
 struct TechBackground: View {
     var body: some View {
-        ZStack {
-            // Deep dark base
-            LinearGradient(
-                colors: [
-                    Color(red: 0.02, green: 0.02, blue: 0.08),
-                    Color(red: 0.01, green: 0.05, blue: 0.14),
-                    Color(red: 0.00, green: 0.03, blue: 0.10)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            // Circuit grid overlay
-            CircuitGridView()
-                .opacity(0.18)
-
-            // Matrix rain
-            MatrixRainView()
-                .opacity(0.55)
-
-            // Top neon glow bloom
-            RadialGradient(
-                colors: [
-                    Color(red: 0.10, green: 0.80, blue: 0.40).opacity(0.22),
-                    Color.clear
-                ],
-                center: UnitPoint(x: 0.5, y: 0.0),
-                startRadius: 0,
-                endRadius: 320
-            )
-
-            // Bottom accent bloom
-            RadialGradient(
-                colors: [
-                    Color(red: 0.20, green: 0.50, blue: 1.00).opacity(0.14),
-                    Color.clear
-                ],
-                center: UnitPoint(x: 0.5, y: 1.0),
-                startRadius: 0,
-                endRadius: 280
-            )
-        }
-        .ignoresSafeArea()
+        Image("AppBackground")
+            .resizable()
+            .scaledToFill()
+            .ignoresSafeArea()
     }
 }
 

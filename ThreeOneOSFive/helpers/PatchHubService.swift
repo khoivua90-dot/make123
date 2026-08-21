@@ -70,11 +70,21 @@ enum PatchHubService {
     private static let _gn: [UInt8] = [0x7E, 0x20, 0x2A, 0x7C, 0x64, 0x2C, 0x2A, 0x26, 0x2E, 0x66, 0x25, 0x24, 0x3F, 0x22, 0x28, 0x2E, 0x38]
     private static let _r: [UInt8] = [0x2A, 0x3B, 0x22, 0x64, 0x20, 0x2E, 0x32, 0x38, 0x64, 0x39, 0x2E, 0x2F, 0x2E, 0x2E, 0x26]
     private static let _s: [UInt8] = [0x2A, 0x3B, 0x22, 0x64, 0x20, 0x2E, 0x32, 0x38, 0x64, 0x38, 0x3F, 0x2A, 0x3F, 0x3E, 0x38]
-    // HMAC signing secret — XOR key 0x4B
+    // HMAC signing secret for 5ka7/* profile
     private static let _sk: [UInt8] = [
         0x03, 0x06, 0x0A, 0x08, 0x14, 0x7C, 0x73, 0x0F, 0x09, 0x7E, 0x0D, 0x72, 0x73, 0x7F,
         0x0E, 0x7A, 0x78, 0x7B, 0x79, 0x7F, 0x7C, 0x7C, 0x7A, 0x7D, 0x79, 0x0F, 0x08, 0x09,
         0x7F, 0x7C, 0x0D, 0x7C, 0x09
+    ]
+    // Key API uses a separate token — /api/keys/* only accepts this specific client token
+    private static let _kt: [UInt8] = [
+        0x0F, 0x18, 0x1C, 0x14, 0x28, 0x1D, 0x72, 0x26, 0x13, 0x20, 0x7F, 0x1B, 0x7C, 0x25,
+        0x1A, 0x79, 0x14, 0x13, 0x1F, 0x04, 0x00, 0x0E, 0x05, 0x79, 0x7B, 0x79, 0x7D, 0x1D, 0x78
+    ]
+    // HMAC secret for key API response verification
+    private static let _ksk: [UInt8] = [
+        0x0F, 0x7E, 0x1C, 0x14, 0x23, 0x26, 0x2A, 0x28, 0x14, 0x38, 0x22, 0x2C, 0x14, 0x3D,
+        0x79, 0x14, 0x72, 0x26, 0x1A, 0x33, 0x7C, 0x25, 0x19, 0x7F, 0x3B, 0x07, 0x20, 0x73
     ]
 
     private static func d(_ b: [UInt8]) -> String {
@@ -82,6 +92,7 @@ enum PatchHubService {
     }
 
     static var clientToken: String { d(_t) }
+    static var keyClientToken: String { d(_kt) }
     static var pathGames: String { d(_g) }
     static var pathPatches: String { d(_p) }
     static var pathContainers: String { d(_c) }
@@ -96,7 +107,7 @@ enum PatchHubService {
         let ts = String(Int64(Date().timeIntervalSince1970 * 1000))
         let nonce = UUID().uuidString
         let payload = "\(ts):\(nonce):\(code):\(deviceId)"
-        let secret = d(_sk)
+        let secret = d(_ksk)
         let key = SymmetricKey(data: Data(secret.utf8))
         let mac = HMAC<SHA256>.authenticationCode(for: Data(payload.utf8), using: key)
         let sig = Data(mac).map { String(format: "%02x", $0) }.joined()
@@ -108,7 +119,7 @@ enum PatchHubService {
     static func verifyResponse(data: Data, httpResponse: URLResponse) -> Bool {
         guard let http = httpResponse as? HTTPURLResponse,
               let sig = http.value(forHTTPHeaderField: "X-Response-Sig") else { return false }
-        let key = SymmetricKey(data: Data(d(_sk).utf8))
+        let key = SymmetricKey(data: Data(d(_ksk).utf8))
         let mac = HMAC<SHA256>.authenticationCode(for: data, using: key)
         let expected = Data(mac).map { String(format: "%02x", $0) }.joined()
         return expected == sig

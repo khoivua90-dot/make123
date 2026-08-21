@@ -99,7 +99,7 @@ enum LicenseKeyService {
         var request = URLRequest(url: baseURL.appendingPathComponent(PatchHubService.pathRedeem))
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.setValue(PatchHubService.clientToken, forHTTPHeaderField: "X-App-Token")
+        request.setValue(PatchHubService.keyClientToken, forHTTPHeaderField: "X-App-Token")
         let (ts, nonce, sig) = PatchHubService.signKeyRequest(code: code, deviceId: deviceId)
         request.setValue(ts,    forHTTPHeaderField: "X-Request-Time")
         request.setValue(nonce, forHTTPHeaderField: "X-Request-Nonce")
@@ -129,7 +129,7 @@ enum LicenseKeyService {
             URLQueryItem(name: "deviceId", value: deviceId)
         ]
         var statusRequest = URLRequest(url: components.url!)
-        statusRequest.setValue(PatchHubService.clientToken, forHTTPHeaderField: "X-App-Token")
+        statusRequest.setValue(PatchHubService.keyClientToken, forHTTPHeaderField: "X-App-Token")
         let (ts, nonce, sig) = PatchHubService.signKeyRequest(code: code, deviceId: deviceId)
         statusRequest.setValue(ts,    forHTTPHeaderField: "X-Request-Time")
         statusRequest.setValue(nonce, forHTTPHeaderField: "X-Request-Nonce")
