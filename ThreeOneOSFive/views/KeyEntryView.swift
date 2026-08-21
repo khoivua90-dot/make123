@@ -74,7 +74,7 @@ struct KeyEntryView: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            Text("Make By ©GO PLAY")
+            Text("Make By ©Stew Proxy")
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(.secondary)
                 .padding(.vertical, 14)

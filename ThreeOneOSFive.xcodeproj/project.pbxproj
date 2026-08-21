@@ -49,7 +49,6 @@
 		3105G013 /* LicenseKeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G014; };
 		3105G015 /* LicenseGateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G016; };
 		3105G017 /* KeyEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G018; };
-		3105G019 /* LicenseStatusBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G020; };
 		3105G021 /* AnnouncementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G022; };
 		3105G023 /* AnnouncementSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G024; };
 		3105G025 /* WelcomeFaceIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105G026; };
@@ -138,7 +137,6 @@
 		3105G014 /* LicenseKeyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseKeyService.swift; sourceTree = "<group>"; };
 		3105G016 /* LicenseGateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseGateStore.swift; sourceTree = "<group>"; };
 		3105G018 /* KeyEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEntryView.swift; sourceTree = "<group>"; };
-		3105G020 /* LicenseStatusBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseStatusBar.swift; sourceTree = "<group>"; };
 		3105G022 /* AnnouncementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementService.swift; sourceTree = "<group>"; };
 		3105G024 /* AnnouncementSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementSheetView.swift; sourceTree = "<group>"; };
 		3105G026 /* WelcomeFaceIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeFaceIcon.swift; sourceTree = "<group>"; };
@@ -235,8 +233,7 @@
 				3105G006 /* GamesHomeView.swift */,
 				3105G008 /* GamePatchesView.swift */,
 				3105G018 /* KeyEntryView.swift */,
-				3105G020 /* LicenseStatusBar.swift */,
-				3105G024 /* AnnouncementSheetView.swift */,
+					3105G024 /* AnnouncementSheetView.swift */,
 				3105G026 /* WelcomeFaceIcon.swift */,
 				3105G028 /* MaintenanceView.swift */,
 				3105N004 /* VPNBlockView.swift */,
@@ -415,8 +412,7 @@
 				3105G013,
 				3105G015,
 				3105G017,
-				3105G019,
-				3105G021,
+					3105G021,
 				3105G023,
 				3105G025,
 				3105G027,
@@ -467,7 +463,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ThreeOneOSFive/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "GO PLAY";
+				INFOPLIST_KEY_CFBundleDisplayName = "Stew Proxy";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -503,7 +499,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ThreeOneOSFive/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "GO PLAY";
+				INFOPLIST_KEY_CFBundleDisplayName = "Stew Proxy";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

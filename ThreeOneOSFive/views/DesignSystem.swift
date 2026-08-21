@@ -13,12 +13,12 @@ enum AppTheme {
     static let consoleBackground = Color(uiColor: .secondarySystemBackground)
     static let pageInset: CGFloat = 16
 
-    // MARK: - Tech theme — Matrix hacker green
-    static let techBackgroundTop    = Color(red: 0.01, green: 0.04, blue: 0.01)
-    static let techBackgroundBottom = Color(red: 0.00, green: 0.01, blue: 0.00)
-    static let techGlow             = Color(red: 0.09, green: 0.92, blue: 0.33)   // Matrix green
-    static let techCardFill         = Color(red: 0.09, green: 0.92, blue: 0.33).opacity(0.055)
-    static let techCardStroke       = Color(red: 0.09, green: 0.92, blue: 0.33).opacity(0.28)
+    // MARK: - Ocean sunset palette
+    static let techBackgroundTop    = Color(red: 0.04, green: 0.12, blue: 0.28)
+    static let techBackgroundBottom = Color(red: 0.02, green: 0.06, blue: 0.16)
+    static let techGlow             = Color(red: 1.00, green: 0.60, blue: 0.15)   // sunset gold
+    static let techCardFill         = Color(red: 0.20, green: 0.45, blue: 0.80).opacity(0.12)
+    static let techCardStroke       = Color(red: 1.00, green: 0.65, blue: 0.20).opacity(0.35)
 
     static let rowPalette: [Color] = [
         Color(red: 1.00, green: 0.56, blue: 0.24),
@@ -37,33 +37,16 @@ enum AppTheme {
     }
 }
 
-// MARK: - Matrix Rain Background
+// MARK: - Ocean Background
 
 struct TechBackground: View {
     var body: some View {
-        ZStack {
-            // Near-black green base
-            Color(red: 0.00, green: 0.022, blue: 0.00)
-
-            // Falling code columns
-            MatrixRainView()
-                .opacity(0.72)
-
-            // Edge vignette for depth
-            RadialGradient(
-                colors: [.clear, Color.black.opacity(0.60)],
-                center: .center,
-                startRadius: 140,
-                endRadius: 560
-            )
-
-            // Ambient green glow from top
-            RadialGradient(
-                colors: [AppTheme.techGlow.opacity(0.08), .clear],
-                center: .top,
-                startRadius: 0,
-                endRadius: 420
-            )
+        GeometryReader { geo in
+            Image("AppBg")
+                .resizable()
+                .scaledToFill()
+                .frame(width: geo.size.width, height: geo.size.height)
+                .clipped()
         }
         .ignoresSafeArea()
     }
