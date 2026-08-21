@@ -9,15 +9,15 @@
 </p>
 
 <p align="center">
-  <img alt="Phiên bản" src="https://img.shields.io/badge/phiên%20bản-1.0%20beta%203-E6753A?style=flat-square">
+  <img alt="Phiên bản" src="https://img.shields.io/badge/phiên%20bản-1.0.1-E6753A?style=flat-square">
   <img alt="iOS" src="https://img.shields.io/badge/iOS-26.0–26.6.1%20%7C%2027%20beta%201–4-222222?style=flat-square">
   <img alt="Ngôn ngữ" src="https://img.shields.io/badge/ngôn%20ngữ-English%20%7C%20Tiếng%20Việt%20%7C%20简体中文-E6753A?style=flat-square">
 </p>
 
-<p align="center"><a href="README.md">English</a> · <a href="#giấy-phép">Giấy phép</a></p>
+<p align="center"><a href="README.md">English</a> · <a href="docs/PATCH_GUIDE.vi.md">Hướng dẫn Patch</a> · <a href="#giấy-phép">Giấy phép</a></p>
 
 > [!WARNING]
-> 3105 đang ở giai đoạn beta. Chỉ sử dụng trên thiết bị và dữ liệu thuộc quyền sở hữu của bạn, đồng thời luôn sao lưu trước khi thay đổi tệp hệ thống hoặc dữ liệu ứng dụng.
+> 3105 là phần mềm nghiên cứu để quản lý thiết bị cá nhân. Chỉ sử dụng trên thiết bị và dữ liệu thuộc quyền sở hữu của bạn, đồng thời luôn sao lưu trước khi thay đổi dữ liệu ứng dụng.
 
 ## Giao diện
 
@@ -29,12 +29,22 @@
   <img src="docs/images/cleaner.png" width="245" alt="Dọn dẹp 3105">
 </p>
 
+## Có gì mới trong 1.0.1
+
+- **Patch workspace v2** — tạo patch bằng cây thư mục theo bundle trong `Trên iPhone của tôi/3105/Patches`; khi Áp dụng hoặc Xuất, app tự đồng bộ toàn bộ workspace.
+- **Khôi phục an toàn hơn** — file gốc được ghi nhật ký và sao lưu trước khi thay; Khôi phục sẽ trả lại file cũ, xóa file do patch thêm và dọn các thư mục mới nếu đã rỗng.
+- **Tab Tệp đầy đủ hơn** — nhiều tab độc lập, giữ nguyên vị trí thư mục, chọn nhiều file, nén/giải nén ZIP và giao diện nhóm cân đối hơn.
+- **Giao diện thích ứng** — hỗ trợ iPad dạng split view/landscape, cho phép ẩn Dọn dẹp hoặc Hình nền, giữ ổn định ô tìm kiếm và cân lại kích thước icon/hàng.
+- **Hướng dẫn Hình nền chính xác** — bổ sung đúng bước đóng PosterBoard và lưu ý nhận hình nền Bộ Sưu Tập trước trên iOS 27.
+
+Xem [hướng dẫn Patch workspace đầy đủ](docs/PATCH_GUIDE.vi.md).
+
 ## Tính năng chính
 
 - Duyệt dữ liệu ứng dụng theo **bundle identifier**, không phụ thuộc UUID container của từng máy.
-- Trình quản lý tệp có tìm kiếm, nhập nhiều tệp, đổi tên, xóa, tạo tệp/thư mục và xử lý trùng tên.
-- Tạo và nhập dự án patch `.3105`, hỗ trợ nhiều quy tắc, tệp/thư mục và mật khẩu tùy chọn.
-- Dọn dẹp giới hạn trong `Library/Caches` và `tmp`, luôn hiển thị cảnh báo trước khi xóa.
+- Trình quản lý tệp có tìm kiếm, xem trước, chia sẻ, nhập nhiều tệp, sao chép, di chuyển, dán, đổi tên, xóa, tạo tệp/thư mục, nén ZIP và xử lý trùng tên.
+- Tạo và nhập dự án patch `.3105` theo bundle, hỗ trợ nhiều quy tắc, tệp/thư mục, mật khẩu tùy chọn và nhập từ Files hoặc liên kết website bảo mật.
+- Dọn dẹp giới hạn trong `Library/Caches` và `tmp`, hỗ trợ sắp xếp dung lượng và chọn nhiều ứng dụng, luôn hiển thị cảnh báo trước khi xóa.
 - Nhập gói hình nền `.tendies`, xác thực payload và chỉ reset nội dung do 3105 cài đặt.
 - 3105 không cài jailbreak, bootstrap hay daemon thường trú và không inject mã vào ứng dụng bên thứ ba. Do ứng dụng vẫn dùng khai thác thiết bị và có thể sửa dữ liệu app, không thể bảo đảm vượt qua mọi cơ chế kiểm tra tính toàn vẹn hoặc phát hiện jailbreak.
 - Hỗ trợ tiếng Anh, tiếng Việt và tiếng Trung giản thể.
@@ -44,10 +54,10 @@
 | Hệ thống | Phiên bản/build |
 | --- | --- |
 | iOS 26 | 26.0 đến 26.6.1 |
-| iOS 27 beta 1 | `24A5355q` |
-| iOS 27 beta 2 | `24A5370h` |
-| iOS 27 beta 3 | `24A5380h` |
-| iOS 27 beta 4 | `24A5390f` |
+| iOS 27 Developer Beta 1 | `24A5355q` |
+| iOS 27 Developer Beta 2 | `24A5370h` |
+| iOS 27 Developer Beta 3 / Public Beta 1 | `24A5380h` |
+| iOS 27 Developer Beta 4 / Public Beta 2 | `24A5390f` |
 
 Những build không có trong bảng sẽ được đánh dấu là không hỗ trợ.
 
@@ -61,21 +71,6 @@ Những build không có trong bảng sẽ được đánh dấu là không hỗ
 ## Tác giả và ghi công
 
 3105 được phát triển và thiết kế bởi [YangJiii](https://x.com/duongduong0908). Xem [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) để biết các dự án và nhà phát triển nền tảng đã được sử dụng/tham khảo.
-
-## Thông báo bản sửa đổi / phát hành thương mại
-
-Đây là phiên bản sửa đổi, không chính thức của 3105 bởi YangJiii.
-
-- Phần mã gốc của 3105 được phát hành theo **GNU General Public License v3.0 (GPL-3.0)**.
-- Các phần sửa đổi trong phiên bản này do **CheatiOS** thực hiện.
-- Ngày sửa đổi: **2026-08-18**.
-- Đây **không phải bản phát hành chính thức của 3105** và không được YangJiii xác nhận hoặc bảo trợ.
-- Các phần chịu GPL vẫn phải tuân theo các quyền và nghĩa vụ của GPL-3.0.
-- Khi phân phối binary hoặc phiên bản thực thi, mã nguồn tương ứng phải được cung cấp theo yêu cầu của GPL-3.0.
-- Các thành phần bên thứ ba vẫn tuân theo giấy phép và thông báo bản quyền tương ứng của dự án nguồn.
-
-Xem toàn bộ nội dung giấy phép tại `LICENSE`.
-Xem ghi công upstream và điều khoản của bên thứ ba tại `THIRD_PARTY_NOTICES.md`.
 
 ## Giấy phép
 

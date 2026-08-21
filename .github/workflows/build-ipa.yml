@@ -35,7 +35,8 @@ jobs:
 
       - name: Package IPA
         run: |
-          APP_PATH="$RUNNER_TEMP/imguicheat.xcarchive/Products/Applications/imguicheat.app"
+          APP_PATH=$(find "$RUNNER_TEMP/imguicheat.xcarchive/Products/Applications" -maxdepth 1 -name "*.app" | head -1)
+          echo "Packaging: $APP_PATH"
           PAYLOAD_DIR="$RUNNER_TEMP/Payload"
           mkdir -p "$PAYLOAD_DIR"
           cp -R "$APP_PATH" "$PAYLOAD_DIR/"

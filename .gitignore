@@ -35,7 +35,6 @@ DerivedData/
 /tasks/
 /Tests/
 /.github/
-/CHANGELOG.md
 /CONTRIBUTING.md
 /SECURITY.md
 
@@ -43,4 +42,3 @@ DerivedData/
 *.tmp
 *.swp
 *~
-.claude/worktrees/
