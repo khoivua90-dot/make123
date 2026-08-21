@@ -3,6 +3,7 @@ import UIKit
 
 struct GamesHomeView: View {
     @Environment(\.appLanguage) private var language
+    @EnvironmentObject private var licenseGate: LicenseGateStore
     @EnvironmentObject private var draftCoordinator: PatchDraftCoordinator
     @EnvironmentObject private var appState: AppState
     @StateObject private var store = PatchProjectStore()
@@ -143,6 +144,11 @@ struct GamesHomeView: View {
             }
             .task { await loadGames() }
             .task { await checkAnnouncement() }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                LicenseStatusBar()
+                    .padding(.bottom, 8)
+            }
+            .toast($licenseGate.activationToast)
             .sheet(item: $announcement) { item in
                 AnnouncementSheetView(announcement: item)
             }

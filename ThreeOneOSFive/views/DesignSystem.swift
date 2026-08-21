@@ -17,6 +17,8 @@ enum AppTheme {
     static let techBackgroundTop    = Color(red: 0.04, green: 0.12, blue: 0.28)
     static let techBackgroundBottom = Color(red: 0.02, green: 0.06, blue: 0.16)
     static let techGlow             = Color(red: 1.00, green: 0.60, blue: 0.15)   // sunset gold
+    static let neonPurple           = Color(red: 0.52, green: 0.36, blue: 0.92)   // twilight purple
+    static let neonCyan             = Color(red: 0.30, green: 0.78, blue: 0.96)   // sky blue
     static let techCardFill         = Color(red: 0.20, green: 0.45, blue: 0.80).opacity(0.12)
     static let techCardStroke       = Color(red: 1.00, green: 0.65, blue: 0.20).opacity(0.35)
 
@@ -206,6 +208,17 @@ final class MatrixRainUIView: UIView {
                 )
             }
         }
+    }
+}
+
+// MARK: - PressScaleButtonStyle
+
+struct PressScaleButtonStyle: ButtonStyle {
+    var scale: CGFloat = 0.96
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scale : 1.0)
+            .animation(.spring(response: 0.25, dampingFraction: 0.75), value: configuration.isPressed)
     }
 }
 
