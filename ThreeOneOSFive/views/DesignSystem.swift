@@ -51,10 +51,14 @@ enum AppTheme {
 
 struct TechBackground: View {
     var body: some View {
-        Image("AppBackground")
-            .resizable()
-            .scaledToFill()
-            .ignoresSafeArea()
+        GeometryReader { geo in
+            Image("AppBackground")
+                .resizable()
+                .scaledToFill()
+                .frame(width: geo.size.width, height: geo.size.height)
+                .clipped()
+        }
+        .ignoresSafeArea()
     }
 }
 

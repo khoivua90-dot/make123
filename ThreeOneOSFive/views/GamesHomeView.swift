@@ -52,95 +52,68 @@ struct GamesHomeView: View {
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
 
-                GeometryReader { geo in
-                    ScrollView {
-                        VStack(spacing: 20) {
-                            deviceInfoCard
-                                .padding(.horizontal, 16)
-                                .padding(.top, 12)
+                ScrollView {
+                    VStack(spacing: 0) {
+                        cyberHeader
+                            .padding(.horizontal, 20)
+                            .padding(.top, 8)
+                            .padding(.bottom, 16)
 
-                            if !games.isEmpty {
-                                HStack(spacing: 8) {
-                                    Rectangle()
-                                        .fill(AppTheme.techGlow)
-                                        .frame(width: 3, height: 15)
-                                        .clipShape(Capsule())
-                                    Text("GAMES")
-                                        .font(.system(size: 11, weight: .bold, design: .monospaced))
-                                        .foregroundStyle(.secondary)
-                                        .kerning(2.5)
-                                    Spacer()
-                                    Text("\(games.count)")
-                                        .font(.system(size: 11, weight: .bold, design: .monospaced))
-                                        .foregroundStyle(AppTheme.techGlow.opacity(0.8))
-                                        .padding(.horizontal, 9)
-                                        .padding(.vertical, 4)
-                                        .background(AppTheme.techGlow.opacity(0.12), in: Capsule())
-                                        .overlay(Capsule().strokeBorder(AppTheme.techGlow.opacity(0.3), lineWidth: 1))
-                                }
-                                .padding(.horizontal, 16)
-                            }
-
-                            LazyVGrid(columns: columns, spacing: 14) {
-                                ForEach(games) { game in
-                                    NavigationLink {
-                                        GamePatchesView(game: game, store: store)
-                                    } label: {
-                                        GameCardView(
-                                            title: game.name,
-                                            subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
-                                            bannerColor: AppTheme.resolvedBannerColor(game.bannerColor),
-                                            iconURL: game.iconURL,
-                                            systemIconName: "app.fill"
-                                        )
-                                    }
-                                    .buttonStyle(GameCard3DPressStyle())
-                                }
-                            }
+                        deviceInfoCard
                             .padding(.horizontal, 16)
 
-                            if games.isEmpty && !isLoadingGames {
-                                VStack(spacing: 12) {
-                                    Text("App đang tiến hành nâng cấp mới, truy cập ngay Telegram để nhận thông báo mới")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                        .multilineTextAlignment(.center)
-                                        .padding(.horizontal, 32)
-                                    Button {
-                                        if let url = URL(string: "https://t.me/crackcyipa") {
-                                            UIApplication.shared.open(url)
-                                        }
-                                    } label: {
-                                        Text("Vào ngay")
-                                            .font(.subheadline.weight(.semibold))
-                                            .foregroundStyle(.black)
-                                            .padding(.horizontal, 22)
-                                            .padding(.vertical, 9)
-                                            .background(AppTheme.techGlow, in: Capsule())
-                                    }
-                                }
-                                .padding(.top, 8)
-                            }
+                        gameSectionHeader
+                            .padding(.top, 22)
+                            .padding(.bottom, 4)
 
-                            Spacer(minLength: 24)
+                        LazyVGrid(columns: columns, spacing: 14) {
+                            ForEach(games) { game in
+                                NavigationLink {
+                                    GamePatchesView(game: game, store: store)
+                                } label: {
+                                    GameCardView(
+                                        title: game.name,
+                                        subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
+                                        bannerColor: AppTheme.resolvedBannerColor(game.bannerColor),
+                                        iconURL: game.iconURL,
+                                        systemIconName: "app.fill"
+                                    )
+                                }
+                                .buttonStyle(GameCard3DPressStyle())
+                            }
                         }
-                        .frame(minHeight: geo.size.height)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 6)
+
+                        if games.isEmpty && !isLoadingGames {
+                            VStack(spacing: 12) {
+                                Text("App đang tiến hành nâng cấp mới, truy cập ngay Telegram để nhận thông báo mới")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 32)
+                                Button {
+                                    if let url = URL(string: "https://t.me/crackcyipa") {
+                                        UIApplication.shared.open(url)
+                                    }
+                                } label: {
+                                    Text("Vào ngay")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(.black)
+                                        .padding(.horizontal, 22)
+                                        .padding(.vertical, 9)
+                                        .background(AppTheme.techGlow, in: Capsule())
+                                }
+                            }
+                            .padding(.top, 24)
+                        }
+
+                        Spacer(minLength: 32)
                     }
                 }
             }
-            .navigationTitle(language.text("tab.home"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink {
-                        SettingsView()
-                    } label: {
-                        Image(systemName: "gearshape")
-                            .foregroundStyle(Color(red: 0.15, green: 0.48, blue: 0.93))
-                    }
-                    .accessibilityLabel(language.text("tab.settings"))
-                }
-            }
+            .navigationTitle("")
+            .navigationBarHidden(true)
             .refreshable {
                 await loadGames()
                 await checkAnnouncement()
@@ -187,6 +160,81 @@ struct GamesHomeView: View {
         else { return }
         shownAnnouncementIDs.insert(fetched.id)
         announcement = fetched
+    }
+
+    // MARK: - Custom header
+
+    private var cyberHeader: some View {
+        HStack(alignment: .top, spacing: 0) {
+            VStack(alignment: .leading, spacing: 5) {
+                Text("HELY FF")
+                    .font(.system(size: 30, weight: .black))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color(red: 0.26, green: 0.55, blue: 1.00),
+                                     Color(red: 0.48, green: 0.37, blue: 1.00)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                Text("Trợ thủ game · An toàn · Ổn định")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(Color(red: 0.54, green: 0.62, blue: 0.78))
+            }
+            Spacer()
+            NavigationLink {
+                SettingsView()
+            } label: {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        .fill(Color(red: 0.012, green: 0.031, blue: 0.090).opacity(0.80))
+                        .frame(width: 46, height: 46)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [AppTheme.neonPurple.opacity(0.80),
+                                                 AppTheme.techGlow.opacity(0.40)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                        )
+                        .shadow(color: AppTheme.neonPurple.opacity(0.30), radius: 10)
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 19, weight: .semibold))
+                        .foregroundStyle(AppTheme.neonPurple)
+                }
+            }
+            .accessibilityLabel(language.text("tab.settings"))
+        }
+    }
+
+    // MARK: - Games section header
+
+    private var gameSectionHeader: some View {
+        HStack(spacing: 8) {
+            Rectangle()
+                .fill(AppTheme.techGlow)
+                .frame(width: 3, height: 15)
+                .clipShape(Capsule())
+            Text("GAMES")
+                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .kerning(2.5)
+            Spacer()
+            if !games.isEmpty {
+                Text("\(games.count)")
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .foregroundStyle(AppTheme.techGlow.opacity(0.8))
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
+                    .background(AppTheme.techGlow.opacity(0.12), in: Capsule())
+                    .overlay(Capsule().strokeBorder(AppTheme.techGlow.opacity(0.3), lineWidth: 1))
+            }
+        }
+        .padding(.horizontal, 16)
     }
 
     // MARK: Device info — compact horizontal glass strip
