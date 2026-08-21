@@ -74,7 +74,7 @@ struct KeyEntryView: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            Text("Make By ©PROXY VN CHEAT")
+            Text("Make By ©Cheating Store")
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(.secondary)
                 .padding(.vertical, 14)
