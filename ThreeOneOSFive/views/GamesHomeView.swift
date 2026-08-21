@@ -5,7 +5,6 @@ struct GamesHomeView: View {
     @Environment(\.appLanguage) private var language
     @EnvironmentObject private var draftCoordinator: PatchDraftCoordinator
     @EnvironmentObject private var appState: AppState
-    @EnvironmentObject private var licenseGate: PPAPIKeyGateStore
     @StateObject private var store = PatchProjectStore()
     @State private var games: [RemoteGameSummary] = []
     @State private var isLoadingGames = false
@@ -144,10 +143,6 @@ struct GamesHomeView: View {
             }
             .task { await loadGames() }
             .task { await checkAnnouncement() }
-            .safeAreaInset(edge: .bottom) {
-                LicenseStatusBar()
-            }
-            .toast($licenseGate.activationToast)
             .sheet(item: $announcement) { item in
                 AnnouncementSheetView(announcement: item)
             }

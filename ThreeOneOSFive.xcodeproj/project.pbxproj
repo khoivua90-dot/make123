@@ -74,8 +74,7 @@
 		3105A234 /* AppDataBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A105; };
 		3105A228 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3105A120; };
 		3105A211 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3105A031; };
-		3105P001 /* libPPAPIKey_basic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3105P003; };
-		3105P002 /* PPAPIKeyGateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105P005; };
+
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -152,9 +151,7 @@
 		3105G033 /* SmartModeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartModeSheetView.swift; sourceTree = "<group>"; };
 		3105G041 /* AppLauncher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppLauncher.m; sourceTree = "<group>"; };
 		3105G042 /* AppLauncher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppLauncher.h; sourceTree = "<group>"; };
-		3105P003 /* libPPAPIKey_basic.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libPPAPIKey_basic.a; sourceTree = "<group>"; };
-		3105P004 /* PPAPIKey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PPAPIKey.h; sourceTree = "<group>"; };
-		3105P005 /* PPAPIKeyGateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PPAPIKeyGateStore.swift; sourceTree = "<group>"; };
+
 		3105C100 /* PatchDraftService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDraftService.swift; sourceTree = "<group>"; };
 		3105C101 /* PatchDraftCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchDraftCoordinator.swift; sourceTree = "<group>"; };
 		3105C102 /* FolderPatchSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderPatchSelectionView.swift; sourceTree = "<group>"; };
@@ -175,7 +172,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3105P001 /* libPPAPIKey_basic.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -201,7 +197,6 @@
 				3105A404 /* views */,
 				3105A405 /* helpers */,
 				3105A406 /* kexploit */,
-				3105P006 /* PPAPIKey */,
 				3105A120 /* Localizable.strings */,
 				3105A031 /* Assets.xcassets */,
 			);
@@ -294,7 +289,6 @@
 				3105A025 /* Utils.swift */,
 				3105A026 /* SBX.swift */,
 				3105A027 /* MG.swift */,
-				3105P005 /* PPAPIKeyGateStore.swift */,
 			);
 			path = helpers;
 			sourceTree = "<group>";
@@ -320,15 +314,6 @@
 				3105A097 /* xpaci.h */,
 			);
 			path = kexploit;
-			sourceTree = "<group>";
-		};
-		3105P006 /* PPAPIKey */ = {
-			isa = PBXGroup;
-			children = (
-				3105P003 /* libPPAPIKey_basic.a */,
-				3105P004 /* PPAPIKey.h */,
-			);
-			path = PPAPIKey;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -451,7 +436,6 @@
 				3105F203,
 				3105F204,
 				3105F205,
-				3105P002,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -493,7 +477,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/ThreeOneOSFive/PPAPIKey";
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-lz",
@@ -530,7 +513,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/ThreeOneOSFive/PPAPIKey";
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-lz",

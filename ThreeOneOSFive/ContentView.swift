@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var licenseGate = PPAPIKeyGateStore()
     @StateObject private var netSecurity = NetworkSecurityMonitor()
     @State private var isCheckingMaintenance = true
     @State private var maintenanceNotice: MaintenanceNotice?
@@ -13,7 +12,7 @@ struct ContentView: View {
                 VPNBlockView(isVPN: true, onRetry: { netSecurity.refresh() })
             } else if netSecurity.isProxyActive {
                 VPNBlockView(isVPN: false, onRetry: { netSecurity.refresh() })
-            } else if isCheckingMaintenance || licenseGate.isChecking {
+            } else if isCheckingMaintenance {
                 ZStack {
                     TechBackground()
                     ProgressView()
@@ -25,12 +24,9 @@ struct ContentView: View {
                 GamesHomeView()
             }
         }
-        .environmentObject(licenseGate)
         .task {
             netSecurity.start()
-            async let maintenance: () = checkMaintenance()
-            async let license: () = licenseGate.bootstrap()
-            _ = await (maintenance, license)
+            await checkMaintenance()
         }
         .onChange(of: scenePhase) { newPhase in
             if newPhase == .active {
