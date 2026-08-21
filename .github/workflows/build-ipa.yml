@@ -21,7 +21,6 @@ jobs:
 
       - name: Archive (unsigned)
         run: |
-          echo "Stamping CFBundleVersion as $GITHUB_RUN_NUMBER"
           xcodebuild archive \
             -project ThreeOneOSFive.xcodeproj \
             -scheme imguicheat \
@@ -32,8 +31,7 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGN_ENTITLEMENTS="" \
-            DEVELOPMENT_TEAM="" \
-            CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER"
+            DEVELOPMENT_TEAM=""
 
       - name: Package IPA
         run: |
