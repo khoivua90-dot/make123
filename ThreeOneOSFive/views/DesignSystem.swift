@@ -39,18 +39,81 @@ enum AppTheme {
     }
 }
 
-// MARK: - Ocean Background
+// MARK: - Modern Tech Background
 
 struct TechBackground: View {
     var body: some View {
-        GeometryReader { geo in
-            Image("AppBg")
-                .resizable()
-                .scaledToFill()
-                .frame(width: geo.size.width, height: geo.size.height)
-                .clipped()
+        ZStack {
+            // Deep dark base
+            LinearGradient(
+                colors: [
+                    Color(red: 0.02, green: 0.02, blue: 0.08),
+                    Color(red: 0.01, green: 0.05, blue: 0.14),
+                    Color(red: 0.00, green: 0.03, blue: 0.10)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            // Circuit grid overlay
+            CircuitGridView()
+                .opacity(0.18)
+
+            // Matrix rain
+            MatrixRainView()
+                .opacity(0.55)
+
+            // Top neon glow bloom
+            RadialGradient(
+                colors: [
+                    Color(red: 0.10, green: 0.80, blue: 0.40).opacity(0.22),
+                    Color.clear
+                ],
+                center: UnitPoint(x: 0.5, y: 0.0),
+                startRadius: 0,
+                endRadius: 320
+            )
+
+            // Bottom accent bloom
+            RadialGradient(
+                colors: [
+                    Color(red: 0.20, green: 0.50, blue: 1.00).opacity(0.14),
+                    Color.clear
+                ],
+                center: UnitPoint(x: 0.5, y: 1.0),
+                startRadius: 0,
+                endRadius: 280
+            )
         }
         .ignoresSafeArea()
+    }
+}
+
+// MARK: - Circuit Grid
+
+private struct CircuitGridView: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let spacing: CGFloat = 32
+            let cols = Int(size.width / spacing) + 1
+            let rows = Int(size.height / spacing) + 1
+            let color = GraphicsContext.Shading.color(Color(red: 0.10, green: 0.90, blue: 0.45))
+            var path = Path()
+            for c in 0..<cols {
+                for r in 0..<rows {
+                    let x = CGFloat(c) * spacing
+                    let y = CGFloat(r) * spacing
+                    path.move(to: CGPoint(x: x, y: 0))
+                    path.addLine(to: CGPoint(x: x, y: size.height))
+                    path.move(to: CGPoint(x: 0, y: y))
+                    path.addLine(to: CGPoint(x: size.width, y: y))
+                    // Node dots at intersections
+                    let dot = CGRect(x: x - 1.5, y: y - 1.5, width: 3, height: 3)
+                    path.addEllipse(in: dot)
+                }
+            }
+            ctx.stroke(path, with: color, lineWidth: 0.4)
+        }
     }
 }
 
