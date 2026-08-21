@@ -1,4 +1,4 @@
-import SwiftUI
+﻿import SwiftUI
 
 /// The very first thing the app shows: nothing else is reachable until a valid key is redeemed.
 struct KeyEntryView: View {
@@ -74,7 +74,7 @@ struct KeyEntryView: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            Text("Make By ©Stew Proxy")
+            Text("Make By ©Hely FF")
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(.secondary)
                 .padding(.vertical, 14)
