@@ -52,76 +52,79 @@ struct GamesHomeView: View {
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        deviceInfoCard
-                            .padding(.horizontal, 16)
-                            .padding(.top, 12)
+                GeometryReader { geo in
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            deviceInfoCard
+                                .padding(.horizontal, 16)
+                                .padding(.top, 12)
 
-                        if !games.isEmpty {
-                            HStack(spacing: 8) {
-                                Rectangle()
-                                    .fill(AppTheme.techGlow)
-                                    .frame(width: 3, height: 15)
-                                    .clipShape(Capsule())
-                                Text("GAMES")
-                                    .font(.system(size: 11, weight: .bold, design: .monospaced))
-                                    .foregroundStyle(.secondary)
-                                    .kerning(2.5)
-                                Spacer()
-                                Text("\(games.count)")
-                                    .font(.system(size: 11, weight: .bold, design: .monospaced))
-                                    .foregroundStyle(AppTheme.techGlow.opacity(0.8))
-                                    .padding(.horizontal, 9)
-                                    .padding(.vertical, 4)
-                                    .background(AppTheme.techGlow.opacity(0.12), in: Capsule())
-                                    .overlay(Capsule().strokeBorder(AppTheme.techGlow.opacity(0.3), lineWidth: 1))
-                            }
-                            .padding(.horizontal, 16)
-                        }
-
-                        LazyVGrid(columns: columns, spacing: 14) {
-                            ForEach(games) { game in
-                                NavigationLink {
-                                    GamePatchesView(game: game, store: store)
-                                } label: {
-                                    GameCardView(
-                                        title: game.name,
-                                        subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
-                                        bannerColor: AppTheme.resolvedBannerColor(game.bannerColor),
-                                        iconURL: game.iconURL,
-                                        systemIconName: "app.fill"
-                                    )
+                            if !games.isEmpty {
+                                HStack(spacing: 8) {
+                                    Rectangle()
+                                        .fill(AppTheme.techGlow)
+                                        .frame(width: 3, height: 15)
+                                        .clipShape(Capsule())
+                                    Text("GAMES")
+                                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                        .foregroundStyle(.secondary)
+                                        .kerning(2.5)
+                                    Spacer()
+                                    Text("\(games.count)")
+                                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                        .foregroundStyle(AppTheme.techGlow.opacity(0.8))
+                                        .padding(.horizontal, 9)
+                                        .padding(.vertical, 4)
+                                        .background(AppTheme.techGlow.opacity(0.12), in: Capsule())
+                                        .overlay(Capsule().strokeBorder(AppTheme.techGlow.opacity(0.3), lineWidth: 1))
                                 }
-                                .buttonStyle(GameCard3DPressStyle())
+                                .padding(.horizontal, 16)
                             }
-                        }
-                        .padding(.horizontal, 16)
 
-                        if games.isEmpty && !isLoadingGames {
-                            VStack(spacing: 12) {
-                                Text("App đang tiến hành nâng cấp mới, truy cập ngay Telegram để nhận thông báo mới")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 32)
-                                Button {
-                                    if let url = URL(string: "https://t.me/crackcyipa") {
-                                        UIApplication.shared.open(url)
+                            LazyVGrid(columns: columns, spacing: 14) {
+                                ForEach(games) { game in
+                                    NavigationLink {
+                                        GamePatchesView(game: game, store: store)
+                                    } label: {
+                                        GameCardView(
+                                            title: game.name,
+                                            subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
+                                            bannerColor: AppTheme.resolvedBannerColor(game.bannerColor),
+                                            iconURL: game.iconURL,
+                                            systemIconName: "app.fill"
+                                        )
                                     }
-                                } label: {
-                                    Text("Vào ngay")
-                                        .font(.subheadline.weight(.semibold))
-                                        .foregroundStyle(.black)
-                                        .padding(.horizontal, 22)
-                                        .padding(.vertical, 9)
-                                        .background(AppTheme.techGlow, in: Capsule())
+                                    .buttonStyle(GameCard3DPressStyle())
                                 }
                             }
-                            .padding(.top, 8)
-                        }
+                            .padding(.horizontal, 16)
 
-                        Spacer(minLength: 24)
+                            if games.isEmpty && !isLoadingGames {
+                                VStack(spacing: 12) {
+                                    Text("App đang tiến hành nâng cấp mới, truy cập ngay Telegram để nhận thông báo mới")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal, 32)
+                                    Button {
+                                        if let url = URL(string: "https://t.me/crackcyipa") {
+                                            UIApplication.shared.open(url)
+                                        }
+                                    } label: {
+                                        Text("Vào ngay")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundStyle(.black)
+                                            .padding(.horizontal, 22)
+                                            .padding(.vertical, 9)
+                                            .background(AppTheme.techGlow, in: Capsule())
+                                    }
+                                }
+                                .padding(.top, 8)
+                            }
+
+                            Spacer(minLength: 24)
+                        }
+                        .frame(minHeight: geo.size.height)
                     }
                 }
             }
