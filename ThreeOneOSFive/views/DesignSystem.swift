@@ -23,18 +23,18 @@ enum AppTheme {
     static let emptyIconSize: CGFloat = 30
     static let selectionIconSize: CGFloat = 18
 
-    // MARK: Cyberpunk palette
-    static let cyberBase      = Color(red: 0.012, green: 0.031, blue: 0.090)
-    static let techGlow       = Color(red: 0.180, green: 0.522, blue: 1.000)   // electric blue
-    static let neonPurple     = Color(red: 0.580, green: 0.227, blue: 0.949)   // neon purple
-    static let neonCyan       = Color(red: 0.102, green: 0.851, blue: 1.000)   // cyan
-    static let techCardFill   = Color(red: 0.068, green: 0.098, blue: 0.180)
+    // MARK: Ocean palette
+    static let cyberBase      = Color(red: 0.02, green: 0.07, blue: 0.18)       // deep midnight ocean
+    static let techGlow       = Color(red: 0.22, green: 0.62, blue: 0.92)       // clear ocean blue
+    static let neonPurple     = Color(red: 0.08, green: 0.40, blue: 0.75)       // deep sea blue
+    static let neonCyan       = Color(red: 0.55, green: 0.90, blue: 1.00)       // seafoam / sky light
+    static let techCardFill   = Color(red: 0.03, green: 0.10, blue: 0.24)
 
     static var techCardStroke: LinearGradient {
         LinearGradient(
             colors: [
-                Color(red: 0.18, green: 0.52, blue: 1.00).opacity(0.55),
-                Color(red: 0.58, green: 0.23, blue: 0.95).opacity(0.38)
+                Color(red: 0.22, green: 0.62, blue: 0.92).opacity(0.50),
+                Color(red: 0.08, green: 0.40, blue: 0.75).opacity(0.35)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -42,17 +42,17 @@ enum AppTheme {
     }
 
     static let rowPalette: [Color] = [
-        Color(red: 1.00, green: 0.56, blue: 0.24),
-        Color(red: 0.96, green: 0.28, blue: 0.42),
-        Color(red: 0.30, green: 0.78, blue: 0.96),
-        Color(red: 0.66, green: 0.46, blue: 0.98),
-        Color(red: 0.36, green: 0.85, blue: 0.56),
+        Color(red: 1.00, green: 0.55, blue: 0.28),   // sunrise coral
+        Color(red: 0.18, green: 0.80, blue: 0.72),   // seafoam teal
+        Color(red: 0.35, green: 0.72, blue: 1.00),   // sky blue
+        Color(red: 0.10, green: 0.68, blue: 0.88),   // wave blue
+        Color(red: 0.85, green: 0.95, blue: 1.00),   // pearl mist
     ]
     static func rowColor(_ index: Int) -> Color { rowPalette[index % rowPalette.count] }
 
     static func resolvedBannerColor(_ hex: String?) -> Color {
         guard let hex, let color = Color(hex: hex) else {
-            return Color(red: 0.12, green: 0.09, blue: 0.28)
+            return Color(red: 0.04, green: 0.15, blue: 0.35)
         }
         return color
     }

@@ -190,8 +190,8 @@ struct GamesHomeView: View {
                         .font(.system(size: 30, weight: .black))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [Color(red: 0.26, green: 0.55, blue: 1.00),
-                                         Color(red: 0.48, green: 0.37, blue: 1.00)],
+                                colors: [AppTheme.neonCyan,
+                                         AppTheme.techGlow],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -202,7 +202,7 @@ struct GamesHomeView: View {
                             .font(.system(size: 13, weight: .bold))
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [AppTheme.neonPurple, Color(red: 0.55, green: 0.25, blue: 0.90)],
+                                    colors: [AppTheme.techGlow, AppTheme.neonPurple],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
@@ -211,7 +211,7 @@ struct GamesHomeView: View {
                             .font(.system(size: 16, weight: .heavy))
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [AppTheme.neonPurple, Color(red: 0.45, green: 0.20, blue: 0.80)],
+                                    colors: [AppTheme.techGlow, AppTheme.neonPurple],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 )
@@ -222,7 +222,7 @@ struct GamesHomeView: View {
 
                 Text("Trợ thủ game · An toàn · Ổn định")
                     .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(Color(red: 0.54, green: 0.62, blue: 0.78))
+                    .foregroundStyle(Color(red: 0.65, green: 0.82, blue: 0.95))
             }
 
             Spacer()
@@ -263,7 +263,7 @@ struct GamesHomeView: View {
         VStack(spacing: 0) {
             deviceInfoRow(
                 icon: "apple.logo",
-                iconColor: Color(red: 0.68, green: 0.28, blue: 0.98),
+                iconColor: AppTheme.techGlow,
                 label: language.text("settings.ios_version"),
                 value: shortOSVersion,
                 valueColor: AppTheme.neonCyan
