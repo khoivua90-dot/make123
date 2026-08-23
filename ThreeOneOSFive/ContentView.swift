@@ -27,7 +27,9 @@ struct ContentView: View {
             } else if licenseGate.isUnlocked {
                 GamesHomeView()
             } else {
-                KeyEntryView()
+                // PPAPIKey shows its own key entry overlay on top of this background
+                ZStack { TechBackground() }
+                    .preferredColorScheme(.dark)
             }
         }
         .environmentObject(licenseGate)
