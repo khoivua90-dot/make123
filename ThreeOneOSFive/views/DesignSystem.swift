@@ -51,20 +51,20 @@ enum AppTheme {
 
 struct TechBackground: View {
     var body: some View {
-        ZStack {
-            Image("AppBg")
-                .resizable()
-                .scaledToFill()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .clipped()
-                .ignoresSafeArea()
-            // Gradient tối từ trên xuống để chữ/content đọc rõ
-            LinearGradient(
-                colors: [Color.black.opacity(0.60), Color.black.opacity(0.30), Color.black.opacity(0.50)],
-                startPoint: .top, endPoint: .bottom
-            )
-            .ignoresSafeArea()
+        GeometryReader { geo in
+            ZStack {
+                Image("AppBg")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+                LinearGradient(
+                    colors: [Color.black.opacity(0.55), Color.black.opacity(0.25), Color.black.opacity(0.45)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            }
         }
+        .ignoresSafeArea()
     }
 }
 
