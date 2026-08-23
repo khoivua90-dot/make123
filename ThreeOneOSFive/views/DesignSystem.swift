@@ -52,32 +52,24 @@ enum AppTheme {
 struct TechBackground: View {
     var body: some View {
         ZStack {
-            // Deep dark base
-            LinearGradient(
-                colors: [
-                    Color(red: 0.00, green: 0.02, blue: 0.08),
-                    Color(red: 0.01, green: 0.04, blue: 0.12),
-                    Color(red: 0.00, green: 0.02, blue: 0.07)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            // Circuit grid
-            CircuitGridView().opacity(0.22)
+            // Background image
+            Image("AppBg")
+                .resizable()
+                .scaledToFill()
+            // Dark overlay for readability
+            Color.black.opacity(0.45)
             // Matrix rain
-            MatrixRainView().opacity(0.60)
+            MatrixRainView().opacity(0.35)
             // Top cyan glow
             RadialGradient(
-                colors: [Color(red: 0.10, green: 0.85, blue: 1.00).opacity(0.18), Color.clear],
+                colors: [Color(red: 0.10, green: 0.85, blue: 1.00).opacity(0.12), Color.clear],
                 center: UnitPoint(x: 0.5, y: 0.0), startRadius: 0, endRadius: 300
             )
             // Bottom purple glow
             RadialGradient(
-                colors: [Color(red: 0.45, green: 0.10, blue: 0.90).opacity(0.14), Color.clear],
+                colors: [Color(red: 0.45, green: 0.10, blue: 0.90).opacity(0.10), Color.clear],
                 center: UnitPoint(x: 0.5, y: 1.0), startRadius: 0, endRadius: 260
             )
-            // Scanlines overlay
-            ScanlinesView().opacity(0.06)
         }
         .ignoresSafeArea()
     }
