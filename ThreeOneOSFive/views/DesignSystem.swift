@@ -52,26 +52,27 @@ enum AppTheme {
 struct TechBackground: View {
     var body: some View {
         ZStack {
-            // Background image
             Image("AppBg")
                 .resizable()
                 .scaledToFill()
-            // Dark overlay for readability
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
+                .ignoresSafeArea()
             Color.black.opacity(0.45)
-            // Matrix rain
+                .ignoresSafeArea()
             MatrixRainView().opacity(0.35)
-            // Top cyan glow
+                .ignoresSafeArea()
             RadialGradient(
                 colors: [Color(red: 0.10, green: 0.85, blue: 1.00).opacity(0.12), Color.clear],
                 center: UnitPoint(x: 0.5, y: 0.0), startRadius: 0, endRadius: 300
             )
-            // Bottom purple glow
+            .ignoresSafeArea()
             RadialGradient(
                 colors: [Color(red: 0.45, green: 0.10, blue: 0.90).opacity(0.10), Color.clear],
                 center: UnitPoint(x: 0.5, y: 1.0), startRadius: 0, endRadius: 260
             )
+            .ignoresSafeArea()
         }
-        .ignoresSafeArea()
     }
 }
 
