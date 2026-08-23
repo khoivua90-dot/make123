@@ -11,7 +11,7 @@ final class LicenseGateStore: ObservableObject {
 
     var storedKeyCode: String? {
         let k = PPAPIKey.shared().getDeviceKey()
-        return (k?.isEmpty == false) ? k : nil
+        return k.isEmpty ? nil : k
     }
 
     var maskedKeyCode: String {
@@ -21,7 +21,8 @@ final class LicenseGateStore: ObservableObject {
     }
 
     var expiresAt: Date? {
-        guard let raw = PPAPIKey.shared().getKeyExpire(), !raw.isEmpty else { return nil }
+        let raw = PPAPIKey.shared().getExpire()
+        guard !raw.isEmpty else { return nil }
         let formats = ["dd/MM/yyyy HH:mm:ss", "yyyy-MM-dd HH:mm:ss", "dd/MM/yyyy", "yyyy-MM-dd"]
         for fmt in formats {
             let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = fmt
