@@ -69,7 +69,7 @@ enum AppTheme {
     }
 }
 
-// MARK: - Animated Electronic Background
+// MARK: - Snow Background
 
 struct TechBackground: View {
     var body: some View {
@@ -81,12 +81,116 @@ struct TechBackground: View {
                     .frame(width: geo.size.width, height: geo.size.height)
                     .clipped()
                 LinearGradient(
-                    colors: [Color.black.opacity(0.55), Color.black.opacity(0.25), Color.black.opacity(0.45)],
+                    colors: [Color.black.opacity(0.45), Color.black.opacity(0.10), Color.black.opacity(0.50)],
                     startPoint: .top, endPoint: .bottom
                 )
+                SnowfallView()
             }
         }
         .ignoresSafeArea()
+    }
+}
+
+// MARK: - Snowfall Animation
+
+struct SnowfallView: UIViewRepresentable {
+    func makeUIView(context: Context) -> SnowfallUIView { SnowfallUIView() }
+    func updateUIView(_ uiView: SnowfallUIView, context: Context) {}
+}
+
+final class SnowfallUIView: UIView {
+
+    private var displayLink: CADisplayLink?
+
+    private struct Flake {
+        var x: CGFloat
+        var y: CGFloat
+        var speed: CGFloat
+        var radius: CGFloat
+        var opacity: CGFloat
+        var drift: CGFloat
+        var phase: CGFloat
+    }
+
+    private var flakes: [Flake] = []
+    private let flakeCount = 90
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .clear
+        isOpaque = false
+        contentMode = .redraw
+    }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        if flakes.count != flakeCount { buildFlakes() }
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        window != nil ? startSnow() : stopSnow()
+    }
+
+    deinit { stopSnow() }
+
+    private func buildFlakes() {
+        let h = max(bounds.height, 100)
+        let w = max(bounds.width, 100)
+        flakes = (0..<flakeCount).map { _ in
+            Flake(
+                x: CGFloat.random(in: 0...w),
+                y: CGFloat.random(in: -h...h),
+                speed: CGFloat.random(in: 1.2...4.0),
+                radius: CGFloat.random(in: 1.5...5.5),
+                opacity: CGFloat.random(in: 0.55...1.0),
+                drift: CGFloat.random(in: -0.6...0.6),
+                phase: CGFloat.random(in: 0...(2 * .pi))
+            )
+        }
+    }
+
+    private func startSnow() {
+        stopSnow()
+        let link = CADisplayLink(target: self, selector: #selector(tick))
+        link.preferredFrameRateRange = .init(minimum: 18, maximum: 28, preferred: 24)
+        link.add(to: .main, forMode: .common)
+        displayLink = link
+    }
+
+    private func stopSnow() {
+        displayLink?.invalidate()
+        displayLink = nil
+    }
+
+    @objc private func tick() {
+        let w = bounds.width
+        let h = bounds.height
+        for i in 0..<flakes.count {
+            flakes[i].phase += 0.025
+            flakes[i].y += flakes[i].speed
+            flakes[i].x += sin(flakes[i].phase) * flakes[i].drift
+            if flakes[i].y > h + flakes[i].radius {
+                flakes[i].y = -flakes[i].radius * 2
+                flakes[i].x = CGFloat.random(in: 0...w)
+                flakes[i].radius = CGFloat.random(in: 1.5...5.5)
+                flakes[i].speed = CGFloat.random(in: 1.2...4.0)
+                flakes[i].opacity = CGFloat.random(in: 0.55...1.0)
+            }
+        }
+        setNeedsDisplay()
+    }
+
+    override func draw(_ rect: CGRect) {
+        guard let ctx = UIGraphicsGetCurrentContext() else { return }
+        ctx.clear(rect)
+        for flake in flakes {
+            let r = flake.radius
+            ctx.setFillColor(UIColor.white.withAlphaComponent(flake.opacity).cgColor)
+            ctx.fillEllipse(in: CGRect(x: flake.x - r, y: flake.y - r, width: r * 2, height: r * 2))
+        }
     }
 }
 
