@@ -556,7 +556,7 @@
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/ThreeOneOSFive/PPAPIKey";
 				OTHER_LDFLAGS = (
 					"-lz",
-					"-lPPAPIKey_basic",
+					"-lc++",
 					"-ObjC",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.apple.mobile.MobileHouseArrest";
@@ -595,7 +595,7 @@
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/ThreeOneOSFive/PPAPIKey";
 				OTHER_LDFLAGS = (
 					"-lz",
-					"-lPPAPIKey_basic",
+					"-lc++",
 					"-ObjC",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.apple.mobile.MobileHouseArrest";
