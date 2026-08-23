@@ -439,7 +439,7 @@ struct GamePatchesView: View {
         let isOn = projectStates[item.id] ?? false
 
         return HStack(spacing: 13) {
-            Image(systemName: "bolt.fill")
+            Image(systemName: AppTheme.rowIcon(colorIndex))
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(width: 42, height: 42)

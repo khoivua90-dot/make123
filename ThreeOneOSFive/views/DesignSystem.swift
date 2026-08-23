@@ -36,10 +36,32 @@ enum AppTheme {
         Color(red: 0.30, green: 0.78, blue: 0.96),
         Color(red: 0.66, green: 0.46, blue: 0.98),
         Color(red: 0.36, green: 0.85, blue: 0.56),
+        Color(red: 1.00, green: 0.82, blue: 0.18),
+        Color(red: 0.95, green: 0.38, blue: 0.78),
+        Color(red: 0.20, green: 0.88, blue: 0.72),
+        Color(red: 0.48, green: 0.32, blue: 0.98),
+        Color(red: 0.25, green: 0.75, blue: 0.35),
     ]
 
     static func rowColor(_ index: Int) -> Color {
         rowPalette[index % rowPalette.count]
+    }
+
+    static let rowIcons: [String] = [
+        "shield.fill",
+        "scope",
+        "snowflake",
+        "star.fill",
+        "checkmark.shield.fill",
+        "bolt.fill",
+        "suit.diamond.fill",
+        "flame.fill",
+        "sparkles",
+        "crown.fill",
+    ]
+
+    static func rowIcon(_ index: Int) -> String {
+        rowIcons[index % rowIcons.count]
     }
 
     static func resolvedBannerColor(_ raw: String) -> Color {
