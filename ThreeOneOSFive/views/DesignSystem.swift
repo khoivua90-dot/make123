@@ -58,18 +58,10 @@ struct TechBackground: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipped()
                 .ignoresSafeArea()
-            Color.black.opacity(0.45)
-                .ignoresSafeArea()
-            MatrixRainView().opacity(0.35)
-                .ignoresSafeArea()
-            RadialGradient(
-                colors: [Color(red: 0.10, green: 0.85, blue: 1.00).opacity(0.12), Color.clear],
-                center: UnitPoint(x: 0.5, y: 0.0), startRadius: 0, endRadius: 300
-            )
-            .ignoresSafeArea()
-            RadialGradient(
-                colors: [Color(red: 0.45, green: 0.10, blue: 0.90).opacity(0.10), Color.clear],
-                center: UnitPoint(x: 0.5, y: 1.0), startRadius: 0, endRadius: 260
+            // Gradient tối từ trên xuống để chữ/content đọc rõ
+            LinearGradient(
+                colors: [Color.black.opacity(0.60), Color.black.opacity(0.30), Color.black.opacity(0.50)],
+                startPoint: .top, endPoint: .bottom
             )
             .ignoresSafeArea()
         }
