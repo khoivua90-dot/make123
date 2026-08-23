@@ -93,7 +93,7 @@ struct GamesHomeView: View {
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 32)
                                 Button {
-                                    if let url = URL(string: "https://t.me/crackcyipa") {
+                                    if let url = URL(string: "https://t.me/+M59J7RFHJUFmZWU1") {
                                         UIApplication.shared.open(url)
                                     }
                                 } label: {
