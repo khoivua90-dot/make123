@@ -12,7 +12,7 @@ struct SettingsView: View {
                     AppLogo()
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Cheat FF iOS").font(.headline)
+                        Text("Odin").font(.headline)
                         Text(language.text("common.version", appVersion))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
