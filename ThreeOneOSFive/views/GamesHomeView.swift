@@ -167,7 +167,7 @@ struct GamesHomeView: View {
     private var cyberHeader: some View {
         HStack(alignment: .top, spacing: 0) {
             VStack(alignment: .leading, spacing: 5) {
-                Text("Ios Store VIP")
+                Text("Hà iOS")
                     .font(.system(size: 30, weight: .black))
                     .foregroundStyle(
                         LinearGradient(

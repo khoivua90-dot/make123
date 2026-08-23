@@ -12,7 +12,7 @@ struct SettingsView: View {
                     AppLogo()
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Ios Store VIP").font(.headline)
+                        Text("Hà iOS").font(.headline)
                         Text(language.text("common.version", appVersion))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -42,7 +42,7 @@ struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Nhóm thông báo")
                                 .font(.body)
-                            Text("t.me/iosstorevipp")
+                            Text("t.me/+M59J7RFHJUFmZWU1")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -51,7 +51,7 @@ struct SettingsView: View {
                             .foregroundStyle(Color(red: 0.13, green: 0.59, blue: 0.95))
                     }
                     Spacer()
-                    Link("Vào ngay", destination: URL(string: "https://t.me/iosstorevipp")!)
+                    Link("Vào ngay", destination: URL(string: "https://t.me/+M59J7RFHJUFmZWU1")!)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color(red: 0.13, green: 0.59, blue: 0.95))
                 }
