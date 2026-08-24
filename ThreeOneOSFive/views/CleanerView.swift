@@ -13,6 +13,7 @@ struct CleanerView: View {
     @State private var hasLoaded = false
     @State private var scanID = UUID()
     @State private var activeAlert: CleanerAlert?
+    @State private var toast: ToastMessage?
 
     private var filteredRecords: [CleanerAppRecord] {
         let matchingRecords: [CleanerAppRecord]
@@ -79,6 +80,7 @@ struct CleanerView: View {
             .scrollDismissesKeyboard(.interactively)
             .toolbar { toolbarContent }
             .alert(item: $activeAlert, content: alert(for:))
+            .toast($toast)
             .onAppear {
                 guard !hasLoaded else { return }
                 hasLoaded = true
@@ -354,12 +356,6 @@ struct CleanerView: View {
                 },
                 secondaryButton: .cancel(Text(language.text("common.cancel")))
             )
-        case .result(let message):
-            return Alert(
-                title: Text(language.text("cleaner.result_title")),
-                message: Text(message),
-                dismissButton: .default(Text(language.text("common.done")))
-            )
         }
     }
 
@@ -605,7 +601,7 @@ struct CleanerView: View {
                 }
                 selectedBundleIDs.removeAll()
                 isCleaning = false
-                activeAlert = .result(message: resultMessage)
+                toast = ToastMessage(text: resultMessage)
             }
         }
     }
@@ -624,12 +620,6 @@ private struct CleanerAppRecord: Identifiable {
 
 private enum CleanerAlert: Identifiable {
     case confirmation
-    case result(message: String)
 
-    var id: String {
-        switch self {
-        case .confirmation: return "confirmation"
-        case .result(let message): return "result-\(message)"
-        }
-    }
+    var id: String { "confirmation" }
 }
