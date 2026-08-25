@@ -78,7 +78,6 @@
 		3105K231 /* LicenseInfoSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K131; };
 		3105K232 /* JailbreakBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K132; };
 		3105K206 /* SmartModeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K106; };
-		3105PP02 /* libPPAPIKey_basic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3105PP01; };
 		3105K207 /* VPNBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K107; };
 		3105K208 /* WelcomeFaceIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K108; };
 		3105K210 /* AnnouncementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K110; };
@@ -202,7 +201,6 @@
 		3105A121 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3105A122 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3105B123 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
-		3105PP01 /* libPPAPIKey_basic.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPPAPIKey_basic.a; path = ThreeOneOSFive/PPAPIKey/libPPAPIKey_basic.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -210,7 +208,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3105PP02 /* libPPAPIKey_basic.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -553,7 +550,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.1.0;
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/ThreeOneOSFive/PPAPIKey";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-lz",
 					"-lc++",
@@ -592,7 +589,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.1.0;
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/ThreeOneOSFive/PPAPIKey";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-lz",
 					"-lc++",
