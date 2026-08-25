@@ -93,7 +93,7 @@ struct GamesHomeView: View {
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 32)
                                 Button {
-                                    if let url = URL(string: "https://t.me/+M59J7RFHJUFmZWU1") {
+                                    if let url = URL(string: "https://t.me/ZenModx") {
                                         UIApplication.shared.open(url)
                                     }
                                 } label: {
@@ -167,7 +167,7 @@ struct GamesHomeView: View {
     private var cyberHeader: some View {
         HStack(alignment: .top, spacing: 0) {
             VStack(alignment: .leading, spacing: 5) {
-                Text("Hà iOS")
+                Text("DuongMods")
                     .font(.system(size: 30, weight: .black))
                     .foregroundStyle(
                         LinearGradient(
