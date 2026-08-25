@@ -1,17 +1,64 @@
 import Foundation
+import Security
 
 @MainActor
 final class LicenseGateStore: ObservableObject {
     @Published private(set) var isUnlocked = false
     @Published private(set) var isChecking = true
+    @Published private(set) var expiresAt: Date?
+    @Published private(set) var licenseDevices: [LicenseDeviceEntry] = []
     @Published var errorMessage: String?
     @Published var activationToast: ToastMessage?
 
-    private static let ppToken = "TKsA8JJzYfLlvTXCLgOSsOfVBlco0J6ASizdYH2FjavN3YY3XupvrxQphqcARpDgmiLRq8CER1u2OkxICggrgzftTxChW76tKRNo"
+    private static let kcService = "com.cheatiosvip.license"
+    private static let kcAccount = "key-code"
 
-    var storedKeyCode: String? {
-        let k = PPAPIKey.shared().getDeviceKey()
-        return k.isEmpty ? nil : k
+    private(set) var storedKeyCode: String? {
+        get { Self.keychainLoad() }
+        set {
+            if let value = newValue { Self.keychainSave(value) }
+            else { Self.keychainDelete() }
+        }
+    }
+
+    private static func keychainLoad() -> String? {
+        let q: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: kcService,
+            kSecAttrAccount as String: kcAccount,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var ref: CFTypeRef?
+        guard SecItemCopyMatching(q as CFDictionary, &ref) == errSecSuccess,
+              let data = ref as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private static func keychainSave(_ value: String) {
+        let data = Data(value.utf8)
+        let q: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: kcService,
+            kSecAttrAccount as String: kcAccount
+        ]
+        let attrs: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        ]
+        if SecItemUpdate(q as CFDictionary, attrs as CFDictionary) == errSecItemNotFound {
+            var item = q; attrs.forEach { item[$0.key] = $0.value }
+            SecItemAdd(item as CFDictionary, nil)
+        }
+    }
+
+    private static func keychainDelete() {
+        let q: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: kcService,
+            kSecAttrAccount as String: kcAccount
+        ]
+        SecItemDelete(q as CFDictionary)
     }
 
     var maskedKeyCode: String {
@@ -19,19 +66,6 @@ final class LicenseGateStore: ObservableObject {
         guard code.count > 8 else { return code }
         return "\(code.prefix(4))••••\(code.suffix(4))"
     }
-
-    var expiresAt: Date? {
-        let raw = PPAPIKey.shared().getExpire()
-        guard !raw.isEmpty else { return nil }
-        let formats = ["dd/MM/yyyy HH:mm:ss", "yyyy-MM-dd HH:mm:ss", "dd/MM/yyyy", "yyyy-MM-dd"]
-        for fmt in formats {
-            let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = fmt
-            if let d = f.date(from: raw) { return d }
-        }
-        return ISO8601DateFormatter().date(from: raw)
-    }
-
-    var licenseDevices: [LicenseDeviceEntry] { [] }
 
     func remainingTimeText(language: AppLanguage) -> String {
         guard let expiresAt else { return "" }
@@ -43,32 +77,67 @@ final class LicenseGateStore: ObservableObject {
     }
 
     func bootstrap() async {
-        PPAPIKey.shared().setToken(Self.ppToken)
-        PPAPIKey.shared().setEN(false)
-        PPAPIKey.shared().setVer("1.0")
-        isChecking = false
-        PPAPIKey.shared().loading {
-            Task { @MainActor in
-                self.isUnlocked = true
-            }
+        isChecking = true
+        defer { isChecking = false }
+        guard let code = storedKeyCode, !code.isEmpty else {
+            isUnlocked = false
+            return
+        }
+        await refreshStatus(code: code)
+    }
+
+    func revalidateIfNeeded() async {
+        guard isUnlocked, let code = storedKeyCode else { return }
+        await refreshStatus(code: code)
+    }
+
+    @discardableResult
+    func redeem(code rawCode: String) async -> Bool {
+        let code = rawCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        errorMessage = nil
+        do {
+            let result = try await LicenseKeyService.redeem(
+                code: code,
+                deviceId: DeviceIdentity.current,
+                deviceModel: AppInfo.hardwareDisplayName
+            )
+            storedKeyCode = code
+            expiresAt = result.expiresAt
+            licenseDevices = result.devices
+            isUnlocked = true
+            let language = AppLanguage.vietnamese
+            let detail = language.text("license.activated_detail", AppInfo.hardwareDisplayName, remainingTimeText(language: language))
+            activationToast = ToastMessage(text: "\(language.text("license.activated_success"))\n\(detail)")
+            return true
+        } catch let error as LicenseKeyError {
+            errorMessage = AppLanguage.vietnamese.text(error.localizationKey)
+            return false
+        } catch {
+            errorMessage = AppLanguage.vietnamese.text(LicenseKeyError.network.localizationKey)
+            return false
         }
     }
 
-    func revalidateIfNeeded() async {}
-
-    @discardableResult
-    func redeem(code rawCode: String) async -> Bool { return false }
-
     func changeKey() {
+        storedKeyCode = nil
+        expiresAt = nil
+        licenseDevices = []
         isUnlocked = false
-        PPAPIKey.shared().exitKey { _ in
-            Task { @MainActor in
-                PPAPIKey.shared().loading {
-                    Task { @MainActor in
-                        self.isUnlocked = true
-                    }
-                }
-            }
+        errorMessage = nil
+    }
+
+    private func refreshStatus(code: String) async {
+        do {
+            let result = try await LicenseKeyService.status(code: code, deviceId: DeviceIdentity.current)
+            expiresAt = result.expiresAt
+            licenseDevices = result.devices
+            isUnlocked = true
+        } catch LicenseKeyError.network {
+            // Connectivity issue — keep existing unlocked state.
+        } catch LicenseKeyError.expired {
+            changeKey()
+        } catch {
+            isUnlocked = false
         }
     }
 }
