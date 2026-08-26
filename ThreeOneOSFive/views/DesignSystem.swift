@@ -69,23 +69,18 @@ enum AppTheme {
     }
 }
 
-// MARK: - Snow Background
+// MARK: - Hacker Background
 
 struct TechBackground: View {
     var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                Image("AppBg")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .clipped()
-                LinearGradient(
-                    colors: [Color.black.opacity(0.45), Color.black.opacity(0.10), Color.black.opacity(0.50)],
-                    startPoint: .top, endPoint: .bottom
-                )
-                SnowfallView()
-            }
+        ZStack {
+            Color(red: 0.00, green: 0.02, blue: 0.00)
+            MatrixRainView()
+            ScanlinesView().opacity(0.06)
+            LinearGradient(
+                colors: [Color.black.opacity(0.55), Color.clear, Color.black.opacity(0.65)],
+                startPoint: .top, endPoint: .bottom
+            )
         }
         .ignoresSafeArea()
     }
@@ -224,7 +219,7 @@ private struct CircuitGridView: View {
 
 // MARK: - Scanlines overlay
 
-private struct ScanlinesView: View {
+struct ScanlinesView: View {
     var body: some View {
         Canvas { ctx, size in
             let lineSpacing: CGFloat = 4
