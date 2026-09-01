@@ -5,8 +5,8 @@ enum AppTheme {
     static let accent = Color(
         uiColor: UIColor { traits in
             traits.userInterfaceStyle == .dark
-                ? UIColor(red: 1.00, green: 0.64, blue: 0.42, alpha: 1.00)
-                : UIColor(red: 0.85, green: 0.42, blue: 0.20, alpha: 1.00)
+                ? UIColor(red: 0.72, green: 0.20, blue: 1.00, alpha: 1.00)
+                : UIColor(red: 0.55, green: 0.10, blue: 0.85, alpha: 1.00)
         }
     )
     static let pageBackground = Color(uiColor: .systemBackground)
@@ -21,14 +21,14 @@ enum AppTheme {
     static let emptyIconSize: CGFloat = 30
     static let selectionIconSize: CGFloat = 18
 
-    // MARK: - Electronic interface palette
-    static let techBackgroundTop    = Color(red: 0.00, green: 0.02, blue: 0.08)
-    static let techBackgroundBottom = Color(red: 0.00, green: 0.01, blue: 0.05)
-    static let techGlow             = Color(red: 0.10, green: 0.85, blue: 1.00)   // electric cyan
-    static let neonPurple           = Color(red: 0.55, green: 0.15, blue: 0.95)   // neon purple
-    static let neonCyan             = Color(red: 0.10, green: 0.95, blue: 0.80)   // matrix green-cyan
-    static let techCardFill         = Color(red: 0.05, green: 0.10, blue: 0.20).opacity(0.75)
-    static let techCardStroke       = Color(red: 0.10, green: 0.85, blue: 1.00).opacity(0.35)
+    // MARK: - Mystical purple palette
+    static let techBackgroundTop    = Color(red: 0.04, green: 0.00, blue: 0.12)
+    static let techBackgroundBottom = Color(red: 0.02, green: 0.00, blue: 0.07)
+    static let techGlow             = Color(red: 0.72, green: 0.20, blue: 1.00)   // mystical violet
+    static let neonPurple           = Color(red: 0.80, green: 0.10, blue: 1.00)   // deep neon purple
+    static let neonCyan             = Color(red: 0.60, green: 0.10, blue: 0.95)   // electric violet
+    static let techCardFill         = Color(red: 0.14, green: 0.03, blue: 0.28).opacity(0.75)
+    static let techCardStroke       = Color(red: 0.72, green: 0.20, blue: 1.00).opacity(0.45)
 
     static let rowPalette: [Color] = [
         Color(red: 1.00, green: 0.56, blue: 0.24),
@@ -74,11 +74,22 @@ enum AppTheme {
 struct TechBackground: View {
     var body: some View {
         ZStack {
-            Color(red: 0.00, green: 0.02, blue: 0.00)
+            Color(red: 0.04, green: 0.00, blue: 0.10)
             MatrixRainView()
-            ScanlinesView().opacity(0.06)
+            ScanlinesView().opacity(0.04)
+            // Mystical purple ambient glows
+            RadialGradient(
+                colors: [Color(red: 0.50, green: 0.00, blue: 0.80).opacity(0.22), .clear],
+                center: UnitPoint(x: 0.5, y: 0.15),
+                startRadius: 0, endRadius: 300
+            )
+            RadialGradient(
+                colors: [Color(red: 0.30, green: 0.00, blue: 0.60).opacity(0.14), .clear],
+                center: UnitPoint(x: 0.8, y: 0.75),
+                startRadius: 0, endRadius: 220
+            )
             LinearGradient(
-                colors: [Color.black.opacity(0.55), Color.clear, Color.black.opacity(0.65)],
+                colors: [Color.black.opacity(0.50), Color.clear, Color.black.opacity(0.60)],
                 startPoint: .top, endPoint: .bottom
             )
         }
@@ -197,7 +208,7 @@ private struct CircuitGridView: View {
             let spacing: CGFloat = 32
             let cols = Int(size.width / spacing) + 1
             let rows = Int(size.height / spacing) + 1
-            let color = GraphicsContext.Shading.color(Color(red: 0.10, green: 0.90, blue: 0.45))
+            let color = GraphicsContext.Shading.color(Color(red: 0.55, green: 0.10, blue: 0.90))
             var path = Path()
             for c in 0..<cols {
                 for r in 0..<rows {
@@ -368,15 +379,15 @@ final class MatrixRainUIView: UIView {
                 let color: UIColor
                 switch j {
                 case 0:
-                    // Head: near-white with green tint
-                    color = UIColor(red: 0.88, green: 1.00, blue: 0.90, alpha: 1.0)
+                    // Head: near-white with violet tint
+                    color = UIColor(red: 0.95, green: 0.85, blue: 1.00, alpha: 1.0)
                 case 1:
-                    // Neck: full bright green
-                    color = UIColor(red: 0.12, green: 1.00, blue: 0.38, alpha: 1.0)
+                    // Neck: bright neon purple
+                    color = UIColor(red: 0.75, green: 0.20, blue: 1.00, alpha: 1.0)
                 default:
-                    // Trail: fading green
-                    let g = max(0.08, 0.75 * alpha)
-                    color = UIColor(red: 0.0, green: g, blue: 0.04, alpha: alpha * 0.90)
+                    // Trail: fading violet
+                    let v = max(0.06, 0.70 * alpha)
+                    color = UIColor(red: v * 0.55, green: 0.0, blue: v, alpha: alpha * 0.85)
                 }
 
                 let ci = j % col.chars.count

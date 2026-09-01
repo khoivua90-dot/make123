@@ -12,7 +12,7 @@ struct SettingsView: View {
                     AppLogo()
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("VANDUY IOS").font(.headline)
+                        Text("VDcheatios").font(.headline)
                         Text(language.text("common.version", appVersion))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -42,7 +42,7 @@ struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Nhóm thông báo")
                                 .font(.body)
-                            Text("t.me/+M59J7RFHJUFmZWU1")
+                            Text("t.me/+rWMEb0dwIn1hOGU1")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -51,7 +51,7 @@ struct SettingsView: View {
                             .foregroundStyle(Color(red: 0.13, green: 0.59, blue: 0.95))
                     }
                     Spacer()
-                    Link("Vào ngay", destination: URL(string: "https://t.me/+M59J7RFHJUFmZWU1")!)
+                    Link("Vào ngay", destination: URL(string: "https://t.me/+rWMEb0dwIn1hOGU1")!)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color(red: 0.13, green: 0.59, blue: 0.95))
                 }
@@ -72,6 +72,7 @@ struct SettingsView: View {
                     )
                     .foregroundStyle(appState.isSupported ? Color.green : Color.red)
                 }
+                LabeledContent("iOS 16", value: ExploitSupportPolicy.verifiedIOS16Range)
                 LabeledContent("iOS 17", value: ExploitSupportPolicy.verifiedIOS17Range)
                 LabeledContent("iOS 18", value: ExploitSupportPolicy.verifiedIOS18Range)
                 LabeledContent("iOS 26", value: ExploitSupportPolicy.verifiedIOS26Range)

@@ -34,7 +34,7 @@
 "dashboard.unsupported_message" = "iOS %@ is not yet supported.\n\nCurrently supported:\n• iOS 18.0–18.7.1\n• iOS 26.x\n• iOS 27.0 beta 1–4";
 "dashboard.installation" = "Installation";
 "dashboard.enterprise_signing" = "CheatiOSVip only works when signed with an enterprise certificate. SideStore, AltStore, 3uTools and LiveContainer are not supported.";
-"tab.home" = "External - iOS V3";
+"tab.home" = "VDcheatios";
 "tab.files" = "Files";
 "tab.patches" = "Patches";
 "tab.settings" = "Settings";
@@ -384,7 +384,7 @@
 
 // MARK: - License key gate
 "license.title" = "Enter Activation Key";
-"license.subtitle" = "Enter your key to unlock External - iOS V3 on this device.";
+"license.subtitle" = "Enter your key to unlock VDcheatios on this device.";
 "license.placeholder" = "Enter key";
 "license.activate" = "Activate";
 "license.change_key" = "Change Key";

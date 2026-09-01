@@ -1,4 +1,4 @@
-import SwiftUI
+﻿import SwiftUI
 import UIKit
 
 struct GamesHomeView: View {
@@ -167,7 +167,7 @@ struct GamesHomeView: View {
     private var cyberHeader: some View {
         HStack(alignment: .top, spacing: 0) {
             VStack(alignment: .leading, spacing: 5) {
-                Text("VANDUY IOS")
+                Text("VDcheatios")
                     .font(.system(size: 30, weight: .black))
                     .foregroundStyle(
                         LinearGradient(
