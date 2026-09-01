@@ -12,6 +12,7 @@ struct PatchProjectsView: View {
     @ObservedObject var store: PatchProjectStore
     @State private var showCreate = false
     @State private var showImporter = false
+    @State private var toast: ToastMessage?
 
     init(store: PatchProjectStore) {
         self.store = store
@@ -92,13 +93,12 @@ struct PatchProjectsView: View {
         .sheet(item: $store.passwordRequest, onDismiss: store.cancelUnlock) { _ in
             PatchUnlockView(store: store)
         }
-        .alert(item: $store.alert) { alert in
-            Alert(
-                title: Text(language.text(alert.titleKey)),
-                message: Text(alert.message(language: language)),
-                dismissButton: .default(Text(language.text("common.ok")))
-            )
+        .onChange(of: store.alert?.id) { _ in
+            guard let a = store.alert else { return }
+            toast = ToastMessage(text: a.message(language: language))
+            store.alert = nil
         }
+        .toast($toast)
     }
 
     @ViewBuilder
@@ -222,7 +222,6 @@ struct PatchProjectDetailView: View {
     @State private var isWorking = false
     @State private var ruleStates: [UUID: Bool] = [:]
     @State private var togglingRuleID: UUID?
-    @State private var actionAlert: PatchStoreAlert?
     @State private var toast: ToastMessage?
 
     private var item: PatchLibraryItem? {
@@ -317,13 +316,6 @@ struct PatchProjectDetailView: View {
             Button(language.text("patch.restore"), role: .destructive) { restore() }
             Button(language.text("common.cancel"), role: .cancel) {}
         }
-        .alert(item: $actionAlert) { alert in
-            Alert(
-                title: Text(language.text(alert.titleKey)),
-                message: Text(alert.message(language: language)),
-                dismissButton: .default(Text(language.text("common.ok")))
-            )
-        }
         .toast($toast)
     }
 
@@ -395,16 +387,12 @@ struct PatchProjectDetailView: View {
             } catch let error as PatchPackageError {
                 await MainActor.run {
                     togglingRuleID = nil
-                    actionAlert = .failure(
-                        appState: appState,
-                        fallbackMessageKey: error.localizationKey,
-                        fallbackArgument: error.localizationArgument
-                    )
+                    toast = ToastMessage(text: PatchStoreAlert.failure(appState: appState, fallbackMessageKey: error.localizationKey, fallbackArgument: error.localizationArgument).message(language: language))
                 }
             } catch {
                 await MainActor.run {
                     togglingRuleID = nil
-                    actionAlert = .failure(appState: appState, fallbackMessageKey: "patch.error.apply")
+                    toast = ToastMessage(text: PatchStoreAlert.failure(appState: appState, fallbackMessageKey: "patch.error.apply").message(language: language))
                 }
             }
         }
@@ -421,16 +409,9 @@ struct PatchProjectDetailView: View {
             try PatchPackageCodec.validate(project)
             store.update(project: project)
         } catch let error as PatchPackageError {
-            actionAlert = PatchStoreAlert(
-                titleKey: "common.failed",
-                messageKey: error.localizationKey,
-                messageArgument: error.localizationArgument
-            )
+            toast = ToastMessage(text: language.text(error.localizationKey, error.localizationArgument ?? ""))
         } catch {
-            actionAlert = PatchStoreAlert(
-                titleKey: "common.failed",
-                messageKey: "patch.error.invalid_project"
-            )
+            toast = ToastMessage(text: language.text("patch.error.invalid_project"))
         }
     }
 
@@ -442,21 +423,17 @@ struct PatchProjectDetailView: View {
                 _ = try DevicePatchService.apply(project: project)
                 await MainActor.run {
                     isWorking = false
-                    actionAlert = PatchStoreAlert(titleKey: "common.done", messageKey: "patch.applied_message")
+                    toast = ToastMessage(text: language.text("patch.applied_message"))
                 }
             } catch let error as PatchPackageError {
                 await MainActor.run {
                     isWorking = false
-                    actionAlert = .failure(
-                        appState: appState,
-                        fallbackMessageKey: error.localizationKey,
-                        fallbackArgument: error.localizationArgument
-                    )
+                    toast = ToastMessage(text: PatchStoreAlert.failure(appState: appState, fallbackMessageKey: error.localizationKey, fallbackArgument: error.localizationArgument).message(language: language))
                 }
             } catch {
                 await MainActor.run {
                     isWorking = false
-                    actionAlert = .failure(appState: appState, fallbackMessageKey: "patch.error.apply")
+                    toast = ToastMessage(text: PatchStoreAlert.failure(appState: appState, fallbackMessageKey: "patch.error.apply").message(language: language))
                 }
             }
         }
@@ -470,21 +447,17 @@ struct PatchProjectDetailView: View {
                 try DevicePatchService.restore(receipt: receipt)
                 await MainActor.run {
                     isWorking = false
-                    actionAlert = PatchStoreAlert(titleKey: "common.done", messageKey: "patch.restored_message")
+                    toast = ToastMessage(text: language.text("patch.restored_message"))
                 }
             } catch let error as PatchPackageError {
                 await MainActor.run {
                     isWorking = false
-                    actionAlert = .failure(
-                        appState: appState,
-                        fallbackMessageKey: error.localizationKey,
-                        fallbackArgument: error.localizationArgument
-                    )
+                    toast = ToastMessage(text: PatchStoreAlert.failure(appState: appState, fallbackMessageKey: error.localizationKey, fallbackArgument: error.localizationArgument).message(language: language))
                 }
             } catch {
                 await MainActor.run {
                     isWorking = false
-                    actionAlert = .failure(appState: appState, fallbackMessageKey: "patch.error.restore")
+                    toast = ToastMessage(text: PatchStoreAlert.failure(appState: appState, fallbackMessageKey: "patch.error.restore").message(language: language))
                 }
             }
         }
