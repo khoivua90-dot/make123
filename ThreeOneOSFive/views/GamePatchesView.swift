@@ -629,6 +629,14 @@ struct GamePatchesView: View {
                         containerAssign.removeValue(forKey: packageIDString)
                     }
                     didChange = true
+                    // Flush each patch as it finishes so they appear incrementally and
+                    // progress is preserved if the task is cancelled mid-sync.
+                    importedOnlineIDsRaw = imported.joined(separator: ",")
+                    if let enc = try? JSONEncoder().encode(assignments), let j = String(data: enc, encoding: .utf8) { gameAssignmentsRaw = j }
+                    if let enc = try? JSONEncoder().encode(remoteMap), let j = String(data: enc, encoding: .utf8) { remoteToLocalMapRaw = j }
+                    if let enc = try? JSONEncoder().encode(names), let j = String(data: enc, encoding: .utf8) { remoteDisplayNamesRaw = j }
+                    if let enc = try? JSONEncoder().encode(containerAssign), let j = String(data: enc, encoding: .utf8) { containerAssignmentsRaw = j }
+                    store.reload()
                 }
             } catch {
                 continue

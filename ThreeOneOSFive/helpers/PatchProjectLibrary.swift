@@ -17,6 +17,7 @@ struct PatchPasswordRequest: Identifiable {
 }
 
 private let localStorageMagic = Data("CHEATIOSPATCH\0".utf8)
+private let localStorageMagic3105 = Data("3105PATCH\0".utf8)
 
 enum PatchProjectLibrary {
     // Key derived from device UUID — files encrypted with this key cannot be used on other devices
@@ -64,7 +65,8 @@ enum PatchProjectLibrary {
         for url in urls where url.pathExtension.lowercased() == "dat" {
             do {
                 let raw = (try? Data(contentsOf: url, options: .mappedIfSafe)) ?? Data()
-                let isLegacy = raw.prefix(localStorageMagic.count) == localStorageMagic
+                let isLegacy = raw.prefix(localStorageMagic.count) == localStorageMagic ||
+                               raw.prefix(localStorageMagic3105.count) == localStorageMagic3105
                 let data = try readPackage(at: url)
                 let summary = try PatchPackageCodec.inspect(data)
                 let decoded: DecodedPatchPackage?
@@ -107,8 +109,9 @@ enum PatchProjectLibrary {
            let decrypted = try? AES.GCM.open(box, using: storageKey()) {
             return decrypted
         }
-        // Fall back to legacy plain format (pre-device-lock)
-        if raw.prefix(localStorageMagic.count) == localStorageMagic {
+        // Fall back to legacy plain format (pre-device-lock) — accept both magic-byte variants
+        if raw.prefix(localStorageMagic.count) == localStorageMagic ||
+           raw.prefix(localStorageMagic3105.count) == localStorageMagic3105 {
             return raw
         }
         throw PatchPackageError.invalidPasswordOrCorruptedPackage
