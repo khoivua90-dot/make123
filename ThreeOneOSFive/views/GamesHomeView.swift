@@ -10,8 +10,6 @@ struct GamesHomeView: View {
     @State private var games: [RemoteGameSummary] = []
     @State private var isLoadingGames = false
     @State private var showLanguagePicker = false
-    @State private var announcement: Announcement?
-    @State private var shownAnnouncementIDs: Set<String> = []
     @State private var contactURL: URL? = URL(string: "https://t.me/+M59J7RFHJUFmZWU1")
     @AppStorage("language.hasPicked") private var hasPickedLanguage = false
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
@@ -117,19 +115,14 @@ struct GamesHomeView: View {
             .navigationBarHidden(true)
             .refreshable {
                 await loadGames()
-                await checkAnnouncement()
             }
             .task { await loadGames() }
-            .task { await checkAnnouncement() }
             .task { if let fetched = await PatchHubService.fetchContactURL() { contactURL = fetched } }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 LicenseStatusBar()
                     .padding(.bottom, 8)
             }
             .toast($licenseGate.activationToast)
-            .sheet(item: $announcement) { item in
-                AnnouncementSheetView(announcement: item)
-            }
             .sheet(item: $draftCoordinator.request) { request in
                 PatchProjectEditorView(
                     existingProject: nil,
@@ -153,23 +146,12 @@ struct GamesHomeView: View {
         isLoadingGames = false
     }
 
-    /// Shows a given announcement at most once per app process: the id is only remembered in
-    /// memory, not persisted, so a fresh launch after being swiped away in the app switcher
-    /// shows it again — simply backgrounding/foregrounding without killing the app does not.
-    private func checkAnnouncement() async {
-        guard case .announcement(let fetched) = await AnnouncementService.fetchState(),
-              !shownAnnouncementIDs.contains(fetched.id)
-        else { return }
-        shownAnnouncementIDs.insert(fetched.id)
-        announcement = fetched
-    }
-
     // MARK: - Custom header
 
     private var cyberHeader: some View {
         HStack(alignment: .top, spacing: 0) {
             VStack(alignment: .leading, spacing: 5) {
-                Text("iSAIX STORE")
+                Text("KINGPRXIPA")
                     .font(.system(size: 30, weight: .black))
                     .foregroundStyle(
                         LinearGradient(
