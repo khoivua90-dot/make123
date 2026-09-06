@@ -1,8 +1,10 @@
 import SwiftUI
+import WebKit
 
 struct GamePatchesView: View {
     @Environment(\.appLanguage) private var language
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var licenseGate: LicenseGateStore
     let game: RemoteGameSummary
     @ObservedObject var store: PatchProjectStore
 
@@ -13,6 +15,13 @@ struct GamePatchesView: View {
     @State private var containers: [RemoteContainerSummary] = []
     @State private var selectedContainerID: String?
     @State private var containersLoaded = false
+    @State private var gameNotice: GameNotice?
+    @State private var showVideoSheet = false
+
+    private var currentContainerVideoUrl: String? {
+        guard let id = selectedContainerID else { return nil }
+        return containers.first(where: { $0.id == id })?.videoUrl
+    }
     @AppStorage("patch.importedOnlineIDs") private var importedOnlineIDsRaw = ""
     @AppStorage("patch.gameAssignments") private var gameAssignmentsRaw = "{}"
     @AppStorage("patch.remoteToLocalMap") private var remoteToLocalMapRaw = "{}"
@@ -91,6 +100,9 @@ struct GamePatchesView: View {
                     if !game.bundleID.isEmpty {
                         openGameButton
                     }
+                    if currentContainerVideoUrl != nil {
+                        videoTutorialButton
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
@@ -114,17 +126,22 @@ struct GamePatchesView: View {
             }
         }
         .task {
-            // Run together instead of sequentially — sync() can take a while when it has new
-            // patches to download, and waiting for it before even knowing whether this game has
-            // containers is what caused the list to flash from "everything" to "just this tab"
-            // right after opening the screen.
             async let syncTask: () = sync()
             async let containersTask: () = loadContainers()
-            _ = await (syncTask, containersTask)
+            async let noticeTask: () = fetchNotice()
+            _ = await (syncTask, containersTask, noticeTask)
             await loadProjectStates()
+        }
+        .sheet(item: $gameNotice) { notice in
+            GameNoticeSheetView(notice: notice, onContinue: { gameNotice = nil })
         }
         .sheet(item: $store.passwordRequest, onDismiss: store.cancelUnlock) { _ in
             PatchUnlockView(store: store)
+        }
+        .sheet(isPresented: $showVideoSheet) {
+            if let urlStr = currentContainerVideoUrl, let url = URL(string: urlStr) {
+                VideoWebSheet(url: url)
+            }
         }
         .onChange(of: store.alert?.id) { _ in
             guard let a = store.alert else { return }
@@ -167,8 +184,6 @@ struct GamePatchesView: View {
         .animation(.easeInOut(duration: 0.22), value: containersLoaded)
     }
 
-    /// Jumps straight into the game via the private LSApplicationWorkspace API, using the same
-    /// bundle ID already entered for this game on the web admin — no separate URL scheme needed.
     private var openGameButton: some View {
         Button {
             AppLauncherOpenBundleID(game.bundleID)
@@ -176,7 +191,7 @@ struct GamePatchesView: View {
             HStack(spacing: 8) {
                 Image(systemName: "play.fill")
                     .font(.body.weight(.bold))
-                Text(language.text("patch.open_game_now"))
+                Text(game.type == "app" ? "Mở ứng dụng ngay" : language.text("patch.open_game_now"))
                     .font(.body.weight(.bold))
             }
             .frame(maxWidth: .infinity)
@@ -196,6 +211,29 @@ struct GamePatchesView: View {
         )
         .foregroundStyle(Color.black)
         .shadow(color: AppTheme.techGlow.opacity(0.45), radius: 18, x: 0, y: 8)
+    }
+
+    private var videoTutorialButton: some View {
+        Button {
+            showVideoSheet = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "play.rectangle.fill")
+                    .font(.body.weight(.semibold))
+                Text(language.text("patch.watch_tutorial"))
+                    .font(.body.weight(.semibold))
+            }
+            .foregroundStyle(AppTheme.techGlow)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 15)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(AppTheme.techGlow.opacity(0.55), lineWidth: 1)
+            )
+            .shadow(color: AppTheme.techGlow.opacity(0.18), radius: 10, x: 0, y: 4)
+        }
+        .buttonStyle(PressScaleButtonStyle())
     }
 
     /// Roughly how tall one toggle row + its divider ends up on screen, used to pin the card's
@@ -643,10 +681,13 @@ struct GamePatchesView: View {
         }
     }
 
-    /// Loads the mục chứa (tabs) configured for this game and keeps the current tab selected
-    /// across a refresh when it's still valid, defaulting to the first tab otherwise. Always
-    /// marks `containersLoaded` true at the end (even on a failed fetch, falling back to the
-    /// flat list) so the menu card's loading gate never hangs forever.
+    private func fetchNotice() async {
+        let notices = await PatchHubService.fetchGameNotices()
+        if let notice = notices[game.id] {
+            await MainActor.run { gameNotice = notice }
+        }
+    }
+
     private func loadContainers() async {
         defer { containersLoaded = true }
         guard let fetched = try? await PatchHubService.fetchContainers() else {
@@ -693,9 +734,8 @@ struct GamePatchesView: View {
 
         togglingProjectID = item.id
         Task.detached(priority: .userInitiated) {
-            // Verify key with server before every toggle-ON so a bypassed/fake key can't activate patches.
             if isOn {
-                guard await PatchHubService.verifyAccess() else {
+                guard await PatchHubService.verifyAccess(licenseKey: licenseGate.storedKeyCode) else {
                     await MainActor.run {
                         togglingProjectID = nil
                         projectStates[item.id] = false
@@ -742,4 +782,40 @@ struct GamePatchesView: View {
             }
         }
     }
+}
+
+// MARK: - Video Tutorial Sheet
+
+private struct VideoWebSheet: View {
+    let url: URL
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationView {
+            WebView(url: url)
+                .ignoresSafeArea(edges: .bottom)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Đóng") { dismiss() }
+                            .foregroundStyle(AppTheme.neonPurple)
+                    }
+                }
+        }
+    }
+}
+
+private struct WebView: UIViewRepresentable {
+    let url: URL
+
+    func makeUIView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        config.allowsInlineMediaPlayback = true
+        config.mediaTypesRequiringUserActionForPlayback = []
+        let wv = WKWebView(frame: .zero, configuration: config)
+        wv.load(URLRequest(url: url))
+        return wv
+    }
+
+    func updateUIView(_ uiView: WKWebView, context: Context) {}
 }

@@ -12,6 +12,7 @@ struct GamesHomeView: View {
     @State private var showLanguagePicker = false
     @State private var announcement: Announcement?
     @State private var shownAnnouncementIDs: Set<String> = []
+    @State private var contactURL: URL? = URL(string: "https://t.me/+M59J7RFHJUFmZWU1")
     @AppStorage("language.hasPicked") private var hasPickedLanguage = false
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
 
@@ -93,7 +94,7 @@ struct GamesHomeView: View {
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 32)
                                 Button {
-                                    if let url = URL(string: "https://t.me/+M59J7RFHJUFmZWU1") {
+                                    if let url = contactURL {
                                         UIApplication.shared.open(url)
                                     }
                                 } label: {
@@ -120,6 +121,7 @@ struct GamesHomeView: View {
             }
             .task { await loadGames() }
             .task { await checkAnnouncement() }
+            .task { if let fetched = await PatchHubService.fetchContactURL() { contactURL = fetched } }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 LicenseStatusBar()
                     .padding(.bottom, 8)

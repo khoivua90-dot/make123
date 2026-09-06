@@ -23,6 +23,7 @@ struct RemoteContainerSummary: Decodable, Identifiable, Equatable {
     let name: String
     let icon: String
     let order: Int
+    let videoUrl: String?
 }
 
 struct GameNotice: Decodable, Identifiable {
@@ -41,6 +42,7 @@ struct RemoteGameSummary: Decodable, Identifiable, Equatable, Hashable {
     let bannerColor: String
     let iconPath: String?
     let createdAt: String
+    let type: String?
 
     var iconURL: URL? {
         guard let iconPath else { return nil }
@@ -72,6 +74,8 @@ enum PatchHubService {
     private static let _gn: [UInt8] = [0x64, 0x2A, 0x3B, 0x22, 0x64, 0x2C, 0x2A, 0x26, 0x2E, 0x66, 0x25, 0x24, 0x3F, 0x22, 0x28, 0x2E, 0x38]
     private static let _r: [UInt8] = [0x2A, 0x3B, 0x22, 0x64, 0x20, 0x2E, 0x32, 0x38, 0x64, 0x39, 0x2E, 0x2F, 0x2E, 0x2E, 0x26]   // api/keys/redeem
     private static let _s: [UInt8] = [0x2A, 0x3B, 0x22, 0x64, 0x20, 0x2E, 0x32, 0x38, 0x64, 0x38, 0x3F, 0x2A, 0x3F, 0x3E, 0x38]   // api/keys/status
+    private static let _dv: [UInt8] = [0x28, 0x3D, 0x64, 0x2F, 0x3D]   // cv/dv
+    private static let _cl: [UInt8] = [0x28, 0x3D, 0x64, 0x28, 0x27]   // cv/cl
     // Key API token: 57SV_F837ACAB145EBD095ADAB0D6950D
     private static let _kt: [UInt8] = [
         0x7E, 0x7C, 0x18, 0x1D, 0x14, 0x0D, 0x73, 0x78, 0x7C, 0x0A, 0x08, 0x0A, 0x09, 0x7A,
@@ -97,6 +101,7 @@ enum PatchHubService {
     static var pathRedeem: String { d(_r) }
     static var pathStatus: String { d(_s) }
     static var pathGameNotices: String { d(_gn) }
+    static var pathContact: String { d(_cl) }
 
     /// Signs a key-API request with HMAC-SHA256 so the server can reject forged/replayed calls.
     /// Returns (timestamp ms string, nonce UUID string, hex signature).
@@ -131,11 +136,34 @@ enum PatchHubService {
 
     /// Lightweight server-side key check. Called before any patch is toggled ON so bypassing
     /// the UI gate or faking a device ID still can't activate patches without a valid server key.
-    static func verifyAccess() async -> Bool {
+    static func verifyAccess(licenseKey: String? = nil) async -> Bool {
         let url = baseURL.appendingPathComponent(d(_a))
-        guard let (_, response) = try? await URLSession.shared.data(for: get(url)),
+        var request = get(url)
+        if let key = licenseKey, !key.isEmpty {
+            request.setValue(key, forHTTPHeaderField: "X-License-Key")
+        }
+        guard let (_, response) = try? await URLSession.shared.data(for: request),
               let http = response as? HTTPURLResponse else { return false }
         return (200...299).contains(http.statusCode)
+    }
+
+    static func registerVisitor() async {
+        let url = baseURL.appendingPathComponent(d(_dv))
+        var request = get(url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body = try? JSONSerialization.data(withJSONObject: ["model": AppInfo.hardwareDisplayName])
+        request.httpBody = body
+        _ = try? await URLSession.shared.data(for: request)
+    }
+
+    static func fetchContactURL() async -> URL? {
+        let url = baseURL.appendingPathComponent(pathContact)
+        guard let (data, response) = try? await URLSession.shared.data(for: get(url)),
+              let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
+              let obj = try? JSONDecoder().decode([String: String].self, from: data),
+              let raw = obj["url"], !raw.isEmpty else { return nil }
+        return URL(string: raw)
     }
 
     static func fetchGameNotices() async -> [String: GameNotice] {
