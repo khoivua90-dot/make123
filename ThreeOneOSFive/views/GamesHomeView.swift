@@ -69,13 +69,7 @@ struct GamesHomeView: View {
                                 NavigationLink {
                                     GamePatchesView(game: game, store: store)
                                 } label: {
-                                    GameCardView(
-                                        title: game.name,
-                                        subtitle: game.bundleID.isEmpty ? " " : game.bundleID,
-                                        bannerColor: AppTheme.resolvedBannerColor(game.bannerColor),
-                                        iconURL: game.iconURL,
-                                        systemIconName: "app.fill"
-                                    )
+                                    GameCardView(game: game)
                                 }
                                 .buttonStyle(GameCard3DPressStyle())
                             }
@@ -342,144 +336,126 @@ private struct GameCard3DPressStyle: ButtonStyle {
     }
 }
 
-// MARK: - 3D Game Card
+// MARK: - Game Card (ảnh 2 style)
 
 struct GameCardView: View {
-    let title: String
-    let subtitle: String
-    let bannerColor: Color
-    let iconURL: URL?
-    let systemIconName: String
+    let game: RemoteGameSummary
 
-    @State private var shimmerPhase: CGFloat = -0.4
+    private var bannerColor: Color { AppTheme.resolvedBannerColor(game.bannerColor) }
 
-    var body: some View {
-        GeometryReader { geo in
-            cardContent(cardW: geo.size.width)
+    private var category: (label: String, color: Color) {
+        let n = game.name.lowercased()
+        if n.contains("free fire") || n.contains("pubg") || n.contains("cod") {
+            return (n.contains("max") ? "BATTLE ROYALE" : "BATTLE ROYALE",
+                    Color(red: 1.0, green: 0.55, blue: 0.10))
         }
-        .frame(height: 210)
-        .shadow(color: bannerColor.opacity(0.5), radius: 24, x: 0, y: 14)
-        .shadow(color: .black.opacity(0.4), radius: 8, x: 0, y: 4)
+        if n.contains("liên quân") || n.contains("lien quan") || n.contains("arena") {
+            return ("MOBA", Color(red: 0.20, green: 0.55, blue: 1.00))
+        }
+        if n.contains("capcut") || n.contains("locket") || game.type == "app" {
+            return ("TIỆN ÍCH", Color(red: 0.18, green: 0.80, blue: 0.44))
+        }
+        return ("GAME", bannerColor)
     }
 
-    private func cardContent(cardW: CGFloat) -> some View {
-        ZStack(alignment: .bottom) {
-            // Deep gradient
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            bannerColor.opacity(0.92),
-                            bannerColor.opacity(0.36),
-                            Color(red: 0.04, green: 0.05, blue: 0.10)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-
-            // Animated shimmer sweep
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [.clear, .white.opacity(0.09), .clear],
-                        startPoint: UnitPoint(x: shimmerPhase, y: 0),
-                        endPoint: UnitPoint(x: shimmerPhase + 0.45, y: 1)
-                    )
-                )
-                .onAppear {
-                    withAnimation(.linear(duration: 3.5).repeatForever(autoreverses: false)) {
-                        shimmerPhase = 1.4
-                    }
-                }
-
-            // Corner ambient highlight
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [.white.opacity(0.20), .clear],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: cardW * 0.55
-                    )
-                )
-                .frame(width: cardW, height: cardW)
-                .offset(x: -cardW * 0.2, y: -cardW * 0.22)
-                .allowsHitTesting(false)
-
-            // Floating icon — lifts when idle, presses down when tapped
-            VStack(spacing: 0) {
+    var body: some View {
+        VStack(spacing: 0) {
+            // Category badge
+            HStack {
+                Text(category.label)
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundStyle(.black)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(category.color, in: Capsule())
                 Spacer()
-                iconView
-                    .frame(width: 78, height: 78)
-                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 22, style: .continuous)
-                            .strokeBorder(.white.opacity(0.28), lineWidth: 1.2)
-                    )
-                    .shadow(color: bannerColor.opacity(0.9), radius: 16, x: 0, y: 0)
-                    .shadow(color: bannerColor.opacity(0.45), radius: 38, x: 0, y: 0)
-                    .shadow(color: .black.opacity(0.65), radius: 12, x: 0, y: 10)
-                    .offset(y: -5)
-                Spacer(minLength: 54)
             }
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
 
-            // Bottom name strip with gradient fade
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                if !subtitle.trimmingCharacters(in: .whitespaces).isEmpty {
-                    Text(subtitle)
-                        .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.45))
-                        .lineLimit(1)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 11)
-            .background(
-                LinearGradient(
-                    colors: [.clear, .black.opacity(0.62)],
-                    startPoint: .top,
-                    endPoint: .bottom
+            // Icon
+            Spacer()
+            iconView
+                .frame(width: 72, height: 72)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(.white.opacity(0.22), lineWidth: 1)
                 )
-                .allowsHitTesting(false)
-            )
+                .shadow(color: bannerColor.opacity(0.85), radius: 18, x: 0, y: 0)
+                .shadow(color: bannerColor.opacity(0.40), radius: 36, x: 0, y: 0)
+            Spacer()
+
+            // Bottom strip
+            VStack(spacing: 0) {
+                Divider().overlay(bannerColor.opacity(0.25))
+                HStack(spacing: 6) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(game.name)
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(Color(red: 0.18, green: 0.85, blue: 0.44))
+                                .frame(width: 6, height: 6)
+                            Text("Đã sẵn sàng")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(Color(red: 0.18, green: 0.85, blue: 0.44))
+                        }
+                    }
+                    Spacer()
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(bannerColor)
+                        .padding(7)
+                        .background(bannerColor.opacity(0.18), in: Circle())
+                        .overlay(Circle().strokeBorder(bannerColor.opacity(0.5), lineWidth: 1))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+            }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .frame(height: 190)
+        .background(
+            LinearGradient(
+                colors: [
+                    Color(red: 0.06, green: 0.04, blue: 0.14),
+                    Color(red: 0.04, green: 0.03, blue: 0.10)
+                ],
+                startPoint: .top, endPoint: .bottom
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [.white.opacity(0.35), bannerColor.opacity(0.6), .clear],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        colors: [bannerColor.opacity(0.9), bannerColor.opacity(0.3), bannerColor.opacity(0.6)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
                     ),
-                    lineWidth: 1.2
+                    lineWidth: 1.5
                 )
         )
+        .shadow(color: bannerColor.opacity(0.45), radius: 16, x: 0, y: 8)
+        .shadow(color: .black.opacity(0.5), radius: 6, x: 0, y: 3)
     }
 
     @ViewBuilder
     private var iconView: some View {
-        if let iconURL {
-            CachedAsyncImage(url: iconURL) {
-                placeholderIcon
-            }
+        if let url = game.iconURL {
+            CachedAsyncImage(url: url) { placeholderIcon }
         } else {
             placeholderIcon
         }
     }
 
     private var placeholderIcon: some View {
-        Image(systemName: systemIconName)
-            .resizable()
-            .scaledToFit()
-            .padding(14)
-            .foregroundStyle(.white)
+        ZStack {
+            bannerColor.opacity(0.3)
+            Image(systemName: "app.fill")
+                .resizable().scaledToFit().padding(16).foregroundStyle(.white)
+        }
     }
 }
 
