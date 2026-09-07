@@ -12,7 +12,7 @@ struct SettingsView: View {
                     AppLogo()
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("iPA Fectha").font(.headline)
+                        Text("VANDUY IOS").font(.headline)
                         Text(language.text("common.version", appVersion))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
