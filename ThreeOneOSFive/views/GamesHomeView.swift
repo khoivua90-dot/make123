@@ -10,7 +10,6 @@ struct GamesHomeView: View {
     @State private var games: [RemoteGameSummary] = []
     @State private var isLoadingGames = false
     @State private var showLanguagePicker = false
-    @State private var contactURL: URL? = URL(string: "https://t.me/+M59J7RFHJUFmZWU1")
     @AppStorage("language.hasPicked") private var hasPickedLanguage = false
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
 
@@ -85,26 +84,12 @@ struct GamesHomeView: View {
                         .padding(.top, 6)
 
                         if games.isEmpty && !isLoadingGames {
-                            VStack(spacing: 12) {
-                                Text("App đang tiến hành nâng cấp mới, truy cập ngay Telegram để nhận thông báo mới")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 32)
-                                Button {
-                                    if let url = contactURL {
-                                        UIApplication.shared.open(url)
-                                    }
-                                } label: {
-                                    Text("Vào ngay")
-                                        .font(.subheadline.weight(.semibold))
-                                        .foregroundStyle(.black)
-                                        .padding(.horizontal, 22)
-                                        .padding(.vertical, 9)
-                                        .background(AppTheme.techGlow, in: Capsule())
-                                }
-                            }
-                            .padding(.top, 24)
+                            Text("App đang tiến hành nâng cấp mới")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
+                                .padding(.top, 24)
                         }
 
                         Spacer(minLength: 32)
@@ -117,7 +102,6 @@ struct GamesHomeView: View {
                 await loadGames()
             }
             .task { await loadGames() }
-            .task { if let fetched = await PatchHubService.fetchContactURL() { contactURL = fetched } }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 LicenseStatusBar()
                     .padding(.bottom, 8)

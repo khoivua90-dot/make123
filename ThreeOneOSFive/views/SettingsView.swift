@@ -36,27 +36,6 @@ struct SettingsView: View {
             }
             */
 
-            Section {
-                HStack {
-                    Label {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Nhóm thông báo")
-                                .font(.body)
-                            Text("t.me/+rWMEb0dwIn1hOGU1")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    } icon: {
-                        Image(systemName: "paperplane.fill")
-                            .foregroundStyle(Color(red: 0.13, green: 0.59, blue: 0.95))
-                    }
-                    Spacer()
-                    Link("Vào ngay", destination: URL(string: "https://t.me/+rWMEb0dwIn1hOGU1")!)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color(red: 0.13, green: 0.59, blue: 0.95))
-                }
-            }
-
             Section(language.text("common.device")) {
                 LabeledContent(language.text("dashboard.hardware_model"), value: AppInfo.displayMachineName)
                 LabeledContent(language.text("settings.ios_version"), value: "\(AppInfo.osVersion) (\(AppInfo.osBuild))")
