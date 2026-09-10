@@ -74,7 +74,7 @@ struct KeyEntryView: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            Text("Make By ©ALAPHAREGEDIT.COM")
+            Text("Make By ©DVCHEAT IOS")
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(.secondary)
                 .padding(.vertical, 14)
@@ -94,3 +94,8 @@ struct KeyEntryView: View {
         }
     }
 }
+
+
+
+
+

@@ -34,7 +34,7 @@
 "dashboard.unsupported_message" = "iOS %@ chưa được hỗ trợ.\n\nCác phiên bản hiện được hỗ trợ:\n• iOS 18.0–18.7.1\n• iOS 26.x\n• iOS 27.0 beta 1–4";
 "dashboard.installation" = "Cài đặt ứng dụng";
 "dashboard.enterprise_signing" = "CheatiOSVip chỉ hoạt động khi được ký bằng chứng chỉ doanh nghiệp. Không hỗ trợ SideStore, AltStore, 3uTools hoặc LiveContainer.";
-"tab.home" = "ALAPHAREGEDIT.COM";
+"tab.home" = "DVCHEAT IOS";
 "tab.files" = "Tệp";
 "tab.patches" = "Patch";
 "tab.settings" = "Cài đặt";
@@ -385,7 +385,7 @@
 
 // MARK: - License key gate
 "license.title" = "Nhập Key Kích Hoạt";
-"license.subtitle" = "Nhập key được cấp để mở khóa ALAPHAREGEDIT.COM trên thiết bị này.";
+"license.subtitle" = "Nhập key được cấp để mở khóa DVCHEAT IOS trên thiết bị này.";
 "license.placeholder" = "Nhập mã key";
 "license.activate" = "Kích hoạt";
 "license.change_key" = "Đổi Key";
@@ -410,3 +410,9 @@
 "smart_mode.toggle_title" = "Kích hoạt chế độ thông minh";
 "smart_mode.toggle_subtitle" = "Hiện icon nổi trên màn hình";
 "smart_mode.pick_game" = "Chọn game";
+
+
+
+
+
+
